@@ -197,16 +197,7 @@
 <head>
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
- <title>Prayer Time</title>
- <!-- PWA Manifest -->
- <link rel="manifest" href="manifest.json">
- <meta name="theme-color" content="#050a12">
- <meta name="mobile-web-app-capable" content="yes">
- <meta name="apple-mobile-web-app-capable" content="yes">
- <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
- <meta name="apple-mobile-web-app-title" content="Prayer Time">
- <link rel="apple-touch-icon" href="icon-512.png">
- <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+ <title>Start - Masjid Board</title>
  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
  <style>
@@ -224,6 +215,10 @@
  -webkit-text-size-adjust: none !important;
  -moz-text-size-adjust: none !important;
  text-size-adjust: none !important;
+ width: 100%;
+ min-width: 100%;
+ overflow-x: hidden;
+ background: #050a12;
  }
 
  * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -240,9 +235,12 @@
  justify-content: center;
  align-items: center;
  min-height: 100vh;
+ width: 100%;
+ min-width: 100%;
  margin: 0;
  /* Top padding clears the fixed corner buttons (12px top + ~38-50px btn + gap) */
  padding: max(68px, 8vh) 5vw 3vh;
+ overflow-x: hidden;
  overflow-y: auto;
  position: relative;
  }
@@ -270,23 +268,12 @@
  color: #56d0e8;
  font-size: clamp(32px, 7vw, 52px);
  margin: 0 0 2.5vh 0;
- font-weight: 500;
+ font-weight: 700;
  letter-spacing: 0px;
  text-shadow: 0 0 20px rgba(86,208,232,0.25);
- font-family: 'Noto Nastaliq Urdu', serif;
- direction: rtl;
+ font-family: 'Inter', sans-serif;
+ direction: ltr;
  line-height: 1.4;
- }
-
- #main-subtitle {
- color: #8899aa;
- font-size: clamp(14px, 3vw, 17px);
- margin: 0 0 4vh 0;
- font-weight: 400;
- letter-spacing: 0.1px;
- font-family: 'Noto Nastaliq Urdu', serif;
- direction: rtl;
- line-height: 1.5;
  }
 
  /* ── NAVIGATION BUTTONS (2×2 GRID) ────────────────── */
@@ -345,19 +332,19 @@
  letter-spacing: 0px;
  position: relative;
  z-index: 1;
- font-family: 'Noto Nastaliq Urdu', serif;
- direction: rtl;
+ font-family: 'Inter', sans-serif;
+ direction: ltr;
  line-height: 1.4;
  }
 
  .menu-btn span.subtitle {
  font-size: clamp(13px, 3.2vw, 16px);
  opacity: 0.9;
- font-family: 'Noto Nastaliq Urdu', serif;
+ font-family: 'Inter', sans-serif;
  font-weight: 500;
  position: relative;
  z-index: 1;
- direction: rtl;
+ direction: ltr;
  line-height: 1.4;
  margin-top: 4px;
  }
@@ -1163,8 +1150,6 @@
  letter-spacing: 0.2px;
  }
 
- /* ── REORDER BUTTON — duplicate removed, see definition above ── */
-
  #box-msg {
  font-size: 15px;
  margin-bottom: 12px;
@@ -1500,7 +1485,7 @@
  <hr style="border:none; border-top:1px solid rgba(255,255,255,0.1); margin:18px 0;">
  <div class="contact-box">
  <h3 id="help-contact-title" style="margin:0 0 8px 0;"></h3>
- <p style="margin:0; color:#ddeeff; font-size:13px;"> :<br>
+ <p style="margin:0; color:#ddeeff; font-size:13px;">
  <a href="mailto:masjidboard820@gmail.com" dir="ltr">masjidboard820@gmail.com</a>
  </p>
  </div>
@@ -1537,9 +1522,8 @@
  </div>
 </div>
 
-<h1>Masjid Board</h1>
-<p id="main-subtitle" style="display:none;"></p>
-<p id="main-subtitle-en" style="color: #7a9aaa; font-size: clamp(14px, 2.8vw, 17px); margin: 0 0 3.5vh 0; font-weight: 500; letter-spacing: 0.5px; font-family: 'Noto Nastaliq Urdu', serif; direction: ltr; line-height: 1.5;">How would you like to use this device?</p>
+<h1 id="main-heading">Masjid Board</h1>
+<p id="main-subtitle-en" style="color: #7a9aaa; font-size: clamp(14px, 2.8vw, 17px); margin: 0 0 3.5vh 0; font-weight: 500; letter-spacing: 0.5px; font-family: 'Inter', sans-serif; direction: ltr; line-height: 1.5;">How would you like to use this device?</p>
 <p id="mode-title" style="display:none;"></p>
 
 <div id="main-buttons" class="button-grid">
@@ -1609,12 +1593,12 @@
  <div id="layout-selection" style="display: none; margin-top: 18px; border-top: 1px solid rgba(86,208,232,0.2); padding-top: 16px;">
  <p style="font-size: 14px; color: #ffaa00; margin-bottom: 5px; font-weight: bold;"><span style="font-weight:600; color:#f0c040;">Select Layout:</span></p>
  <select id="tvLayout" onchange="updateLayoutDesc()">
- <option value="auto">🔗 Same as Main TV</option>
- <option value="all">📺 Full Screen</option>
- <option value="center">🕐 Clock Only</option>
- <option value="right">🕌 Prayer Times Only</option>
- <option value="left">🌙 Sahr & Iftar Only</option>
- <option value="dashboard">📊 Dashboard</option>
+ <option value="auto"      data-en="🔗 Same as Main TV"       data-ur="🔗 مین ٹی وی جیسا">🔗 Same as Main TV</option>
+ <option value="all"       data-en="📺 Full Screen"            data-ur="📺 مکمل اسکرین">📺 Full Screen</option>
+ <option value="center"    data-en="🕐 Clock Only"             data-ur="🕐 صرف گھڑی">🕐 Clock Only</option>
+ <option value="right"     data-en="🕌 Prayer Times Only"      data-ur="🕌 صرف نماز کے اوقات">🕌 Prayer Times Only</option>
+ <option value="left"      data-en="🌙 Sahr &amp; Iftar Only"  data-ur="🌙 صرف سحر و افطار">🌙 Sahr &amp; Iftar Only</option>
+ <option value="dashboard" data-en="📊 Dashboard"              data-ur="📊 ڈیش بورڈ">📊 Dashboard</option>
  </select>
  <div id="layout-desc"></div>
  <button class="btn btn-tv" id="link-tv-submit-btn" style="width:100%; margin-top:14px; background: linear-gradient(135deg, #56d0e8 0%, #2a8aaa 100%); color:#000; direction:ltr;" onclick="submitLinkTv()">Link TV</button>
@@ -1631,6 +1615,19 @@
  const firebaseConfig = { databaseURL: "https://masjid-prayer-taime-default-rtdb.firebaseio.com/" };
  if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
  const db = firebase.database();
+
+ /**
+  * dbOnce(ref) — wraps db.ref(...).once('value') with a 10-second timeout.
+  * If Firebase stalls (not drops), rejects with an error so UI buttons re-enable.
+  */
+ function dbOnce(ref) {
+   return Promise.race([
+     ref.once('value'),
+     new Promise(function(_, reject) {
+       setTimeout(function() { reject(new Error('timeout')); }, 10000);
+     })
+   ]);
+ }
 
  function openHelp() {
  document.getElementById('help-screen').style.display = 'flex';
@@ -1663,6 +1660,11 @@
 
  document.getElementById('autostart-toggle').checked = mainOn;
  document.getElementById('autostart-link-toggle').checked = linkOn;
+
+ // Pause any running autostart timers while settings are open — user is actively interacting.
+ // Timers will restart if the user re-enables the toggle after closing.
+ clearTimeout(_autostartTimer); _autostartTimer = null;
+ clearTimeout(_autostartLinkTimer); _autostartLinkTimer = null;
 
  _updateAutostartUI();
 
@@ -1856,12 +1858,13 @@
 
  function showInput(mode) {
  selectedMode = mode;
+ // Reset input state (clears digit counter class, pin counter, etc.) before showing new mode
+ resetCodeInput();
  document.getElementById('main-buttons').style.display = 'none';
  document.querySelector('.exit-icon-btn').style.display = 'none';
  document.querySelector('.info-icon-btn').style.display = 'none';
  document.getElementById('lang-toggle-btn').style.display = 'none';
  document.querySelector('.settings-icon-btn').style.display = 'none';
- document.getElementById('main-subtitle').style.display = 'none';
  document.getElementById('main-subtitle-en').style.display = 'none';
  // Show back arrow, hide exit btn
  document.getElementById('back-arrow-btn').style.display = 'flex';
@@ -1936,7 +1939,6 @@
  document.querySelector('.info-icon-btn').style.display = 'flex';
  document.getElementById('lang-toggle-btn').style.display = 'flex';
  document.querySelector('.settings-icon-btn').style.display = 'flex';
- document.getElementById('main-subtitle').style.display = 'block';
  document.getElementById('main-subtitle-en').style.display = 'block';
  document.getElementById('mode-title').style.display = 'none';
  document.getElementById('back-arrow-btn').style.display = 'none';
@@ -1966,8 +1968,8 @@
  setTimeout(function() { var inp = document.getElementById('masjidCode'); if (inp) inp.focus(); }, 80);
  // Back arrow goes back to saved list
  document.getElementById('back-arrow-btn').onclick = function() {
+ resetCodeInput();
  document.getElementById('code-input-area').style.display = 'none';
- document.getElementById('masjidCode').value = '';
  document.getElementById('saved-mosques-area').style.display = 'block';
  document.getElementById('back-arrow-btn').onclick = handleBack;
  renderSavedEntries(mode);
@@ -2260,7 +2262,7 @@
  connectBtn.disabled = true;
  connectBtn.textContent = _t('verifying');
 
- db.ref('mosques/' + mosqueID).once('value').then((snapshot) => {
+ dbOnce(db.ref('mosques/' + mosqueID)).then((snapshot) => {
  connectBtn.disabled = false;
  connectBtn.innerHTML = _t('connectBtn');
 
@@ -2278,7 +2280,7 @@
  pinArea.style.display = 'block';
 
  // Check if PIN already set or first-time setup
- db.ref('mosques/' + mosqueID + '/settings/adminPassword').once('value').then((snap) => {
+ dbOnce(db.ref('mosques/' + mosqueID + '/settings/adminPassword')).then((snap) => {
  const pinMsg = document.getElementById('pin-msg');
  if (!snap.val()) {
  pinMsg.innerHTML = _t('pinFirstSetup');
@@ -2307,7 +2309,7 @@
  connectBtn.disabled = true;
  connectBtn.textContent = _t('verifying');
 
- db.ref('mosques/' + mosqueID).once('value').then((snapshot) => {
+ dbOnce(db.ref('mosques/' + mosqueID)).then((snapshot) => {
  connectBtn.disabled = false;
  connectBtn.innerHTML = _t('connectBtn');
 
@@ -2337,8 +2339,9 @@
  const name = await showPrompt({
  icon: "🕌", en: _t("mosqueNamePrompt"),
  type: "info", defaultVal: "Masjid " + code, placeholder: "Masjid " + code, saveLbl: _t("mosqueSaveBtn")
- }) || ("Masjid " + code);
- list.push({ id: code, name: name.trim() });
+ });
+ if (name === null) return; // user pressed Cancel — abort
+ list.push({ id: code, name: name.trim() || ("Masjid " + code) });
  localStorage.setItem('saved_mosques', JSON.stringify(list));
  } else {
  await showAlert({ icon: "🕌", en: _t("alreadySavedMusalli"), type: "info" });
@@ -2368,7 +2371,7 @@
  pinBtn.textContent = _t('verifying');
 
  try {
- const snap = await db.ref('mosques/' + mosqueID + '/settings/adminPassword').once('value');
+ const snap = await dbOnce(db.ref('mosques/' + mosqueID + '/settings/adminPassword'));
  pinBtn.disabled = false;
  pinBtn.innerHTML = _t('confirmPin');
  const savedPin = snap.val();
@@ -2389,8 +2392,15 @@
  const aname = await showPrompt({
  icon: "🕌", en: _t("adminMosqueNamePrompt"),
  type: "info", defaultVal: "Mosque " + code, placeholder: "Mosque " + code, saveLbl: _t("mosqueSaveBtn")
- }) || ("Mosque " + code);
- admins.push({ id: code, name: aname.trim(), pin: pin });
+ });
+ if (aname === null) {
+ // User pressed Cancel — undo session/local state and fully reset UI
+ sessionStorage.removeItem('admin_pin_verified');
+ localStorage.removeItem('mosque_id');
+ resetCodeInput();
+ return;
+ }
+ admins.push({ id: code, name: aname.trim() || ("Mosque " + code), pin: pin });
  localStorage.setItem('saved_admins', JSON.stringify(admins));
  } else {
  await showAlert({ icon: "📱", en: _t("alreadySavedAdmin"), type: "info" });
@@ -2426,8 +2436,15 @@
  const aname2 = await showPrompt({
  icon: "🕌", en: _t("adminMosqueNamePrompt"),
  type: "info", defaultVal: "Mosque " + code, placeholder: "Mosque " + code, saveLbl: _t("mosqueSaveBtn")
- }) || ("Mosque " + code);
- admins2.push({ id: code, name: aname2.trim(), pin: pin });
+ });
+ if (aname2 === null) {
+ // User pressed Cancel — undo the session/local state and fully reset UI
+ sessionStorage.removeItem('admin_pin_verified');
+ localStorage.removeItem('mosque_id');
+ resetCodeInput();
+ return;
+ }
+ admins2.push({ id: code, name: aname2.trim() || ("Mosque " + code), pin: pin });
  localStorage.setItem('saved_admins', JSON.stringify(admins2));
  } else {
  await showAlert({ icon: "📱", en: _t("alreadySavedAdmin"), type: "info" });
@@ -2549,8 +2566,15 @@
  const name = await showPrompt({
  icon: "🔗", en: _t("linkTvNamePrompt"),
  type: "info", defaultVal: "Link TV " + code, placeholder: "Link TV " + code, saveLbl: _t("mosqueSaveBtn")
- }) || ("Link TV " + code);
- links.push({ id: code, name: name.trim(), layout: layout });
+ });
+ if (name === null) {
+ // User pressed Cancel — undo storage state and fully reset UI
+ sessionStorage.removeItem('link_tv_pin_verified');
+ localStorage.removeItem('is_linked_tv');
+ resetCodeInput();
+ return;
+ }
+ links.push({ id: code, name: name.trim() || ("Link TV " + code), layout: layout });
  localStorage.setItem('saved_links', JSON.stringify(links));
  } else {
  // Update existing layout
@@ -2570,11 +2594,15 @@
  document.getElementById('adminPin').value = '';
  document.getElementById('pin-input-area').style.display = 'none';
  document.getElementById('layout-selection').style.display = 'none';
- document.getElementById('pin-counter').innerHTML = '0 / 4 &nbsp; — ' + _t('digitsLabel');
+ const pinCounter = document.getElementById('pin-counter');
+ pinCounter.innerHTML = '0 / 4 &nbsp; — ' + _t('digitsLabel');
+ pinCounter.style.color = '';
  const connectBtn = document.querySelector('#code-input-area .btn-tv');
  connectBtn.style.display = 'block';
  connectBtn.innerHTML = _t('connectBtn');
- document.getElementById('digit-counter').innerHTML = '0 / 8 &nbsp; — ' + _t('digitsLabel');
+ const digitCounter = document.getElementById('digit-counter');
+ digitCounter.innerHTML = '0 / 8 &nbsp; — ' + _t('digitsLabel');
+ digitCounter.classList.remove('complete');
  }
 
  function updateLayoutDesc() {
@@ -3055,7 +3083,6 @@
    cancelBtn:      'Cancel',
    exitQuestion:   'Do you want to exit the app?',
    exitCancel:     'Cancel',
-   pageTitle:      'Masjid Board',
    exitConfirm:    'Exit',
    digitsLabel:    'digits',
    errIncorrectPin: 'Incorrect PIN!',
@@ -3099,7 +3126,6 @@
    adminMosqueNamePrompt: 'Give this Admin Mosque a name',
    // hardcoded alert messages
    errMasterCodeAsPin: 'This is the master code and cannot be used as a PIN.',
-   errInternet:    'Internet connection issue. Please try again.',
    pinResetApproved: 'Approved! Please set a new 4-digit PIN.',
    pinResetTimeout: 'Timed out! No response from Masjid Board within 15 seconds.',
    pinResetNewLabel: '🔐 Create a new 4-digit PIN',
@@ -3203,7 +3229,6 @@
    adminMosqueNamePrompt: 'اس ایڈمن مسجد کو ایک نام دیں',
    // hardcoded alert messages
    errMasterCodeAsPin: 'یہ ماسٹر کوڈ ہے اور اسے پن کے طور پر استعمال نہیں کیا جا سکتا۔',
-   errInternet:    'انٹرنیٹ کنیکشن کا مسئلہ ہے۔ دوبارہ کوشش کریں۔',
    pinResetApproved: 'منظور ہو گیا! براہ کرم نیا 4 ہندسوں کا پن بنائیں۔',
    pinResetTimeout: 'وقت ختم! مسجد بورڈ نے 15 سیکنڈ میں جواب نہیں دیا۔',
    pinResetNewLabel: '🔐 نیا 4 ہندسوں کا پن بنائیں',
@@ -3245,20 +3270,27 @@
   // Body text direction for RTL/LTR feel on main text — keep buttons LTR
   // We won't flip the whole page, just update text content
 
-  // Main title
-  var h1s = document.querySelectorAll('h1');
-  h1s.forEach(function(h) {
-   if (!h.closest('#help-screen') && !h.closest('#settings-screen')) {
-    h.textContent = L.pageTitle;
-   }
-  });
+  // Main title — update text AND switch font/direction per language
+  var mainH1 = document.getElementById('main-heading');
+  if (mainH1) {
+   mainH1.textContent = L.pageTitle;
+   mainH1.style.fontFamily = isUr ? "'Noto Nastaliq Urdu', serif" : "'Inter', sans-serif";
+   mainH1.style.fontWeight  = isUr ? '500' : '700';
+   mainH1.style.direction   = isUr ? 'rtl' : 'ltr';
+  }
 
   // Main subtitle
   var subEn = document.getElementById('main-subtitle-en');
-  if (subEn) subEn.textContent = L.subtitle;
+  if (subEn) {
+   subEn.textContent = L.subtitle;
+   subEn.style.fontFamily = isUr ? "'Noto Nastaliq Urdu', serif" : "'Inter', sans-serif";
+   subEn.style.direction  = isUr ? 'rtl' : 'ltr';
+  }
 
   // Main menu buttons (grid)
   var btns = document.querySelectorAll('#main-buttons .menu-btn');
+  var btnFont = isUr ? "'Noto Nastaliq Urdu', serif" : "'Inter', sans-serif";
+  var btnDir  = isUr ? 'rtl' : 'ltr';
   if (btns.length >= 4) {
    // link_tv (0), main_tv (1), musalli (2), admin (3)
    var data = [
@@ -3270,8 +3302,16 @@
    btns.forEach(function(btn, i) {
     var t = btn.querySelector('.title');
     var s = btn.querySelector('.subtitle');
-    if (t && data[i]) t.textContent = data[i].title;
-    if (s && data[i]) s.textContent = data[i].sub;
+    if (t && data[i]) {
+     t.textContent = data[i].title;
+     t.style.fontFamily = btnFont;
+     t.style.direction  = btnDir;
+    }
+    if (s && data[i]) {
+     s.textContent = data[i].sub;
+     s.style.fontFamily = btnFont;
+     s.style.direction  = btnDir;
+    }
    });
   }
 
@@ -3313,9 +3353,9 @@
    settH2.style.paddingTop = isUr ? '6px' : '0';
   }
 
-  // Confirm PIN button
+  // Confirm PIN button — update text regardless of disabled state so bilingual stays in sync
   var confirmPinBtn = document.getElementById('confirm-pin-btn');
-  if (confirmPinBtn && !confirmPinBtn.disabled) confirmPinBtn.innerHTML = L.confirmPin;
+  if (confirmPinBtn) confirmPinBtn.innerHTML = L.confirmPin;
 
   // Help screen section content
   var helpDir = isUr ? 'rtl' : 'ltr';
@@ -3709,7 +3749,7 @@
 
   /* ── lang-aware option text ─────────────────────────────── */
   function optText(opt) {
-    var lang = window.currentSettingsLang || 'ur';
+    var lang = window.currentSettingsLang || window._indexLang || 'en';
     return opt.getAttribute('data-' + lang) || opt.text || opt.textContent || '';
   }
 
@@ -4053,6 +4093,17 @@
     window.toggleSettingsLang._p = true;
   }
 
+  /* ── Patch toggleLang (index.html's own lang toggle) ────── */
+  function patchIndexLang() {
+    var orig = window.toggleLang;
+    if (!orig || orig._p) return;
+    window.toggleLang = function () {
+      orig.apply(this, arguments);
+      setTimeout(resyncAll, 0);
+    };
+    window.toggleLang._p = true;
+  }
+
   /* ── Patch hsPopulateSelectPublic ───────────────────────── */
   function patchHs() {
     var orig = window.hsPopulateSelectPublic;
@@ -4096,8 +4147,11 @@
     initAll();
     watchDOM();
     patchLang();
+    patchIndexLang();
     patchHs();
-    setTimeout(function () { patchLang(); patchHs(); }, 600);
+    // Resync CDD labels after _indexLang is established by _applyLang
+    setTimeout(resyncAll, 0);
+    setTimeout(function () { patchLang(); patchIndexLang(); patchHs(); }, 600);
   }
 
   if (document.readyState === 'loading') {
@@ -4108,17 +4162,6 @@
 
 })();
 
-</script>
-
-<!-- PWA Service Worker Registration -->
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('./sw.js').catch(function(err) {
-      console.log('SW registration failed:', err);
-    });
-  });
-}
 </script>
 </body>
 </html>
