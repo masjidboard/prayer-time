@@ -307,16 +307,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
-  <script>
+
+<script>
   if (screen.orientation && screen.orientation.lock) {
     screen.orientation.lock("landscape").catch(function(){});
   }
-  </script>
-    <title>Prayer Time TV</title>
+</script>
+    <title>Masjid Board</title>
 
     <!-- ============================================================
          EARLY CORRUPTION GUARD — must run before ANY other script
@@ -329,7 +330,9 @@
                 'masjidConfig_tv40',
                 'masjidId',
                 'hs_sizes_v1',
-                'saved_mosques'
+                'saved_mosques',
+                'saved_links',
+                'saved_admins'
             ];
             GUARDED_KEYS.forEach(function(key) {
                 try {
@@ -367,7 +370,7 @@
                                  (navigator.maxTouchPoints > 1 && window.innerWidth < 1100);
             var isMobile = isMobileParam === 'true' || (isMobileParam !== 'false' && isMobileDevice);
             var isLinked = localStorage.getItem('is_linked_tv') === 'true';
-            if (m === 'musalli' || m === 'link_tv' || isMobile || isLinked) {
+            if (m === 'musalli' || m === 'link_tv' || m === 'admin' || isMobile || isLinked) {
                 document.documentElement.setAttribute('data-no-hs', '1');
             }
         })();
@@ -395,7 +398,7 @@
             --c-tzg-name: #f0c040; --c-tzg-time: #f0c040;
             --c-ec-name: #56d0e8; --c-ec-time: #56d0e8;
             --c-lbl-azan: #667788; --c-lbl-jamaat: #667788;
-            --rot: 90deg; --ur-size: 14px; --en-size: 14px; --clock-scale: 1;
+            --rot: 90deg; --ur-size: 18px; --en-size: 18px; --clock-scale: 1;
             --fs: 1; /* dynamic fluid scale factor, updated by JS */
 
             --c-clock-glow: #f0c040;
@@ -418,6 +421,7 @@
             -webkit-text-size-adjust: none !important;
             -moz-text-size-adjust: none !important;
             text-size-adjust: none !important;
+            background: #050a12;
         }
 
         * { box-sizing: border-box; }
@@ -571,6 +575,7 @@
             display: flex; align-items: center; justify-content: center;
             border: 1.5px solid var(--c-cal-allah); border-radius: 50%;
             color: var(--c-cal-allah); font-size: 0.4em;
+            box-shadow: 0 0 12px rgba(240,192,64,0.35), inset 0 0 6px rgba(240,192,64,0.08);
             box-shadow: 0 0 12px color-mix(in srgb, var(--c-cal-allah) 35%, transparent), inset 0 0 6px color-mix(in srgb, var(--c-cal-allah) 8%, transparent);
         }
         .calligraphy .badge-muhammad {
@@ -578,6 +583,7 @@
             display: flex; align-items: center; justify-content: center;
             border: 1.5px solid var(--c-cal-muhammad); border-radius: 50%;
             color: var(--c-cal-muhammad); font-size: 0.4em;
+            box-shadow: 0 0 12px rgba(240,192,64,0.35), inset 0 0 6px rgba(240,192,64,0.08);
             box-shadow: 0 0 12px color-mix(in srgb, var(--c-cal-muhammad) 35%, transparent), inset 0 0 6px color-mix(in srgb, var(--c-cal-muhammad) 8%, transparent);
         }
 
@@ -587,6 +593,7 @@
             display: flex; align-items: center; justify-content: center;
             line-height: 1; font-weight: 900; letter-spacing: 3px;
             margin-top: 0.5vh;
+            text-shadow: 0 0 30px rgba(240,192,64,0.25), 0 0 60px rgba(240,192,64,0.10);
             text-shadow: 0 0 30px color-mix(in srgb, var(--c-clock-glow) 25%, transparent), 0 0 60px color-mix(in srgb, var(--c-clock-glow) 10%, transparent);
         }
         #hoursMins { display: inline-block; text-align: center; font-variant-numeric: tabular-nums; }
@@ -679,11 +686,11 @@
             padding: 0 0.2vw; line-height: 1;
         }
         .prayer-item-name .en-name {
-            font-size: max(calc(var(--en-size) * var(--fs)), calc(42px * var(--fs))); letter-spacing: 1.5px; font-weight: 700;
+            font-size: max(calc(var(--en-size) * var(--fs)), calc(52px * var(--fs))); letter-spacing: 1.5px; font-weight: 700;
             color: var(--c-pr-en); font-family: 'Rajdhani', sans-serif;
         }
         .prayer-item-name .ur-name {
-            font-family: 'Amiri', serif; font-size: max(calc(var(--ur-size) * var(--fs)), calc(44px * var(--fs)));
+            font-family: 'Amiri', serif; font-size: max(calc(var(--ur-size) * var(--fs)), calc(54px * var(--fs)));
             color: var(--c-pr-ur); line-height: 1;
         }
         .prayer-item-times {
@@ -761,6 +768,7 @@
 
         .top-buttons { position: fixed; top: max(10px, env(safe-area-inset-top, 10px)); right: max(8px, env(safe-area-inset-right, 8px)); display: flex; gap: 10px; z-index: 9999; transition: opacity 0.6s ease, visibility 0.6s ease; }
         .settings-btn {
+            background: rgba(86,208,232,0.08);
             background: color-mix(in srgb, var(--c-panel-line) 18%, transparent);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
@@ -772,15 +780,16 @@
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 2px 12px rgba(0,0,0,0.35);
         }
-        .settings-btn:hover, .settings-btn:focus { opacity: 1; color: var(--c-headers); border-color: var(--c-headers); background: color-mix(in srgb, var(--c-panel-line) 30%, transparent); }
+        .settings-btn:hover, .settings-btn:focus { opacity: 1; color: var(--c-headers); border-color: var(--c-headers); background: rgba(86,208,232,0.14); background: color-mix(in srgb, var(--c-panel-line) 30%, transparent); }
         @media (max-width: 900px) {
-            .settings-btn { opacity: 1; color: var(--c-headers) !important; background: color-mix(in srgb, var(--c-panel-line) 22%, transparent) !important; border-color: var(--c-panel-line) !important; font-size: 22px !important; padding: 10px 13px !important; min-width: 46px !important; min-height: 46px !important; }
+            .settings-btn { opacity: 1; color: var(--c-headers) !important; background: rgba(86,208,232,0.10) !important; background: color-mix(in srgb, var(--c-panel-line) 22%, transparent) !important; border-color: var(--c-panel-line) !important; font-size: 22px !important; padding: 10px 13px !important; min-width: 46px !important; min-height: 46px !important; }
         }
 
         #back-btn {
             position: fixed;
             top: max(10px, env(safe-area-inset-top, 10px));
             left: max(10px, env(safe-area-inset-left, 10px));
+            background: rgba(86,208,232,0.08);
             background: color-mix(in srgb, var(--c-panel-line) 18%, transparent);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
@@ -793,7 +802,7 @@
             box-shadow: 0 4px 14px rgba(0,0,0,0.4);
             transition: opacity 0.6s ease, visibility 0.6s ease, background 0.2s, border-color 0.2s;
         }
-        #back-btn:hover, #back-btn:active { background: color-mix(in srgb, var(--c-panel-line) 30%, transparent); border-color: var(--c-headers); }
+        #back-btn:hover, #back-btn:active { background: rgba(86,208,232,0.14); background: color-mix(in srgb, var(--c-panel-line) 30%, transparent); border-color: var(--c-headers); }
         #back-btn:focus-visible { outline: 2px solid var(--c-headers) !important; outline-offset: 4px !important; box-shadow: 0 0 0 5px rgba(86,208,232,0.3) !important; }
         #back-btn svg { stroke: var(--c-headers); display: block !important; }
 
@@ -1133,6 +1142,12 @@
             line-height: 1.2; font-weight: 600;
             letter-spacing: 0.3px;
         }
+        .color-item:focus {
+            outline: 2px solid rgba(86,208,232,0.45) !important;
+            outline-offset: 1px;
+            border-color: rgba(86,208,232,0.4);
+            background: rgba(86,208,232,0.07);
+        }
         .color-item input[type="color"] {
             width: 100%; height: 30px; border: none;
             cursor: pointer; border-radius: 6px;
@@ -1210,7 +1225,7 @@
 
             /* ── Current prayer name ── */
             .current-prayer-name {
-                font-size: 4vh !important;
+                font-size: 6vh !important;
                 letter-spacing: 0.2vh !important;
                 gap: 5em !important;
             }
@@ -1248,8 +1263,8 @@
 
             /* ── Left col: shared time rows (SAHR, IFTAR, TULU etc.) ── */
             .shared-time    { font-size: 2.6vh !important; letter-spacing: 0.1vh !important; }
-            .shared-en-name { font-size: 1.6vh !important; letter-spacing: 0.05vh !important; }
-            .shared-ur-name { font-size: 1.6vh !important; }
+            .shared-en-name { font-size: 2.2vh !important; letter-spacing: 0.05vh !important; }
+            .shared-ur-name { font-size: 2.2vh !important; }
             .time-row       { gap: 0.3vh !important; padding: 0.4vh 0 !important; }
 
             /* ── Left col: countdown box ── */
@@ -1270,8 +1285,8 @@
             .prayer-list-header .lbl-col { font-size: 1.8vh !important; letter-spacing: 0.2vh !important; }
 
             /* ── Right col: prayer name labels ── */
-            .prayer-item-name .en-name { font-size: 2.2vh !important; letter-spacing: 0.1vh !important; }
-            .prayer-item-name .ur-name { font-size: 2.2vh !important; }
+            .prayer-item-name .en-name { font-size: 3vh !important; letter-spacing: 0.1vh !important; }
+            .prayer-item-name .ur-name { font-size: 3vh !important; }
 
             /* ── Right col: prayer azan/jamaat times ── */
             .prayer-item-times .pt { font-size: 3.8vh !important; }
@@ -1287,14 +1302,14 @@
 
             /* ── CSS vars for en/ur name sizes ── */
             :root {
-                --ur-size: 1.6vh;
-                --en-size: 1.6vh;
+                --ur-size: 2.2vh;
+                --en-size: 2.2vh;
                 --fs: 1; /* disable fluid scale on mobile — vh/vw units take over via !important rules */
             }
 
             /* ── center-mode specific (single column fullscreen) ── */
             body[data-mode="center"] .main-clock         { font-size: 22vh !important; }
-            body[data-mode="center"] .current-prayer-name { font-size: 6vh !important; }
+            body[data-mode="center"] .current-prayer-name { font-size: 7.5vh !important; }
             body[data-mode="center"] .active-times-box   { font-size: 10vh !important; gap: 4vh !important; }
             body[data-mode="center"] .calligraphy        { font-size: 5vh !important; }
             body[data-mode="center"] .calligraphy .badge-allah,
@@ -1307,7 +1322,18 @@
             /* Dashboard uses its own db-* elements sized with calc(px * var(--fs)).
                On narrow screens the browser naturally scales; no reflow needed.
                Only override the --fs variable so sizes shrink proportionally. */
-            body[data-mode="dashboard"] { --fs: 0.55; }
+            body[data-mode="dashboard"]  { --fs: 0.55; }
+            body[data-mode="dashboard2"] { --fs: 0.55; }
+
+            /* ── Dashboard prayer-col: override the max()/clamp() rules that ignore --fs ── */
+            body[data-mode="dashboard"]  #db-prayer-col .db-row-name .db-en,
+            body[data-mode="dashboard2"] #db-prayer-col .db-row-name .db-en  { font-size: calc(20px * 0.55) !important; }
+            body[data-mode="dashboard"]  #db-prayer-col .db-row-name .db-ur,
+            body[data-mode="dashboard2"] #db-prayer-col .db-row-name .db-ur  { font-size: calc(20px * 0.55) !important; }
+            body[data-mode="dashboard"]  #db-prayer-col .db-row-times .dbt,
+            body[data-mode="dashboard2"] #db-prayer-col .db-row-times .dbt   { font-size: calc(36px * 0.55) !important; }
+            body[data-mode="dashboard"]  #db-prayer-col .db-col-hdr span,
+            body[data-mode="dashboard2"] #db-prayer-col .db-col-hdr span     { font-size: calc(15px * 0.55) !important; }
         }
         /* ════ End mobile overrides ════ */
 
@@ -1410,6 +1436,7 @@
             display: flex; align-items: center; justify-content: center;
             border: 1.5px solid var(--c-cal-allah); border-radius: 50%;
             color: var(--c-cal-allah); font-size: calc(14px * var(--fs));
+            box-shadow: 0 0 12px rgba(240,192,64,0.35), inset 0 0 6px rgba(240,192,64,0.08);
             box-shadow: 0 0 12px color-mix(in srgb, var(--c-cal-allah) 35%, transparent),
                         inset 0 0 6px color-mix(in srgb, var(--c-cal-allah) 8%, transparent);
             flex-shrink: 0; text-align: center;
@@ -1420,6 +1447,7 @@
             display: flex; align-items: center; justify-content: center;
             border: 1.5px solid var(--c-cal-muhammad); border-radius: 50%;
             color: var(--c-cal-muhammad); font-size: calc(14px * var(--fs));
+            box-shadow: 0 0 12px rgba(240,192,64,0.35), inset 0 0 6px rgba(240,192,64,0.08);
             box-shadow: 0 0 12px color-mix(in srgb, var(--c-cal-muhammad) 35%, transparent),
                         inset 0 0 6px color-mix(in srgb, var(--c-cal-muhammad) 8%, transparent);
             flex-shrink: 0; text-align: center;
@@ -1430,6 +1458,7 @@
             font-size: calc(170px * var(--fs) * var(--clock-scale, 1));
             color: var(--c-clock); line-height: 1;
             letter-spacing: 3px; font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 30px rgba(240,192,64,0.25), 0 0 60px rgba(240,192,64,0.10);
             text-shadow: 0 0 30px color-mix(in srgb, var(--c-clock-glow) 25%, transparent),
                          0 0 60px color-mix(in srgb, var(--c-clock-glow) 10%, transparent);
         }
@@ -1499,11 +1528,11 @@
             text-align: center; width: 50%;
             font-family: 'Rajdhani', sans-serif; text-transform: uppercase;
         }
-        #db-prayer-col .db-list { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+        #db-prayer-col .db-list { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
         #db-prayer-col .db-row {
             display: flex; flex-direction: column;
             border-bottom: 1px solid var(--c-panel-line);
-            padding: 0 0.3vw; flex: 1; transition: background 0.2s;
+            padding: 0 0.3vw; flex: 1; min-height: 0; transition: background 0.2s;
         }
         #db-prayer-col .db-row:last-child { border-bottom: none; }
         #db-prayer-col .db-row.db-active { background: rgba(86,208,232,0.07); }
@@ -1512,17 +1541,20 @@
             padding: 0.4vh 0.3vw 0; flex-shrink: 0;
         }
         #db-prayer-col .db-row-name .db-en {
-            font-size: max(var(--en-size), 3.8vh); letter-spacing: 1px;
+            font-size: max(var(--en-size, 0px), 3.8vh); letter-spacing: 1px;
             font-weight: 700; font-family: 'Rajdhani', sans-serif;
         }
         #db-prayer-col .db-row-name .db-ur {
-            font-family: 'Amiri', serif; font-size: max(var(--ur-size), 4vh);
+            font-family: 'Amiri', serif; font-size: max(var(--ur-size, 0px), 4vh);
         }
         #db-prayer-col .db-row-times {
             display: flex; justify-content: space-around; align-items: center; flex: 1;
         }
         #db-prayer-col .db-row-times .dbt {
-            font-family: 'Orbitron', sans-serif; font-size: max(var(--en-size), 6.5vh);
+            font-family: 'Orbitron', sans-serif;
+            /* clamp: never below 10px, prefer the larger of saved size or 6.5vh,
+               but cap at 9vh so 6 prayer rows always fit within the column */
+            font-size: clamp(10px, max(var(--en-size, 0px), 6.5vh), 9vh);
             font-weight: 700; font-variant-numeric: tabular-nums; text-align: center; width: 50%;
         }
 
@@ -1631,7 +1663,8 @@
         #customModal {
             display: none; position: fixed; inset: 0; z-index: 10000;
             background: rgba(0,0,0,0.88); justify-content: center;
-            align-items: center; padding: 24px;
+            align-items: flex-start; padding: 24px;
+            overflow-y: auto;
         }
         #customModal.show { display: flex; }
         .cm-box {
@@ -1640,6 +1673,7 @@
             width: 100%; text-align: center;
             box-shadow: 0 0 40px rgba(86,208,232,0.15), 0 16px 48px rgba(0,0,0,0.8);
             animation: cmModalIn 0.22s cubic-bezier(0.34,1.56,0.64,1) both;
+            margin: auto;
         }
         @keyframes cmModalIn {
             from { transform: scale(0.82); opacity: 0; }
@@ -1778,7 +1812,7 @@
     var FOCUSABLE = [
         'button:not([disabled])',
         'select:not([disabled])',
-        'input:not([disabled])',
+        'input:not([disabled]):not([type="color"])',
         'a[href]',
         '[tabindex="0"]'
     ].join(',');
@@ -3232,7 +3266,7 @@
     const defaultScrollText = "<span class='led-text'>Please keep your mobile phones turned off</span> &nbsp;&nbsp; | &nbsp;&nbsp; براہِ کرم اپنے موبائل فون بند رکھیں";
 
     const defaultConfig = {
-        general: { manualDate: "", fiqh: "1", eidTime: "07:00", showEid1: true, ishraqOffset: 15, chashtMode: "quarter", hijriOffset: "0", displayMode: "all", rotation: "90deg", scrollMode: "scroll", urduFontSize: "14", enFontSize: "14", customNotice: "", eid2: "", eid3: "", clockScale: 100, showJumuah: "yes" },
+        general: { manualDate: "", fiqh: "1", eidTime: "07:00", showEid1: true, ishraqOffset: 15, chashtMode: "quarter", hijriOffset: "0", displayMode: "all", rotation: "90deg", scrollMode: "scroll", urduFontSize: "18", enFontSize: "18", customNotice: "", eid2: "", eid3: "", clockScale: 100, showJumuah: "yes" },
         location: { mode: "auto", lat: "", lon: "", city: "" },
         timings: {
             fajr:   { mode: "auto", fajrJamaatBeforeSunrise: 30, fajrAzanBeforeJamaat: 20, offset: 0, aRound: 5, jGap: 20, jRound: 5, name: "فجر" },
@@ -5271,7 +5305,7 @@ const rangeEnd = document.getElementById('rangeEnd');
         }
 
         // Confirm data-no-hs on both <html> and <body> for all non-TV views
-        if (mode === 'musalli' || mode === 'link_tv' || isMobile || isLinked) {
+        if (mode === 'musalli' || mode === 'link_tv' || mode === 'admin' || isMobile || isLinked) {
             document.documentElement.setAttribute('data-no-hs', '1');
             document.body.setAttribute('data-no-hs', '1');
         } else {
@@ -5315,6 +5349,10 @@ const rangeEnd = document.getElementById('rangeEnd');
                 }
                 if (currentConfig.general) {
                     document.body.setAttribute('data-mode', currentConfig.general.displayMode || 'auto');
+                    // Re-apply element size overrides now that data-mode is correct.
+                    // hsSaveAll() may have already run at DOMContentLoaded before data-mode
+                    // was set, so call it again here with the real mode.
+                    if (typeof window.hsSaveAll === 'function') window.hsSaveAll();
                 }
                 if(typeof applyColorsToBoard === 'function') applyColorsToBoard();
                 if(typeof fetchDailyTimes === 'function') fetchDailyTimes();
@@ -5552,14 +5590,11 @@ const rangeEnd = document.getElementById('rangeEnd');
                         if (remoteData.timings) currentConfig.timings = Object.assign(currentConfig.timings || {}, remoteData.timings);
                         if (remoteData.advColors) currentConfig.advColors = Object.assign(currentConfig.advColors || {}, remoteData.advColors);
 
-                        // Apply heading sizes from remote
+                        // Merge heading sizes from remote into localStorage so hsSaveAll
+                        // (called below) picks them up via its own localStorage read.
                         if (remoteData.hsSizes && typeof remoteData.hsSizes === 'object') {
                             currentConfig.hsSizes = remoteData.hsSizes;
                             try { localStorage.setItem('hs_sizes_v1', JSON.stringify(remoteData.hsSizes)); } catch(e) {}
-                            if (typeof window.hsSaveAll === 'function') {
-                                // Reload _sizes inside HS module from updated localStorage then apply
-                                setTimeout(function() { window.hsSaveAll(); }, 100);
-                            }
                         }
 
                         localStorage.setItem("masjidConfig_tv40", JSON.stringify(currentConfig));
@@ -5567,7 +5602,14 @@ const rangeEnd = document.getElementById('rangeEnd');
                         if(typeof applyColorsToBoard === 'function') applyColorsToBoard();
                         if(typeof fetchDailyTimes === 'function') fetchDailyTimes();
 
-                        if (!document.documentElement.hasAttribute('data-no-hs') && !document.body.hasAttribute('data-no-hs')) {
+                        // Apply font sizes and clock scale to the TV board.
+                        // These are CSS variables so they must always be applied when received
+                        // from Firebase — regardless of data-no-hs (which only blocks hsSaveAll).
+                        // musalli and admin modes are the only views where we skip these:
+                        // musalli has no clock/sizes UI, and admin remote should never apply
+                        // sizes to its own phone DOM — it only pushes them to the TV.
+                        var _currentMode = new URLSearchParams(window.location.search).get('mode') || 'tv';
+                        if (_currentMode !== 'musalli' && _currentMode !== 'admin') {
                             if (currentConfig.general.urduFontSize) {
                                 document.documentElement.style.setProperty('--ur-size', currentConfig.general.urduFontSize + 'px');
                             }
@@ -5577,6 +5619,16 @@ const rangeEnd = document.getElementById('rangeEnd');
                             if (currentConfig.general.clockScale) {
                                 document.documentElement.style.setProperty('--clock-scale', currentConfig.general.clockScale / 100);
                             }
+                        }
+
+                        // Re-apply heading sizes whenever displayMode or hsSizes may have changed.
+                        // Previously this only ran inside the hsSizes block, so a displayMode-only
+                        // change from the admin remote would never trigger a size re-apply on the TV.
+                        if (!document.documentElement.hasAttribute('data-no-hs') && !document.body.hasAttribute('data-no-hs')) {
+                            if (typeof window.hsSyncModeFromDisplay === 'function') window.hsSyncModeFromDisplay();
+                            setTimeout(function() {
+                                if (typeof window.hsSaveAll === 'function') window.hsSaveAll();
+                            }, 150);
                         }
                     }
                 });
@@ -5934,6 +5986,9 @@ const rangeEnd = document.getElementById('rangeEnd');
         }
 
         function hsApplySize() {
+            // On admin remote, don't apply sizes to the phone's own DOM —
+            // the TV board will receive them via Firebase when saved.
+            if (document.documentElement.hasAttribute('data-no-hs') || document.body.hasAttribute('data-no-hs')) return;
             var sel = document.getElementById('hsElementSelect');
             var key = sel ? sel.value : '';
             var px = parseInt(document.getElementById('hsPxInput').value);
@@ -5949,7 +6004,6 @@ const rangeEnd = document.getElementById('rangeEnd');
                     });
                 } catch(e) {}
             });
-            
         }
 
         function hsSaveElementSize() {
@@ -6067,8 +6121,8 @@ const rangeEnd = document.getElementById('rangeEnd');
     });
 </script>
 
-<div id="resetColorsModal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; padding:24px;">
-    <div style="background:linear-gradient(160deg,#1a0a0a 0%,#0d0508 100%); border:2px solid #ff5555; border-radius:20px; padding:32px 28px 24px; max-width:320px; width:100%; text-align:center; box-shadow:0 0 40px rgba(255,85,85,0.25), 0 16px 48px rgba(0,0,0,0.8); font-family:'Rajdhani',sans-serif; animation:rcModalIn 0.22s cubic-bezier(0.34,1.56,0.64,1) both;">
+<div id="resetColorsModal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.85); justify-content:center; align-items:flex-start; padding:24px; overflow-y:auto;">
+    <div style="background:linear-gradient(160deg,#1a0a0a 0%,#0d0508 100%); border:2px solid #ff5555; border-radius:20px; padding:32px 28px 24px; max-width:320px; width:100%; text-align:center; box-shadow:0 0 40px rgba(255,85,85,0.25), 0 16px 48px rgba(0,0,0,0.8); font-family:'Rajdhani',sans-serif; animation:rcModalIn 0.22s cubic-bezier(0.34,1.56,0.64,1) both; margin:auto;">
         <div style="font-size:44px; margin-bottom:12px;">🎨</div>
         <div style="font-size:19px; font-weight:700; color:#fff; margin-bottom:4px;" class="lang-text" data-ur="تمام رنگ ریسیٹ کریں؟" data-en="Reset All Colors?">تمام رنگ ریسیٹ کریں؟</div>
         <div style="font-size:12px; color:#667788; margin-bottom:24px; direction:ltr;" class="lang-text" data-ur="یہ فیکٹری ڈیفالٹ رنگ بحال کر دے گا۔" data-en="This will restore factory default colors.">یہ فیکٹری ڈیفالٹ رنگ بحال کر دے گا۔</div>
@@ -6081,6 +6135,431 @@ const rangeEnd = document.getElementById('rangeEnd');
 <style>
 @keyframes rcModalIn { from { transform:scale(0.82); opacity:0; } to { transform:scale(1); opacity:1; } }
 </style>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CUSTOM COLOUR PICKER MODAL
+     ══════════════════════════════════════════════════════════════════ -->
+<style>
+/* ── Colour Picker Overlay ── */
+#ccp-overlay {
+    display: none; position: fixed; inset: 0; z-index: 999999;
+    background: rgba(0,0,0,0.82);
+    justify-content: center; align-items: flex-start; padding: 16px;
+    overflow-y: auto;
+}
+#ccp-overlay.show { display: flex; }
+
+#ccp-box {
+    background: linear-gradient(160deg, #0f1e30 0%, #070d18 100%);
+    border: 2px solid #56d0e8;
+    border-radius: 18px;
+    padding: 22px 22px 18px;
+    width: 340px; max-width: 100%;
+    box-shadow: 0 0 40px rgba(86,208,232,0.18), 0 16px 48px rgba(0,0,0,0.85);
+    animation: ccpIn 0.22s cubic-bezier(0.34,1.56,0.64,1) both;
+    font-family: 'Rajdhani', sans-serif;
+    margin: auto;
+}
+@keyframes ccpIn { from { transform: scale(0.82); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+#ccp-title {
+    font-size: 16px; font-weight: 700; letter-spacing: 1.5px;
+    color: #56d0e8; text-align: center; margin-bottom: 16px;
+    text-transform: uppercase;
+}
+
+/* Spectrum canvas */
+#ccp-spectrum {
+    width: 100%; height: 170px; border-radius: 10px;
+    cursor: crosshair; display: block;
+    border: 1px solid rgba(255,255,255,0.1);
+    touch-action: none;
+}
+#ccp-spectrum-thumb {
+    position: absolute; width: 14px; height: 14px;
+    border-radius: 50%; border: 2px solid #fff;
+    box-shadow: 0 0 4px rgba(0,0,0,0.8);
+    pointer-events: none; transform: translate(-50%, -50%);
+}
+#ccp-spectrum-wrap { position: relative; margin-bottom: 10px; }
+
+/* Hue slider */
+#ccp-hue-wrap { margin-bottom: 12px; position: relative; }
+#ccp-hue {
+    width: 100%; height: 14px; border-radius: 7px; cursor: pointer;
+    background: linear-gradient(to right,
+        hsl(0,100%,50%), hsl(30,100%,50%), hsl(60,100%,50%), hsl(90,100%,50%),
+        hsl(120,100%,50%), hsl(150,100%,50%), hsl(180,100%,50%), hsl(210,100%,50%),
+        hsl(240,100%,50%), hsl(270,100%,50%), hsl(300,100%,50%), hsl(330,100%,50%), hsl(360,100%,50%));
+    -webkit-appearance: none; appearance: none; border: none; outline: none;
+    touch-action: none; display: block;
+}
+#ccp-hue::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; border: 2px solid rgba(0,0,0,0.4);
+    box-shadow: 0 0 6px rgba(0,0,0,0.5); cursor: pointer;
+}
+#ccp-hue::-moz-range-thumb {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; border: 2px solid rgba(0,0,0,0.4);
+    box-shadow: 0 0 6px rgba(0,0,0,0.5); cursor: pointer;
+}
+
+/* Preset swatches */
+#ccp-swatches {
+    display: grid; grid-template-columns: repeat(8, 1fr);
+    gap: 6px; margin-bottom: 12px;
+}
+.ccp-swatch {
+    height: 28px; border-radius: 6px; cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.1);
+    transition: transform 0.12s, border-color 0.12s;
+    outline: none;
+}
+.ccp-swatch:hover, .ccp-swatch:focus {
+    transform: scale(1.18);
+    border-color: #fff;
+    z-index: 1; position: relative;
+}
+
+/* Hex + preview row */
+#ccp-hex-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+}
+#ccp-preview {
+    width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.15);
+}
+#ccp-hex-label {
+    font-size: 11px; color: #667788; letter-spacing: 1px; margin-bottom: 2px;
+}
+#ccp-hex-input {
+    flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(86,208,232,0.3);
+    border-radius: 7px; padding: 7px 10px; color: #fff;
+    font-family: 'Orbitron', monospace; font-size: 14px; letter-spacing: 1px;
+    outline: none; text-transform: uppercase;
+}
+#ccp-hex-input:focus { border-color: #56d0e8; box-shadow: 0 0 0 2px rgba(86,208,232,0.18); }
+
+/* Buttons */
+#ccp-btns { display: flex; gap: 10px; }
+#ccp-btn-cancel, #ccp-btn-set {
+    flex: 1; padding: 12px 0; border-radius: 10px;
+    font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.5px; transition: all 0.15s;
+    border: 2px solid transparent;
+}
+#ccp-btn-cancel {
+    background: linear-gradient(135deg,#1a3a5a,#0f2235);
+    color: #56d0e8; border-color: #56d0e8;
+}
+#ccp-btn-cancel:hover, #ccp-btn-cancel:focus {
+    background: linear-gradient(135deg,#2a4a6a,#1a3245);
+    outline: none; box-shadow: 0 0 0 2px rgba(86,208,232,0.25);
+}
+#ccp-btn-set {
+    background: linear-gradient(135deg,#4be87a,#2ab85a); color: #000;
+}
+#ccp-btn-set:hover, #ccp-btn-set:focus {
+    box-shadow: 0 4px 16px rgba(75,232,122,0.4); outline: none;
+}
+</style>
+
+<div id="ccp-overlay">
+  <div id="ccp-box">
+    <div id="ccp-title" class="lang-text" data-ur="رنگ منتخب کریں" data-en="Select Colour">Select Colour</div>
+    <div id="ccp-spectrum-wrap">
+      <canvas id="ccp-spectrum"></canvas>
+      <div id="ccp-spectrum-thumb"></div>
+    </div>
+    <div id="ccp-hue-wrap">
+      <input type="range" id="ccp-hue" min="0" max="360" value="0">
+    </div>
+    <div id="ccp-swatches"></div>
+    <div id="ccp-hex-row">
+      <div id="ccp-preview"></div>
+      <div style="flex:1">
+        <div id="ccp-hex-label">HEX</div>
+        <input id="ccp-hex-input" type="text" maxlength="7" spellcheck="false" placeholder="#RRGGBB">
+      </div>
+    </div>
+    <div id="ccp-btns">
+      <button id="ccp-btn-cancel" tabindex="0" class="lang-text" data-ur="منسوخ" data-en="CANCEL">CANCEL</button>
+      <button id="ccp-btn-set"    tabindex="0" class="lang-text" data-ur="سیٹ کریں" data-en="SET">SET</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    // ── Preset swatches ──────────────────────────────────────────────
+    const PRESETS = [
+        '#ff0000','#ff6600','#ffcc00','#00ff00','#00ffcc','#00ccff','#0055ff','#cc00ff',
+        '#ff66cc','#ffffff','#aaaaaa','#555555','#000000','#f0c040','#56d0e8','#4be87a',
+        '#ff5555','#1a3a5a','#0a1628','#2a2a3a','#7fffd4','#ff8c00','#8b4513','#228b22'
+    ];
+
+    // ── State ────────────────────────────────────────────────────────
+    let _targetInput = null;   // the <input type="color"> that was clicked
+    let _hue = 0;
+    let _sat = 1;
+    let _val = 1;
+    let _dragging = false;
+
+    // ── DOM refs ─────────────────────────────────────────────────────
+    const overlay   = document.getElementById('ccp-overlay');
+    const canvas    = document.getElementById('ccp-spectrum');
+    const thumb     = document.getElementById('ccp-spectrum-thumb');
+    const hueSlider = document.getElementById('ccp-hue');
+    const hexInput  = document.getElementById('ccp-hex-input');
+    const preview   = document.getElementById('ccp-preview');
+    const swatchBox = document.getElementById('ccp-swatches');
+
+    // ── Build swatches ───────────────────────────────────────────────
+    PRESETS.forEach(function(hex) {
+        var sw = document.createElement('div');
+        sw.className = 'ccp-swatch';
+        sw.style.background = hex;
+        sw.setAttribute('tabindex', '0');
+        sw.setAttribute('role', 'button');
+        sw.dataset.color = hex;
+        sw.addEventListener('click', function() { applyHex(hex); });
+        sw.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); applyHex(hex); }
+        });
+        swatchBox.appendChild(sw);
+    });
+
+    // ── Colour math helpers ──────────────────────────────────────────
+    function hsvToRgb(h, s, v) {
+        var r,g,b, i = Math.floor(h/60)%6, f=h/60-Math.floor(h/60), p=v*(1-s), q=v*(1-f*s), t=v*(1-(1-f)*s);
+        switch(i){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;
+                   case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;default:r=v;g=p;b=q;}
+        return [Math.round(r*255), Math.round(g*255), Math.round(b*255)];
+    }
+    function rgbToHsv(r,g,b) {
+        r/=255;g/=255;b/=255;
+        var max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min,h,s=max===0?0:d/max,v=max;
+        if(max===min){h=0;}
+        else{switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;default:h=(r-g)/d+4;}h*=60;}
+        return [h,s,v];
+    }
+    function hexToRgb(hex) {
+        hex = hex.replace('#','');
+        if(hex.length===3) hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+        return [parseInt(hex.slice(0,2),16),parseInt(hex.slice(2,4),16),parseInt(hex.slice(4,6),16)];
+    }
+    function rgbToHex(r,g,b) {
+        return '#'+[r,g,b].map(function(x){return x.toString(16).padStart(2,'0');}).join('');
+    }
+    function currentHex() {
+        var rgb = hsvToRgb(_hue,_sat,_val);
+        return rgbToHex(rgb[0],rgb[1],rgb[2]);
+    }
+
+    // ── Draw spectrum canvas ─────────────────────────────────────────
+    function drawSpectrum() {
+        var ctx = canvas.getContext('2d');
+        var w = canvas.width, h = canvas.height;
+        // White → hue horizontal gradient
+        var gradH = ctx.createLinearGradient(0,0,w,0);
+        gradH.addColorStop(0, 'hsl('+_hue+',0%,100%)');
+        gradH.addColorStop(1, 'hsl('+_hue+',100%,50%)');
+        ctx.fillStyle = gradH; ctx.fillRect(0,0,w,h);
+        // Transparent → black vertical gradient
+        var gradV = ctx.createLinearGradient(0,0,0,h);
+        gradV.addColorStop(0, 'rgba(0,0,0,0)');
+        gradV.addColorStop(1, 'rgba(0,0,0,1)');
+        ctx.fillStyle = gradV; ctx.fillRect(0,0,w,h);
+    }
+
+    function resizeCanvas() {
+        canvas.width  = canvas.offsetWidth  || 296;
+        canvas.height = canvas.offsetHeight || 170;
+        drawSpectrum();
+        positionThumb();
+    }
+
+    function positionThumb() {
+        var w = canvas.width, h = canvas.height;
+        var x = _sat * w;
+        var y = (1 - _val) * h;
+        var rect = canvas.getBoundingClientRect();
+        thumb.style.left = (rect.left + x) + 'px';
+        thumb.style.top  = (rect.top  + y) + 'px';
+    }
+
+    function updateFromSpectrum(clientX, clientY) {
+        var rect = canvas.getBoundingClientRect();
+        var x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+        var y = Math.max(0, Math.min(clientY - rect.top,  rect.height));
+        _sat = x / rect.width;
+        _val = 1 - y / rect.height;
+        syncAll();
+    }
+
+    // ── Sync everything from current hsv ─────────────────────────────
+    function syncAll() {
+        drawSpectrum();
+        positionThumb();
+        var hex = currentHex();
+        preview.style.background = hex;
+        hexInput.value = hex.toUpperCase();
+        hueSlider.value = _hue;
+    }
+
+    // ── Apply a hex colour to state ──────────────────────────────────
+    function applyHex(hex) {
+        if(!/^#[0-9a-fA-F]{6}$/.test(hex) && !/^#[0-9a-fA-F]{3}$/.test(hex)) return;
+        var rgb = hexToRgb(hex);
+        var hsv = rgbToHsv(rgb[0],rgb[1],rgb[2]);
+        _hue = hsv[0]; _sat = hsv[1]; _val = hsv[2];
+        syncAll();
+    }
+
+    // ── Canvas mouse / touch ─────────────────────────────────────────
+    canvas.addEventListener('mousedown', function(e) {
+        _dragging = true; updateFromSpectrum(e.clientX, e.clientY); e.preventDefault();
+    });
+    window.addEventListener('mousemove', function(e) {
+        if(_dragging) updateFromSpectrum(e.clientX, e.clientY);
+    });
+    window.addEventListener('mouseup', function() { _dragging = false; });
+
+    canvas.addEventListener('touchstart', function(e) {
+        _dragging = true; updateFromSpectrum(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault();
+    },{passive:false});
+    window.addEventListener('touchmove', function(e) {
+        if(_dragging) updateFromSpectrum(e.touches[0].clientX, e.touches[0].clientY);
+    },{passive:false});
+    window.addEventListener('touchend', function() { _dragging = false; });
+
+    // ── Hue slider ───────────────────────────────────────────────────
+    hueSlider.addEventListener('input', function() {
+        _hue = parseFloat(this.value); syncAll();
+    });
+
+    // ── Hex input ────────────────────────────────────────────────────
+    hexInput.addEventListener('input', function() {
+        var v = this.value.trim();
+        if(!v.startsWith('#')) v='#'+v;
+        if(/^#[0-9a-fA-F]{6}$/.test(v)) applyHex(v);
+    });
+    hexInput.addEventListener('keydown', function(e) {
+        if(e.key==='Enter') { e.preventDefault(); setAndClose(); }
+        if(e.key==='Escape') { e.preventDefault(); closeModal(); }
+    });
+
+    // ── Open / close ─────────────────────────────────────────────────
+    function openModal(inputEl) {
+        _targetInput = inputEl;
+        var startHex = inputEl.value || '#56d0e8';
+        applyHex(startHex);
+        overlay.classList.add('show');
+        // resize after visible
+        requestAnimationFrame(function() { resizeCanvas(); });
+        // apply lang
+        if(window.currentSettingsLang) {
+            overlay.querySelectorAll('.lang-text').forEach(function(el) {
+                el.textContent = el.getAttribute('data-'+window.currentSettingsLang) || el.textContent;
+            });
+        }
+        // focus cancel for TV remote
+        setTimeout(function() { document.getElementById('ccp-btn-cancel').focus(); }, 80);
+    }
+
+    function closeModal() {
+        overlay.classList.remove('show');
+        if(_targetInput) { try { _targetInput.focus(); } catch(e){} }
+        _targetInput = null;
+    }
+
+    function setAndClose() {
+        if(_targetInput) {
+            var hex = currentHex();
+            _targetInput.value = hex;
+            // fire change/input events so existing handlers (oninput="applyGlobalColor...") trigger
+            _targetInput.dispatchEvent(new Event('input',{bubbles:true}));
+            _targetInput.dispatchEvent(new Event('change',{bubbles:true}));
+        }
+        closeModal();
+    }
+
+    document.getElementById('ccp-btn-cancel').addEventListener('click', closeModal);
+    document.getElementById('ccp-btn-set').addEventListener('click', setAndClose);
+
+    // Close on backdrop click
+    overlay.addEventListener('click', function(e) { if(e.target===overlay) closeModal(); });
+
+    // TV remote: Escape closes
+    overlay.addEventListener('keydown', function(e) {
+        if(e.key==='Escape') { e.preventDefault(); closeModal(); }
+    });
+
+    // ── Intercept all color inputs ────────────────────────────────────
+    // Run after DOM is ready, and again if settings panel is opened later
+    function interceptColorInputs() {
+        document.querySelectorAll('input[type="color"]').forEach(function(inp) {
+            if(inp.dataset.ccpBound) return;
+            inp.dataset.ccpBound = '1';
+            // Remove from keyboard/arrow-key navigation order entirely
+            inp.setAttribute('tabindex', '-1');
+
+            // Make the parent .color-item div the focusable nav target instead
+            var item = inp.closest('.color-item');
+            if(item && !item.dataset.ccpBound) {
+                item.dataset.ccpBound = '1';
+                item.setAttribute('tabindex', '0');
+                item.setAttribute('role', 'button');
+                item.addEventListener('click', function(e) {
+                    if(e.target === inp) return; // handled below
+                    openModal(inp);
+                });
+                item.addEventListener('keydown', function(e) {
+                    if(e.key==='Enter'||e.key===' ') { e.preventDefault(); openModal(inp); }
+                });
+            }
+
+            // Prevent native picker
+            inp.addEventListener('click', function(e) {
+                e.preventDefault(); e.stopImmediatePropagation();
+                openModal(inp);
+            }, true);
+            inp.addEventListener('focus', function() {
+                // On TV: Enter key on a focused color input should open picker
+            });
+            inp.addEventListener('keydown', function(e) {
+                if(e.key==='Enter'||e.key===' ') {
+                    e.preventDefault(); e.stopImmediatePropagation(); openModal(inp);
+                }
+            }, true);
+        });
+    }
+
+    // Initial bind (inputs already in DOM)
+    if(document.readyState==='loading') {
+        document.addEventListener('DOMContentLoaded', interceptColorInputs);
+    } else {
+        interceptColorInputs();
+    }
+
+    // Re-bind whenever settings panel opens (new inputs may be revealed)
+    var _rebindObserver = new MutationObserver(function(mutations) {
+        var needsRebind = mutations.some(function(m) {
+            return Array.from(m.addedNodes).some(function(n){ return n.nodeType===1; });
+        });
+        if(needsRebind) interceptColorInputs();
+    });
+    _rebindObserver.observe(document.body, {childList:true, subtree:true});
+
+    // Expose for external use
+    window.ccpOpen = openModal;
+    window.ccpClose = closeModal;
+
+})();
+</script>
 
 <!-- ── UNIVERSAL CUSTOM MODAL ──────────────────────── -->
 <div id="customModal">
@@ -6292,8 +6771,8 @@ const rangeEnd = document.getElementById('rangeEnd');
 </script>
 
 <!-- ── PIN RESET APPROVAL OVERLAY (shown on Masjid Board) ── -->
-<div id="pin-reset-approval-overlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.88); justify-content:center; align-items:center; padding:24px;">
-    <div style="background:linear-gradient(160deg,#0d1e35 0%,#060d1a 100%); border:2px solid #f0c040; border-radius:20px; padding:32px 28px 24px; max-width:380px; width:100%; text-align:center; box-shadow:0 0 40px rgba(240,192,64,0.25),0 16px 48px rgba(0,0,0,0.85); animation:exitModalIn 0.22s cubic-bezier(0.34,1.56,0.64,1) both;" id="pra-box">
+<div id="pin-reset-approval-overlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.88); justify-content:center; align-items:flex-start; padding:24px; overflow-y:auto;">
+    <div style="background:linear-gradient(160deg,#0d1e35 0%,#060d1a 100%); border:2px solid #f0c040; border-radius:20px; padding:32px 28px 24px; max-width:380px; width:100%; text-align:center; box-shadow:0 0 40px rgba(240,192,64,0.25),0 16px 48px rgba(0,0,0,0.85); animation:exitModalIn 0.22s cubic-bezier(0.34,1.56,0.64,1) both; margin:auto;" id="pra-box">
         <div style="font-size:44px; margin-bottom:12px; line-height:1;">🔑</div>
         <div style="font-family:'Amiri',serif; font-size:21px; color:#fff; direction:rtl; margin-bottom:4px; font-weight:700; line-height:1.4;">پن ری سیٹ کی درخواست!</div>
         <div style="font-family:'Rajdhani',sans-serif; font-size:14px; color:#8899aa; direction:ltr; margin-bottom:6px;">Admin Remote is requesting a PIN reset</div>
@@ -6316,8 +6795,8 @@ const rangeEnd = document.getElementById('rangeEnd');
 </div>
 
 <!-- ── PIN RESET RESULT OVERLAY (briefly shown after decision) ── -->
-<div id="pin-reset-result-overlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.88); justify-content:center; align-items:center; padding:24px;">
-    <div id="prr-box" style="background:linear-gradient(160deg,#0d1e35 0%,#060d1a 100%); border:2px solid #4be87a; border-radius:20px; padding:32px 28px 24px; max-width:360px; width:100%; text-align:center; box-shadow:0 0 40px rgba(75,232,122,0.25),0 16px 48px rgba(0,0,0,0.85); animation:exitModalIn 0.22s cubic-bezier(0.34,1.56,0.64,1) both;">
+<div id="pin-reset-result-overlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.88); justify-content:center; align-items:flex-start; padding:24px; overflow-y:auto;">
+    <div id="prr-box" style="background:linear-gradient(160deg,#0d1e35 0%,#060d1a 100%); border:2px solid #4be87a; border-radius:20px; padding:32px 28px 24px; max-width:360px; width:100%; text-align:center; box-shadow:0 0 40px rgba(75,232,122,0.25),0 16px 48px rgba(0,0,0,0.85); animation:exitModalIn 0.22s cubic-bezier(0.34,1.56,0.64,1) both; margin:auto;">
         <div id="prr-icon" style="font-size:52px; margin-bottom:12px; line-height:1;">✅</div>
         <div id="prr-ur" style="font-family:'Amiri',serif; font-size:20px; color:#fff; direction:rtl; margin-bottom:6px; font-weight:700; line-height:1.4;"></div>
         <div id="prr-en" style="font-family:'Rajdhani',sans-serif; font-size:14px; color:#8899aa; direction:ltr;"></div>
