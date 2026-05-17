@@ -310,7 +310,10 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Prayer Time">
+    <meta name="theme-color" content="#050a12">
     <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-512.png">
     <script>
       if (screen.orientation && screen.orientation.lock) {
         screen.orientation.lock("landscape").catch(function(){});
@@ -617,6 +620,7 @@
         .active-times-box {
             font-family: 'Orbitron', sans-serif;
             font-size: calc(91.8px * var(--fs));
+            font-weight: 700;
             display: flex; justify-content: center; align-items: center; gap: 3.5vw;
         }
         .time-group { display: flex; flex-direction: column; align-items: center; gap: 3px; }
@@ -1201,6 +1205,9 @@
            ════════════════════════════════════════════════════════ */
         @media (max-width: 900px) {
 
+            /* ── Allow centre panel to show bold times without clipping ── */
+            .col-center { overflow: visible !important; }
+
             /* ── Main clock ── */
             .main-clock {
                 font-size: 18vh !important;
@@ -1228,11 +1235,14 @@
                 letter-spacing: 0.2vh !important;
                 gap: 5em !important;
             }
+            .current-prayer-display { overflow: visible !important; }
 
             /* ── AZAN / JAMAAT big times ── */
             .active-times-box {
-                font-size: 7.5vh !important;
+                font-size: 7vh !important;
+                font-weight: 700 !important;
                 gap: 3vh !important;
+                overflow: visible !important;
             }
 
             /* ── AZAN / JAMAAT small labels ── */
@@ -1261,9 +1271,9 @@
             .hijri-date-ar             { font-size: 2.8vh !important; }
 
             /* ── Left col: shared time rows (SAHR, IFTAR, TULU etc.) ── */
-            .shared-time    { font-size: 2.6vh !important; letter-spacing: 0.1vh !important; }
-            .shared-en-name { font-size: 2.2vh !important; letter-spacing: 0.05vh !important; }
-            .shared-ur-name { font-size: 2.2vh !important; }
+            .shared-time    { font-size: 3.3vh !important; letter-spacing: 0.1vh !important; }
+            .shared-en-name { font-size: 2.8vh !important; letter-spacing: 0.05vh !important; }
+            .shared-ur-name { font-size: 2.8vh !important; }
             .time-row       { gap: 0.3vh !important; padding: 0.4vh 0 !important; }
 
             /* ── Left col: countdown box ── */
@@ -1275,23 +1285,23 @@
             #makroohEng  { font-size: 1.6vh !important; }
 
             /* ── Right col: prayer header ── */
-            .prayer-header h2                    { font-size: 2.6vh !important; letter-spacing: 0.2vh !important; }
-            .prayer-header-side span:first-child { font-size: 1.2vh !important; }
-            .prayer-header-side span:last-child  { font-size: 2vh !important; }
+            .prayer-header h2                    { font-size: 3.2vh !important; letter-spacing: 0.2vh !important; }
+            .prayer-header-side span:first-child { font-size: 1.6vh !important; }
+            .prayer-header-side span:last-child  { font-size: 2.6vh !important; }
             .prayer-header-side                  { gap: 0.2vh !important; }
 
             /* ── Right col: AZAN / JAMAAT column headers ── */
             .prayer-list-header .lbl-col { font-size: 1.8vh !important; letter-spacing: 0.2vh !important; }
 
             /* ── Right col: prayer name labels ── */
-            .prayer-item-name .en-name { font-size: 3vh !important; letter-spacing: 0.1vh !important; }
-            .prayer-item-name .ur-name { font-size: 3vh !important; }
+            .prayer-item-name .en-name { font-size: 3.8vh !important; letter-spacing: 0.1vh !important; }
+            .prayer-item-name .ur-name { font-size: 3.8vh !important; }
 
             /* ── Right col: prayer azan/jamaat times ── */
-            .prayer-item-times .pt { font-size: 3.8vh !important; }
+            .prayer-item-times .pt { font-size: 4.5vh !important; }
 
             /* ── Tomorrow box ── */
-            .tomorrow-box .color-tomorrow { font-size: 1.8vh !important; }
+            .tomorrow-box .color-tomorrow { font-size: 2.4vh !important; }
 
             /* ── Scroll text footer ── */
             .scroll-text { font-size: 2vh !important; letter-spacing: 0.1vh !important; }
@@ -1307,15 +1317,41 @@
             }
 
             /* ── center-mode specific (single column fullscreen) ── */
-            body[data-mode="center"] .main-clock         { font-size: 22vh !important; }
+            body[data-mode="center"] .main-clock          { font-size: 22vh !important; }
             body[data-mode="center"] .current-prayer-name { font-size: 7.5vh !important; }
-            body[data-mode="center"] .active-times-box   { font-size: 10vh !important; gap: 4vh !important; }
-            body[data-mode="center"] .calligraphy        { font-size: 5vh !important; }
+            body[data-mode="center"] .active-times-box    { font-size: 10vh !important; font-weight: 700 !important; gap: 4vh !important; overflow: visible !important; }
+            body[data-mode="center"] .calligraphy         { font-size: 5vh !important; }
             body[data-mode="center"] .calligraphy .badge-allah,
             body[data-mode="center"] .calligraphy .badge-muhammad { width: 6vh !important; height: 6vh !important; }
-            body[data-mode="center"] .location-temp-row  { font-size: 2vh !important; }
-            body[data-mode="center"] #dayName            { font-size: 2.5vh !important; }
-            body[data-mode="center"] .jamaat-countdown   { font-size: 3vh !important; }
+            body[data-mode="center"] .location-temp-row   { font-size: 3.5vh !important; }
+            body[data-mode="center"] #dayName             { font-size: 4vh !important; }
+            body[data-mode="center"] .jamaat-countdown    { font-size: 5vh !important; }
+
+            /* ══ RIGHT mode — fullscreen single column: scale everything up ══
+               In "right" mode only col-right is shown, filling the full screen.
+               The general mobile rules above are sized for 1-of-3 columns;
+               here we override to use the full available space.               */
+            body[data-mode="right"] .prayer-header h2                    { font-size: 7vh !important; }
+            body[data-mode="right"] .prayer-header-side span:first-child { font-size: 3.5vh !important; }
+            body[data-mode="right"] .prayer-header-side span:last-child  { font-size: 5.5vh !important; }
+            body[data-mode="right"] .prayer-list-header .lbl-col         { font-size: 4vh !important; }
+            body[data-mode="right"] .prayer-item-name .en-name           { font-size: 7vh !important; }
+            body[data-mode="right"] .prayer-item-name .ur-name           { font-size: 7vh !important; }
+            body[data-mode="right"] .prayer-item-times .pt               { font-size: 8.5vh !important; }
+            body[data-mode="right"] .tomorrow-box .color-tomorrow        { font-size: 5vh !important; }
+
+            /* ══ LEFT mode — fullscreen single column: scale everything up ══
+               In "left" mode only col-left is shown, filling the full screen. */
+            body[data-mode="left"] .date-section .col-date-g { font-size: 6vh !important; }
+            body[data-mode="left"] .hijri-date-ar             { font-size: 6vh !important; }
+            body[data-mode="left"] .shared-time               { font-size: 7vh !important; }
+            body[data-mode="left"] .shared-en-name            { font-size: 5.5vh !important; }
+            body[data-mode="left"] .shared-ur-name            { font-size: 5.5vh !important; }
+            body[data-mode="left"] .time-row                  { gap: 1.2vh !important; padding: 1vh 0 !important; }
+            body[data-mode="left"] #leftCountdownBox .cd-time { font-size: 9vh !important; }
+            body[data-mode="left"] #leftCountdownBox .cd-label { font-size: 3.5vh !important; }
+            body[data-mode="left"] #makroohUrdu               { font-size: 6.5vh !important; }
+            body[data-mode="left"] #makroohEng                { font-size: 3.5vh !important; }
 
             /* ── dashboard / dashboard2 mode: no changes on mobile — keep desktop layout ── */
             /* Dashboard uses its own db-* elements sized with calc(px * var(--fs)).
@@ -1333,6 +1369,18 @@
             body[data-mode="dashboard2"] #db-prayer-col .db-row-times .dbt   { font-size: calc(36px * 0.55) !important; }
             body[data-mode="dashboard"]  #db-prayer-col .db-col-hdr span,
             body[data-mode="dashboard2"] #db-prayer-col .db-col-hdr span     { font-size: calc(15px * 0.55) !important; }
+
+            /* ── Dashboard2 mobile: bigger prayer name labels ── */
+            body[data-mode="dashboard2"] #db-prayer-col .db-row-name .db-en  { font-size: 2.8vh !important; }
+            body[data-mode="dashboard2"] #db-prayer-col .db-row-name .db-ur  { font-size: 2.8vh !important; }
+
+            /* ── Dashboard2 mobile: fix intermittent clock cutoff ──────────────────────
+               The TV admin may save a clockScale > 100 (e.g. 130%). On mobile that
+               inflates db-main-clock via --clock-scale and causes overflow/cutoff.
+               Cap to a safe vh ceiling that ignores --clock-scale entirely.         ── */
+            body[data-mode="dashboard2"] #db-clock-col .db-main-clock {
+                font-size: min(calc(170px * 0.55), 13vh) !important;
+            }
         }
         /* ════ End mobile overrides ════ */
 
@@ -1478,6 +1526,7 @@
         #db-clock-col .db-azan-jamaat {
             display: flex; align-items: center; justify-content: center; gap: 3vw;
             font-family: 'Orbitron', sans-serif; font-size: calc(62px * var(--fs));
+            font-weight: 700;
             font-variant-numeric: tabular-nums;
         }
         #db-clock-col .db-aj-divider {
@@ -5357,6 +5406,10 @@ const rangeEnd = document.getElementById('rangeEnd');
                 if(typeof fetchDailyTimes === 'function') fetchDailyTimes();
                 if (mode !== 'musalli' && currentConfig.general) {
                     if (currentConfig.general.urduFontSize) document.documentElement.style.setProperty('--ur-size', currentConfig.general.urduFontSize + 'px');
+                    // BUG FIX: enFontSize was never applied on initial localStorage load —
+                    // only urduFontSize and clockScale were. --en-size would stay at the CSS
+                    // default (18px) until a Firebase push arrived, ignoring the saved value.
+                    if (currentConfig.general.enFontSize) document.documentElement.style.setProperty('--en-size', currentConfig.general.enFontSize + 'px');
                     if (currentConfig.general.clockScale) document.documentElement.style.setProperty('--clock-scale', currentConfig.general.clockScale / 100);
                 }
             } catch(e) { console.log(e); }
@@ -5449,7 +5502,6 @@ const rangeEnd = document.getElementById('rangeEnd');
                 db.ref('mosques/' + mosqueID).once('value').then(async (snapshot) => {
                     document.body.style.display = 'flex';
                     if (!snapshot.exists()) {
-                        await showAlert({ icon:"⚠️", ur:"سیکیورٹی الرٹ! یہ 8 ہندسوں کا کوڈ کسی بھی مسجد کا نہیں ہے۔", en:"Security Alert! This 8-digit code does not belong to any mosque.", type:"danger" });
                         window.location.href = "index.html";
                         return;
                     }
@@ -5542,7 +5594,9 @@ const rangeEnd = document.getElementById('rangeEnd');
                     if (!snapshot.exists()) {
                         await showAlert({ icon:"⚠️", ur:"یہ مسجد موجود نہیں ہے! آپ نے جو 8 ہندسوں کا کوڈ ڈالا ہے وہ غلط ہے۔", en:"This mosque does not exist! The 8-digit code you entered is incorrect.", type:"danger" });
                         let list = JSON.parse(localStorage.getItem('saved_mosques')) || [];
-                        list = list.filter(m => m.id !== code);
+                        // BUG FIX: was filtering by `code` (raw URL param) but saved_mosques
+                        // entries use the full mosqueID (e.g. "MSJ-12345678"). Use mosqueID.
+                        list = list.filter(m => m.id !== mosqueID);
                         localStorage.setItem('saved_mosques', JSON.stringify(list));
                         window.location.href = "index.html";
                         return;
@@ -5740,7 +5794,12 @@ const rangeEnd = document.getElementById('rangeEnd');
         document.documentElement.style.setProperty('--rot', currentConfig.general.rotation);
         currentConfig.general.fiqh = document.getElementById("configFiqh").value;
         currentConfig.general.eidTime = document.getElementById("configEid").value;
-        currentConfig.general.showEid1 = (currentConfig.general.showEid1 !== false);
+        // showEid1 is maintained in-memory by toggleEid1(); do not re-derive it here.
+        // (old code: `currentConfig.general.showEid1 = (currentConfig.general.showEid1 !== false)`
+        //  was equivalent to a no-op for `true` but would silently flip `false` → `false` only
+        //  by coincidence — the real risk was a future refactor breaking the identity.
+        //  Leave the value exactly as toggleEid1 set it.)
+        // currentConfig.general.showEid1 already correct — no assignment needed.
         currentConfig.general.ishraqOffset = parseInt(document.getElementById("configIshraq").value);
         currentConfig.general.chashtMode = document.getElementById("configChasht").value;
         currentConfig.general.hijriOffset = document.getElementById("configHijriOffset").value;

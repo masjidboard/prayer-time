@@ -1396,6 +1396,30 @@
  .cm-btn-save { background: linear-gradient(135deg, #4be87a, #2ab85a); color: #000; border: 2px solid rgba(255,255,255,0.15) !important; }
  .cm-btn-save:hover { box-shadow: 0 4px 16px rgba(75,232,122,0.4); }
  .cm-btns button:active { transform: scale(0.94); }
+
+ /* ── Help + Settings screens on mobile: tighter heading, bigger content area ── */
+ @media (max-width: 768px) {
+   #help-screen > div:first-child,
+   #settings-screen > div:first-child {
+     padding: 64px 4vw 6px !important;
+   }
+   #help-h1, #settings-h1 {
+     font-size: clamp(20px, 6vw, 28px) !important;
+     margin: 0 0 4px 0 !important;
+   }
+   #help-h2, #settings-h2 {
+     font-size: clamp(14px, 4vw, 18px) !important;
+     margin: 0 !important;
+   }
+   #help-screen > div:last-child,
+   #settings-screen > div:last-child {
+     padding-bottom: 2vh !important;
+   }
+   #settings-screen > div:last-child {
+     align-items: flex-start !important;
+     padding-top: 1vh !important;
+   }
+ }
  </style>
 </head>
 <body>
@@ -1506,16 +1530,68 @@
  <div class="exit-modal-icon">🚪</div>
  <div class="exit-modal-title-en">Do you want to exit the app?</div>
  <div class="exit-modal-btns">
- <button id="exit-btn-cancel" tabindex="0" class="exit-btn-cancel" onclick="closeExitModal()">
- <span style="font-size:12px; opacity:0.8;">Cancel</span>
- </button>
- <button id="exit-btn-confirm" tabindex="0" class="exit-btn-confirm" onclick="confirmExit()">
- <span style="font-size:12px; opacity:0.9;">Exit</span>
- </button>
+ <button id="exit-btn-cancel" tabindex="0" class="exit-btn-cancel" onclick="closeExitModal()">Cancel</button>
+ <button id="exit-btn-confirm" tabindex="0" class="exit-btn-confirm" onclick="confirmExit()">Exit</button>
  </div>
  </div>
 </div>
 
+
+<!-- ── AUTOSTART COUNTDOWN POPUP ──────────────────── -->
+<div id="autostartPopup" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; background:rgba(0,0,0,0.82); z-index:3000; justify-content:center; align-items:center; padding:20px;">
+ <div style="background:linear-gradient(160deg,#0a1626 0%,#060d1a 100%); border:2px solid #56d0e8; border-radius:20px; padding:32px 28px 28px; max-width:380px; width:100%; text-align:center; box-shadow:0 0 60px rgba(86,208,232,0.18), 0 16px 48px rgba(0,0,0,0.8);">
+  <!-- Icon + pulse ring -->
+  <div style="position:relative; display:inline-block; margin-bottom:18px;">
+   <div style="position:absolute; inset:-10px; border-radius:50%; border:2px solid rgba(86,208,232,0.3); animation:as-pulse 1.4s ease-out infinite;"></div>
+   <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#1a3a5a,#0f2235); border:2px solid #56d0e8; display:flex; align-items:center; justify-content:center; font-size:28px;">📺</div>
+  </div>
+  <!-- Title -->
+  <div id="as-popup-title" style="font-family:'Inter',sans-serif; font-size:17px; font-weight:700; color:#fff; margin-bottom:6px; direction:ltr;">Auto Start</div>
+  <!-- Subtitle -->
+  <div id="as-popup-sub" style="font-family:'Inter',sans-serif; font-size:13px; color:#667788; margin-bottom:22px; direction:ltr;">Launching in…</div>
+  <!-- Big countdown number -->
+  <div id="as-popup-num" style="font-family:'Orbitron',monospace; font-size:52px; font-weight:700; color:#56d0e8; line-height:1; margin-bottom:18px; text-shadow:0 0 24px rgba(86,208,232,0.45);">15</div>
+  <!-- Progress bar track -->
+  <div style="background:#0a1525; border-radius:8px; height:8px; overflow:hidden; margin-bottom:22px;">
+   <div id="as-popup-bar" style="height:100%; background:linear-gradient(90deg,#56d0e8,#4be87a); border-radius:8px; width:100%; transition:width 1s linear;"></div>
+  </div>
+  <!-- Cancel button -->
+  <button id="as-popup-cancel" tabindex="0" onclick="cancelAutostart()" class="as-cancel-btn"><span style="font-size:22px; font-weight:700; margin-right:8px; line-height:1;">&#10005;</span><span id="as-popup-cancel-label" style="font-size:22px; font-weight:700; line-height:1;">منسوخ کریں</span></button>
+ </div>
+</div>
+
+<style>
+@keyframes as-pulse {
+ 0%   { transform:scale(1);   opacity:0.7; }
+ 70%  { transform:scale(1.5); opacity:0; }
+ 100% { transform:scale(1.5); opacity:0; }
+}
+.as-cancel-btn {
+ background: linear-gradient(135deg, #ff5555 0%, #cc2222 100%);
+ color: #fff;
+ border: 2px solid rgba(255,255,255,0.2);
+ border-radius: 12px;
+ font-family: 'Inter', 'Noto Nastaliq Urdu', sans-serif;
+ font-size: 22px;
+ font-weight: 700;
+ padding: 16px 28px;
+ cursor: pointer;
+ transition: all 0.2s;
+ width: 100%;
+ letter-spacing: 0.3px;
+ box-shadow: 0 4px 14px rgba(255,85,85,0.3);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 8px;
+ line-height: 1;
+}
+.as-cancel-btn:hover {
+ background: linear-gradient(135deg, #ff7777 0%, #dd3333 100%);
+ box-shadow: 0 4px 18px rgba(255,85,85,0.5);
+}
+.as-cancel-btn:active { transform: scale(0.94); }
+</style>
 
 <!-- ── UNIVERSAL CUSTOM MODAL ──────────────────────── -->
 <div id="customModal">
@@ -1672,6 +1748,7 @@
  // Timers will restart if the user re-enables the toggle after closing.
  clearTimeout(_autostartTimer); _autostartTimer = null;
  clearTimeout(_autostartLinkTimer); _autostartLinkTimer = null;
+ _hideAutostartPopup();
 
  _updateAutostartUI();
 
@@ -1694,6 +1771,13 @@
  document.getElementById('lang-toggle-btn').style.display = 'flex';
  document.querySelector('.settings-icon-btn').style.display = 'flex';
  window._currentFullScreen = null;
+
+ // Bug 2 fix: restart whichever autostart is enabled now that user has left settings
+ if (localStorage.getItem('autostart_main_tv') === 'true') {
+  _startMainTimer();
+ } else if (localStorage.getItem('autostart_link_tv') === 'true') {
+  _startLinkTimer();
+ }
  }
 
  // Updates hint text and greyed-out state based on current toggle values
@@ -1721,70 +1805,177 @@
  }
  }
 
- // Main TV toggle — identical logic to original
+ // ── Autostart Popup ───────────────────────────────────
+ let _asPopupInterval = null;
+ let _asPopupSeconds  = 15;
+
+ function _showAutostartPopup(mode) {
+  // mode: 'main' | 'link'
+  const popup   = document.getElementById('autostartPopup');
+  const numEl   = document.getElementById('as-popup-num');
+  const barEl   = document.getElementById('as-popup-bar');
+  const titleEl = document.getElementById('as-popup-title');
+  const subEl   = document.getElementById('as-popup-sub');
+
+  // Use bilingual strings if available
+  const isLink = (mode === 'link');
+  titleEl.textContent = typeof _t === 'function'
+   ? _t(isLink ? 'autostartPopupTitleLink' : 'autostartPopupTitleMain')
+   : (isLink ? 'Auto Starting Linked TV…' : 'Auto Starting Main TV…');
+  subEl.textContent = typeof _t === 'function'
+   ? _t('autostartPopupSub')
+   : 'Tap Cancel to stop';
+  const cancelLabelEl = document.getElementById('as-popup-cancel-label');
+  if (cancelLabelEl) cancelLabelEl.textContent = typeof _t === 'function' ? _t('btnCancel') : 'Cancel';
+
+  if (isLink) {
+   try {
+    const links = JSON.parse(localStorage.getItem('saved_links')) || [];
+    if (links.length > 0) {
+     const linkName = links[0].name || ('Link TV ' + links[0].id);
+     popup.dataset.asLinkName = linkName;
+     subEl.textContent = (typeof _t === 'function' ? _t('autostartHintPrefix') : 'Launching:') + ' ' + linkName;
+    }
+   } catch(e) {}
+  } else {
+   delete popup.dataset.asLinkName;
+  }
+
+  _asPopupSeconds = 15;
+  numEl.textContent = 15;
+  // Force reflow so the bar CSS transition starts from 100 %
+  barEl.style.transition = 'none';
+  barEl.style.width = '100%';
+  // eslint-disable-next-line no-unused-expressions
+  barEl.offsetWidth; // reflow
+  barEl.style.transition = 'width 1s linear';
+
+  popup.dataset.asMode = mode;
+  popup.style.display = 'flex';
+
+  clearInterval(_asPopupInterval);
+  _asPopupInterval = setInterval(function () {
+   _asPopupSeconds--;
+   if (_asPopupSeconds <= 0) {
+    clearInterval(_asPopupInterval);
+    _asPopupInterval = null;
+    numEl.textContent = 0;
+    barEl.style.width = '0%';
+    return; // navigation happens via the existing setTimeout
+   }
+   numEl.textContent = _asPopupSeconds;
+   barEl.style.width = ((_asPopupSeconds / 15) * 100) + '%';
+  }, 1000);
+ }
+
+ function _hideAutostartPopup() {
+  clearInterval(_asPopupInterval);
+  _asPopupInterval = null;
+  const popup = document.getElementById('autostartPopup');
+  if (popup) popup.style.display = 'none';
+ }
+
+ function cancelAutostart() {
+  // Cancel whichever timer is running and turn both toggles off
+  clearTimeout(_autostartTimer);       _autostartTimer     = null;
+  clearTimeout(_autostartLinkTimer);   _autostartLinkTimer = null;
+  localStorage.setItem('autostart_main_tv', 'false');
+  localStorage.setItem('autostart_link_tv',  'false');
+  _hideAutostartPopup();
+  // Sync settings toggles if settings happen to be open
+  const mt = document.getElementById('autostart-toggle');
+  const lt = document.getElementById('autostart-link-toggle');
+  if (mt) mt.checked = false;
+  if (lt) lt.checked = false;
+  _updateAutostartUI();
+ }
+
+ // ── Internal launcher helpers ─────────────────────────
+ function _startMainTimer() {
+  _autostartTimer = setTimeout(function () {
+   _hideAutostartPopup();
+   goToTV();
+  }, 15000);
+  _showAutostartPopup('main');
+ }
+
+ function _startLinkTimer() {
+  _autostartLinkTimer = setTimeout(function () {
+   _hideAutostartPopup();
+   _launchTopLinkTv();
+  }, 15000);
+  _showAutostartPopup('link');
+ }
+
+ // Main TV toggle — Bug 4 fix: never start timers while inside Settings
  function onAutostartToggle() {
  const enabled = document.getElementById('autostart-toggle').checked;
 
  if (enabled) {
- // Turn off Linked TV if it was on
- localStorage.setItem('autostart_link_tv', 'false');
- document.getElementById('autostart-link-toggle').checked = false;
- clearTimeout(_autostartLinkTimer);
- _autostartLinkTimer = null;
+  // Turn off Linked TV if it was on
+  localStorage.setItem('autostart_link_tv', 'false');
+  document.getElementById('autostart-link-toggle').checked = false;
+  clearTimeout(_autostartLinkTimer);
+  _autostartLinkTimer = null;
  }
 
  localStorage.setItem('autostart_main_tv', enabled ? 'true' : 'false');
  _updateAutostartUI();
-
- if (enabled) {
- _autostartTimer = setTimeout(goToTV, 15000);
- } else {
- clearTimeout(_autostartTimer);
- _autostartTimer = null;
- }
+ // Bug 4: Do NOT start a timer here — timers start only when settings closes
  }
 
- // Linked TV toggle — works exactly like Main TV toggle
+ // Linked TV toggle — Bug 4 fix: never start timers while inside Settings
  function onAutostartLinkToggle() {
  const enabled = document.getElementById('autostart-link-toggle').checked;
 
  if (enabled) {
- // Turn off Main TV if it was on
- localStorage.setItem('autostart_main_tv', 'false');
- document.getElementById('autostart-toggle').checked = false;
- clearTimeout(_autostartTimer);
- _autostartTimer = null;
+  // Bug 3: block early if there are no saved Link TVs
+  try {
+   const links = JSON.parse(localStorage.getItem('saved_links')) || [];
+   if (links.length === 0) {
+    document.getElementById('autostart-link-toggle').checked = false;
+    showAlert({ icon: '🔗', en: typeof _t === 'function' ? _t('errNoLinkedTv') : 'No Linked TV saved yet. Please add a Link TV first.', type: 'warning' });
+    return;
+   }
+  } catch(e) {}
+  // Mutually exclusive — turn off Main TV if it was on
+  localStorage.setItem('autostart_main_tv', 'false');
+  document.getElementById('autostart-toggle').checked = false;
+  clearTimeout(_autostartTimer);
+  _autostartTimer = null;
  }
 
  localStorage.setItem('autostart_link_tv', enabled ? 'true' : 'false');
  _updateAutostartUI();
-
- if (enabled) {
- _autostartLinkTimer = setTimeout(_launchTopLinkTv, 15000);
- } else {
- clearTimeout(_autostartLinkTimer);
- _autostartLinkTimer = null;
- }
+ // Bug 4: Do NOT start a timer here — timers start only when settings closes
  }
 
  function _launchTopLinkTv() {
  try {
- const links = JSON.parse(localStorage.getItem('saved_links')) || [];
- if (links.length === 0) return;
- const m = links[0];
- sessionStorage.setItem('link_tv_pin_verified', 'MSJ-' + m.id);
- localStorage.setItem('temp_force_layout', m.layout || 'auto');
- localStorage.setItem('is_linked_tv', 'true');
- window.location.href = 'masjidboard.html?mode=link_tv&code=' + m.id;
+  const links = JSON.parse(localStorage.getItem('saved_links')) || [];
+  // Bug 3 fix: show alert if no saved links instead of silently doing nothing
+  if (links.length === 0) {
+   localStorage.setItem('autostart_link_tv', 'false');
+   const lt = document.getElementById('autostart-link-toggle');
+   if (lt) lt.checked = false;
+   _updateAutostartUI();
+   showAlert({ icon: '🔗', en: typeof _t === 'function' ? _t('errNoLinkedTv') : 'No Linked TV saved yet. Please add a Link TV first before enabling Auto Start.', type: 'warning' });
+   return;
+  }
+  const m = links[0];
+  sessionStorage.setItem('link_tv_pin_verified', 'MSJ-' + m.id);
+  localStorage.setItem('temp_force_layout', m.layout || 'auto');
+  localStorage.setItem('is_linked_tv', 'true');
+  window.location.href = 'masjidboard.html?mode=link_tv&code=' + m.id;
  } catch(e) {}
  }
 
  // ── Auto-start on app load ─────────────────────────────
  function initAutostart() {
  if (localStorage.getItem('autostart_main_tv') === 'true') {
- _autostartTimer = setTimeout(goToTV, 15000);
+  _startMainTimer();
  } else if (localStorage.getItem('autostart_link_tv') === 'true') {
- _autostartLinkTimer = setTimeout(_launchTopLinkTv, 15000);
+  _startLinkTimer();
  }
  }
 
@@ -2194,7 +2385,7 @@
  connectBtn.style.display = 'none';
  const pinArea = document.getElementById('pin-input-area');
  pinArea.style.display = 'block';
- document.getElementById('pin-msg').innerHTML = 'Enter your Admin PIN';
+ document.getElementById('pin-msg').innerHTML = _t('pinEnter');
  document.getElementById('adminPin').focus();
  }
  }
@@ -2341,6 +2532,21 @@
  });
  return;
  } else if (selectedMode === 'musalli') {
+ // Step 1: verify mosque exists in Firebase before asking for a name
+ const mosqueID = "MSJ-" + code;
+ const connectBtn = document.querySelector('#code-input-area .btn-tv');
+ connectBtn.disabled = true;
+ connectBtn.textContent = _t('verifying');
+
+ dbOnce(db.ref('mosques/' + mosqueID)).then(async (snapshot) => {
+ connectBtn.disabled = false;
+ connectBtn.innerHTML = _t('connectBtn');
+
+ if (!snapshot.exists()) {
+ showAlert({ icon:"⚠️", en:_t('errNoMosque'), type:"warning" }); return;
+ }
+
+ // Code is valid — now ask for name (if not already saved)
  let list = JSON.parse(localStorage.getItem('saved_mosques')) || [];
  if (!list.find(m => m.id === code)) {
  const name = await showPrompt({
@@ -2354,6 +2560,13 @@
  await showAlert({ icon: "🕌", en: _t("alreadySavedMusalli"), type: "info" });
  }
  window.location.href = "masjidboard.html?mode=musalli&code=" + code;
+
+ }).catch(() => {
+ connectBtn.disabled = false;
+ connectBtn.innerHTML = _t('connectBtn');
+ showAlert({ icon:"📡", en:_t("errInternet"), type:"danger" });
+ });
+ return;
  } else {
  window.location.href = "masjidboard.html?mode=" + selectedMode + "&code=" + code;
  }
@@ -2578,6 +2791,7 @@
  // User pressed Cancel — undo storage state and fully reset UI
  sessionStorage.removeItem('link_tv_pin_verified');
  localStorage.removeItem('is_linked_tv');
+ localStorage.removeItem('temp_force_layout');
  resetCodeInput();
  return;
  }
@@ -2696,23 +2910,51 @@
    function getCustomModal()   { return document.getElementById('customModal'); }
    function getSettingsScreen(){ return document.getElementById('settings-screen'); }
    function getHelpScreen()    { return document.getElementById('help-screen'); }
-   function isExitOpen()     { var m = getExitModal();   return m && m.classList.contains('show'); }
-   function isCustomOpen()   { var m = getCustomModal(); return m && m.classList.contains('show'); }
-   function isSettingsOpen() { var s = getSettingsScreen(); return s && s.style.display === 'flex'; }
-   function isHelpOpen()     { var h = getHelpScreen();     return h && h.style.display === 'flex'; }
-   function isCddOpen()      { var p = document.querySelector('.cdd-portal'); return p && p.classList.contains('cdd-open'); }
+   function getAutostartPopup(){ return document.getElementById('autostartPopup'); }
+   function isExitOpen()       { var m = getExitModal();        return m && m.classList.contains('show'); }
+   function isCustomOpen()     { var m = getCustomModal();      return m && m.classList.contains('show'); }
+   function isSettingsOpen()   { var s = getSettingsScreen();   return s && s.style.display === 'flex'; }
+   function isHelpOpen()       { var h = getHelpScreen();       return h && h.style.display === 'flex'; }
+   function isAutostartOpen()  { var p = getAutostartPopup();   return p && p.style.display === 'flex'; }
+   function isCddOpen()        { var p = document.querySelector('.cdd-portal'); return p && p.classList.contains('cdd-open'); }
+   function isSavedListOpen()  { var s = document.getElementById('saved-mosques-area'); return s && s.style.display !== '' && s.style.display !== 'none'; }
    function activeLayer() {
-     if (isExitOpen())     return 'exit';
-     if (isCustomOpen())   return 'custom';
-     if (isSettingsOpen()) return 'settings';
-     if (isHelpOpen())     return 'help';
-     if (isCddOpen())      return 'cdd';
+     if (isExitOpen())       return 'exit';
+     if (isCustomOpen())     return 'custom';
+     if (isAutostartOpen())  return 'autostart';
+     if (isSettingsOpen())   return 'settings';
+     if (isHelpOpen())       return 'help';
+     if (isCddOpen())        return 'cdd';
+     // BUG FIX: without this layer, ArrowDown fell through to moveFocusIn(document.body)
+     // which would land on the Delete button (the next <button> in DOM after .mosque-tap-row)
+     // instead of staying within the list or going to the back button.
+     if (isSavedListOpen())  return 'savedList';
      return 'none';
    }
 
    document.addEventListener('keydown', function(e) {
      var key = e.key;
      var layer = activeLayer();
+
+     // ── autostartPopup ─────────────────────────────────────
+     if (layer === 'autostart') {
+       var ap = getAutostartPopup();
+       switch (key) {
+         case 'ArrowDown': case 'Down':
+         case 'ArrowRight': case 'Right':
+           e.preventDefault(); moveFocusIn(ap, +1); break;
+         case 'ArrowUp': case 'Up':
+         case 'ArrowLeft': case 'Left':
+           e.preventDefault(); moveFocusIn(ap, -1); break;
+         case 'Enter': case 'Return': case 'OK': case ' ':
+           e.preventDefault(); activateFocused(); break;
+         case 'Escape': case 'Back': case 'GoBack': case 'BrowserBack':
+           e.preventDefault();
+           if (typeof cancelAutostart === 'function') cancelAutostart();
+           break;
+       }
+       return;
+     }
 
      // ── exitModal ──────────────────────────────────────────────
      if (layer === 'exit') {
@@ -2799,6 +3041,94 @@
            key === 'Enter' || key === 'Return' || key === 'OK' || key === 'Escape' ||
            key === 'Back' || key === 'GoBack' || key === 'BrowserBack') {
          e.preventDefault();
+       }
+       return;
+     }
+
+     // ── Saved-entries list panel navigation ───────────────────
+     // ArrowDown/Up  → move between .mosque-tap-row entries
+     // ArrowRight    → move from tap-row into its Delete/Edit action buttons
+     // ArrowLeft     → from an action button, jump back to its parent tap-row
+     // Enter         → activate focused element (open entry OR click action btn)
+     // Escape/Back   → go back (handleBack)
+     // ── Saved-entries list panel navigation ───────────────────
+     // Navigation map:
+     //   tap-row  → Down: Delete btn       Up: prev tap-row (or back btn if first)
+     //   Delete   → Left: Edit   Down: next tap-row / Add New   Up: this tap-row
+     //   Edit     → Right: Delete  Down: next tap-row / Add New   Up: this tap-row
+     //   Add New  → Up: last tap-row
+     //   Escape/Back → handleBack()
+     if (layer === 'savedList') {
+       var _sl  = document.getElementById('mosque-list-container');
+       var _items = _sl ? Array.prototype.slice.call(_sl.querySelectorAll('.mosque-item')) : [];
+       var _tapRows = _items.map(function(it) { return it.querySelector('.mosque-tap-row'); }).filter(Boolean);
+       var _ae = document.activeElement;
+       var _tapIdx    = _tapRows.indexOf(_ae);
+       var _parentItem = _ae && _ae.closest ? _ae.closest('.mosque-item') : null;
+       var _isDelete  = _ae && _ae.classList && _ae.classList.contains('delete-btn');
+       var _isEdit    = _ae && _ae.classList && _ae.classList.contains('edit-btn');
+       var _isAddNew  = _ae && _ae.id === 'add-new-btn';
+
+       function _goNextEntryOrAddNew(fromItem) {
+         var fromIdx = _items.indexOf(fromItem);
+         var nextItem = _items[fromIdx + 1];
+         if (nextItem) { var tr = nextItem.querySelector('.mosque-tap-row'); if (tr) tr.focus(); }
+         else { var ab = document.getElementById('add-new-btn'); if (ab) ab.focus(); }
+       }
+
+       switch (key) {
+         case 'ArrowDown': case 'Down':
+           e.preventDefault();
+           if (_tapIdx !== -1) {
+             // Down from tap-row → Delete button of this entry
+             var delBtn = _tapRows[_tapIdx].closest('.mosque-item').querySelector('.delete-btn');
+             if (delBtn) delBtn.focus();
+           } else if ((_isDelete || _isEdit) && _parentItem) {
+             // Down from Delete or Edit → next entry tap-row or Add New
+             _goNextEntryOrAddNew(_parentItem);
+           } else if (_isAddNew) {
+             // Down from Add New → wrap to first tap-row
+             if (_tapRows.length) _tapRows[0].focus();
+           }
+           break;
+         case 'ArrowUp': case 'Up':
+           e.preventDefault();
+           if ((_isDelete || _isEdit) && _parentItem) {
+             // Up from Delete or Edit → back to this entry's tap-row
+             var tr = _parentItem.querySelector('.mosque-tap-row');
+             if (tr) tr.focus();
+           } else if (_tapIdx !== -1) {
+             // Up from tap-row → previous tap-row or back button
+             if (_tapIdx > 0) { _tapRows[_tapIdx - 1].focus(); }
+             else { var bb = document.getElementById('back-arrow-btn'); if (bb) bb.focus(); }
+           } else if (_isAddNew) {
+             // Up from Add New → last tap-row
+             if (_tapRows.length) _tapRows[_tapRows.length - 1].focus();
+             else { var bb2 = document.getElementById('back-arrow-btn'); if (bb2) bb2.focus(); }
+           }
+           break;
+         case 'ArrowLeft': case 'Left':
+           e.preventDefault();
+           if (_isDelete && _parentItem) {
+             // Left from Delete → Edit
+             var editBtn = _parentItem.querySelector('.edit-btn');
+             if (editBtn) editBtn.focus();
+           }
+           break;
+         case 'ArrowRight': case 'Right':
+           e.preventDefault();
+           if (_isEdit && _parentItem) {
+             // Right from Edit → Delete
+             var delBtn2 = _parentItem.querySelector('.delete-btn');
+             if (delBtn2) delBtn2.focus();
+           }
+           break;
+         case 'Enter': case 'Return': case 'OK': case ' ':
+           e.preventDefault(); activateFocused(); break;
+         case 'Escape': case 'Back': case 'GoBack': case 'BrowserBack':
+           e.preventDefault();
+           if (typeof handleBack === 'function') handleBack();
+           break;
        }
        return;
      }
@@ -3139,6 +3469,11 @@
    // autostart hint
    autostartHintPrefix: 'Will open:',
    autostartHintSuffix: '(top of saved list)',
+   // autostart popup
+   autostartPopupTitleMain: 'Auto Starting Main TV…',
+   autostartPopupTitleLink: 'Auto Starting Linked TV…',
+   autostartPopupSub: 'Tap Cancel to stop',
+   errNoLinkedTv: 'No Linked TV saved yet. Please add a Link TV first before enabling Auto Start.',
    // no saved entries
    noSavedEntries: 'No saved entries yet.',
    // seconds remaining label
@@ -3242,6 +3577,11 @@
    // autostart hint
    autostartHintPrefix: 'کھلے گا:',
    autostartHintSuffix: '(محفوظ فہرست میں سب سے اوپر)',
+   // autostart popup
+   autostartPopupTitleMain: 'مین ٹی وی خودکار شروع ہو رہا ہے…',
+   autostartPopupTitleLink: 'لنک ٹی وی خودکار شروع ہو رہا ہے…',
+   autostartPopupSub: 'روکنے کے لیے منسوخ کریں',
+   errNoLinkedTv: 'ابھی کوئی لنک ٹی وی محفوظ نہیں۔ پہلے لنک ٹی وی شامل کریں۔',
    // no saved entries
    noSavedEntries: 'ابھی کوئی اندراج محفوظ نہیں۔',
    // seconds remaining label
@@ -3408,10 +3748,10 @@
   var exitConfirm = document.querySelector('.exit-btn-confirm');
   if (exitConfirm) exitConfirm.textContent = L.exitConfirm;
 
-  // Connect button (if visible)
+  // Connect button (if visible and not mid-verification)
   var connectBtn = document.querySelector('#code-input-area .btn-tv:not([onclick*="submitPin"]):not([onclick*="submitLinkTv"])');
-  if (connectBtn && connectBtn.textContent.trim().match(/Connect|كنيكٹ/)) {
-   connectBtn.textContent = L.connectBtn;
+  if (connectBtn && !connectBtn.disabled) {
+   connectBtn.innerHTML = L.connectBtn;
   }
 
   // Mode title (if visible)
@@ -3455,6 +3795,22 @@
   if (hintPrefix) hintPrefix.textContent = L.autostartHintPrefix;
   var hintSuffix = document.getElementById('autostart-hint-suffix');
   if (hintSuffix) hintSuffix.textContent = L.autostartHintSuffix;
+
+  // Autostart popup live text (update if popup is visible)
+  var asPopup = document.getElementById('autostartPopup');
+  if (asPopup && asPopup.style.display !== 'none') {
+   var isLink = asPopup.dataset.asMode === 'link';
+   document.getElementById('as-popup-title').textContent = isLink ? L.autostartPopupTitleLink : L.autostartPopupTitleMain;
+   // Only update sub if it hasn't been customised with a link name (stored in data attribute)
+   var asSubEl = document.getElementById('as-popup-sub');
+   if (!asPopup.dataset.asLinkName) {
+    asSubEl.textContent = L.autostartPopupSub;
+   } else {
+    asSubEl.textContent = L.autostartHintPrefix + ' ' + asPopup.dataset.asLinkName;
+   }
+   var asCancelLbl = document.getElementById('as-popup-cancel-label');
+   if (asCancelLbl) asCancelLbl.textContent = L.btnCancel;
+  }
 
   // Connect button (static DOM button, not dynamic)
   var connectMainBtn = document.getElementById('connect-btn');
