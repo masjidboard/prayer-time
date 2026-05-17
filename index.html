@@ -1401,7 +1401,7 @@
  @media (max-width: 768px) {
    #help-screen > div:first-child,
    #settings-screen > div:first-child {
-     padding: 64px 4vw 6px !important;
+     padding: 44px 4vw 6px !important;
    }
    #help-h1, #settings-h1 {
      font-size: clamp(20px, 6vw, 28px) !important;
@@ -1445,12 +1445,12 @@
 <!-- ── SETTINGS FULL SCREEN ──────────────────────────────────── -->
 <div id="settings-screen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#060d1a; z-index:50; flex-direction:column; align-items:center; justify-content:flex-start;">
  <!-- Heading pinned at top -->
- <div style="width:100%; padding:max(76px,10vh) 5vw 2vh; text-align:center; flex-shrink:0;">
+ <div style="width:100%; padding:max(52px,6vh) 5vw 2vh; text-align:center; flex-shrink:0;">
  <h1 id="settings-h1" style="font-size:clamp(22px,5vw,38px); color:#56d0e8; margin:0 0 8px 0; line-height:1.4;"></h1>
  <h2 id="settings-h2" style="color:#f0c040; text-shadow:0 0 20px rgba(240,192,64,0.3); margin:0 0 4px 0; font-size:clamp(16px,3.5vw,24px); line-height:1.4;"></h2>
  </div>
  <!-- Box centered in remaining space -->
- <div style="flex:1; width:100%; display:flex; align-items:center; justify-content:center; padding:0 5vw 5vh;">
+ <div style="flex:1; width:100%; display:flex; align-items:center; justify-content:center; padding:0 5vw 3vh;">
  <div style="width:100%; max-width:480px; background:linear-gradient(160deg,#0a1626 0%,#060d1a 100%); border-radius:16px; border:2px solid rgba(240,192,64,0.3); padding:24px 28px; box-shadow:0 8px 24px rgba(0,0,0,0.6);">
 
  <!-- ── Auto Start subsection header ── -->
@@ -1493,12 +1493,12 @@
 <!-- ── INFO FULL SCREEN ──────────────────────────────────── -->
 <div id="help-screen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#060d1a; z-index:50; flex-direction:column; align-items:center; justify-content:flex-start;">
  <!-- Heading pinned at top -->
- <div style="width:100%; padding:max(76px,10vh) 5vw 1vh; text-align:center; flex-shrink:0;">
+ <div style="width:100%; padding:max(52px,6vh) 5vw 1vh; text-align:center; flex-shrink:0;">
  <h1 id="help-h1" style="font-size:clamp(22px,5vw,38px); color:#56d0e8; margin:0 0 8px 0; line-height:1.4;"></h1>
  <h2 id="help-h2" style="color:#56d0e8; text-shadow:0 0 20px rgba(86,208,232,0.3); margin:0 0 4px 0; font-size:clamp(16px,3.5vw,24px); line-height:1.4;"></h2>
  </div>
  <!-- Scrollable box fills remaining space, scrollbar INSIDE the card border -->
- <div style="flex:1; width:90%; max-width:540px; min-height:0; padding-bottom:4vh; display:flex; flex-direction:column;">
+ <div style="flex:1; width:90%; max-width:540px; min-height:0; padding-bottom:2vh; display:flex; flex-direction:column;">
  <div class="help-scroll-area" style="flex:1; overflow-y:auto; background:linear-gradient(160deg,#0a1626 0%,#060d1a 100%); border-radius:16px; border:2px solid rgba(86,208,232,0.25); padding:24px 20px 24px 24px; box-shadow:0 8px 24px rgba(0,0,0,0.6); text-align:left; line-height:1.8;">
 
  <h3 id="help-sec1-title" style="color:#56d0e8; margin:0 0 8px 0; font-size:clamp(14px,3.5vw,17px);"></h3>
@@ -2427,6 +2427,11 @@
  list.splice(index, 1);
  localStorage.setItem(_storageKey[mode], JSON.stringify(list));
  renderSavedEntries(mode);
+ // If list still has entries, restore focus to the first tap-row
+ // (without this, focus falls to the Delete button — the next focusable element in DOM)
+ if (list.length > 0) {
+ setTimeout(function() { var first = document.querySelector('#mosque-list-container .mosque-tap-row'); if (first) first.focus(); }, 80);
+ }
  // If list now empty, switch back to code input
  if (list.length === 0) {
  document.getElementById('saved-mosques-area').style.display = 'none';
@@ -3054,8 +3059,8 @@
      // ── Saved-entries list panel navigation ───────────────────
      // Navigation map:
      //   tap-row  → Down: Delete btn       Up: prev tap-row (or back btn if first)
-     //   Delete   → Left: Edit   Down: next tap-row / Add New   Up: this tap-row
-     //   Edit     → Right: Delete  Down: next tap-row / Add New   Up: this tap-row
+     //   Delete   → Right: Edit  Down: next tap-row / Add New   Up: this tap-row
+     //   Edit     → Left: Delete  Down: next tap-row / Add New   Up: this tap-row
      //   Add New  → Up: last tap-row
      //   Escape/Back → handleBack()
      if (layer === 'savedList') {
@@ -3109,18 +3114,18 @@
            break;
          case 'ArrowLeft': case 'Left':
            e.preventDefault();
-           if (_isDelete && _parentItem) {
-             // Left from Delete → Edit
-             var editBtn = _parentItem.querySelector('.edit-btn');
-             if (editBtn) editBtn.focus();
+           if (_isEdit && _parentItem) {
+             // Left from Edit → Delete
+             var delBtn2 = _parentItem.querySelector('.delete-btn');
+             if (delBtn2) delBtn2.focus();
            }
            break;
          case 'ArrowRight': case 'Right':
            e.preventDefault();
-           if (_isEdit && _parentItem) {
-             // Right from Edit → Delete
-             var delBtn2 = _parentItem.querySelector('.delete-btn');
-             if (delBtn2) delBtn2.focus();
+           if (_isDelete && _parentItem) {
+             // Right from Delete → Edit
+             var editBtn = _parentItem.querySelector('.edit-btn');
+             if (editBtn) editBtn.focus();
            }
            break;
          case 'Enter': case 'Return': case 'OK': case ' ':
