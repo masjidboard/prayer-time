@@ -308,16 +308,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="manifest.json">
-
-<script>
-  if (screen.orientation && screen.orientation.lock) {
-    screen.orientation.lock("landscape").catch(function(){});
-  }
-</script>
-    <title>Masjid Board</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <script>
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock("landscape").catch(function(){});
+      }
+    </script>
+    <title>Prayer Time</title>
 
     <!-- ============================================================
          EARLY CORRUPTION GUARD — must run before ANY other script
@@ -6176,12 +6175,13 @@ const rangeEnd = document.getElementById('rangeEnd');
     touch-action: none;
 }
 #ccp-spectrum-thumb {
+    z-index: 2;
     position: absolute; width: 14px; height: 14px;
     border-radius: 50%; border: 2px solid #fff;
     box-shadow: 0 0 4px rgba(0,0,0,0.8);
     pointer-events: none; transform: translate(-50%, -50%);
 }
-#ccp-spectrum-wrap { position: relative; margin-bottom: 10px; }
+#ccp-spectrum-wrap { position: relative; margin-bottom: 10px; overflow: hidden; border-radius: 10px; }
 
 /* Hue slider */
 #ccp-hue-wrap { margin-bottom: 12px; position: relative; }
@@ -6383,12 +6383,13 @@ const rangeEnd = document.getElementById('rangeEnd');
     }
 
     function positionThumb() {
-        var w = canvas.width, h = canvas.height;
+        var w = canvas.offsetWidth  || canvas.width;
+        var h = canvas.offsetHeight || canvas.height;
         var x = _sat * w;
         var y = (1 - _val) * h;
-        var rect = canvas.getBoundingClientRect();
-        thumb.style.left = (rect.left + x) + 'px';
-        thumb.style.top  = (rect.top  + y) + 'px';
+        // Position relative to the wrap (position:relative parent), not the viewport
+        thumb.style.left = x + 'px';
+        thumb.style.top  = y + 'px';
     }
 
     function updateFromSpectrum(clientX, clientY) {
