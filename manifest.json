@@ -2,12 +2,12 @@
   "name": "Prayer Time",
   "short_name": "Prayer Time",
   "description": "Masjid Prayer Time Board - نماز کے اوقات",
-  "start_url": "./index.html",
+  "start_url": "/prayer-time/index.html",
   "display": "standalone",
   "background_color": "#050a12",
   "theme_color": "#050a12",
   "orientation": "landscape",
-  "scope": "./",
+  "scope": "/prayer-time/",
   "lang": "ur",
   "icons": [
     {
