@@ -318,6 +318,23 @@
       if (screen.orientation && screen.orientation.lock) {
         screen.orientation.lock("landscape").catch(function(){});
       }
+
+      // Fullscreen on user touch
+      function goFullscreen() {
+        var el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+      }
+
+      // Auto fullscreen on load (may need user touch on Android)
+      window.addEventListener('load', function() {
+        setTimeout(goFullscreen, 1000);
+      });
+
+      // Fullscreen on any touch/click
+      document.addEventListener('click', goFullscreen);
+      document.addEventListener('touchstart', goFullscreen);
     </script>
     <title>Prayer Time</title>
 
