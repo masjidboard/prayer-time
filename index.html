@@ -261,6 +261,37 @@
  <link rel="manifest" href="manifest.json">
  <link rel="apple-touch-icon" href="icon-512.png">
  <title>Prayer Time</title>
+ <script>
+ /* ── ANDROID SYSTEM FONT SIZE IMMUNITY ──────────────────────────────────────
+    Prevents Android/iOS system "Font size" setting from scaling this app.
+    CSS text-size-adjust alone is insufficient for Android WebView — the OS
+    applies a font scale factor at the engine level. We detect it by measuring
+    a known-size element and lock the root font-size to 16px.
+    We deliberately do NOT apply a body transform because position:fixed
+    children (corner buttons) lose viewport attachment when any ancestor has a
+    CSS transform (CSS spec §transforms). The setTextZoom(100) call handles
+    WebViews that expose the API directly.                                    */
+ (function () {
+   try {
+     var test = document.createElement('span');
+     test.style.cssText = 'position:absolute;top:-9999px;left:-9999px;' +
+       'font-size:16px;line-height:1;font-family:monospace;white-space:nowrap;' +
+       'visibility:hidden;';
+     test.textContent = 'M';
+     document.documentElement.appendChild(test);
+     var computed = parseFloat(window.getComputedStyle(test).fontSize);
+     document.documentElement.removeChild(test);
+
+     if (computed && Math.abs(computed - 16) > 0.5) {
+       document.documentElement.style.setProperty('font-size', '16px', 'important');
+     }
+
+     if (window.Android && window.Android.setTextZoom) {
+       window.Android.setTextZoom(100);
+     }
+   } catch (e) { /* silent — font immunity is non-critical */ }
+ })();
+ </script>
  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
  <style>
@@ -272,12 +303,14 @@
 
  /* ── SYSTEM FONT SIZE IMMUNITY ──────────────────────
  Prevents Android/iOS "Font size" system setting
- from scaling anything in this app. */
+ from scaling anything in this app.
+ The JS block above handles the WebView textZoom API;
+ these CSS rules handle the browser/CSS layer. */
  html {
  font-size: 16px !important;
- -webkit-text-size-adjust: none !important;
- -moz-text-size-adjust: none !important;
- text-size-adjust: none !important;
+ -webkit-text-size-adjust: 100% !important;
+ -moz-text-size-adjust: 100% !important;
+ text-size-adjust: 100% !important;
  width: 100%;
  min-width: 100%;
  overflow-x: hidden;
@@ -981,6 +1014,9 @@
  padding-right: 2px;
  scrollbar-width: thin;
  scrollbar-color: #2a5a6a rgba(255,255,255,0.04);
+ /* Clip the scrollbar track so it doesn't poke outside the card's corners */
+ border-radius: 10px;
+ -webkit-mask-image: -webkit-radial-gradient(white, black);
  }
  #mosque-list-container::-webkit-scrollbar { width: 4px; }
  #mosque-list-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 4px; }
@@ -1617,7 +1653,10 @@
  .help-scroll-area::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); border-radius: 10px; }
  .help-scroll-area::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #56d0e8 0%, #2a7fa8 100%); border-radius: 10px; box-shadow: 0 0 6px rgba(86,208,232,0.4); }
  .help-scroll-area::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #7adeee 0%, #3a9fc8 100%); }
- .help-scroll-area { scrollbar-width: thin; scrollbar-color: #56d0e8 rgba(255,255,255,0.04); }
+ .help-scroll-area { scrollbar-width: thin; scrollbar-color: #56d0e8 rgba(255,255,255,0.04);
+   /* Clip scrollbar track within the rounded corners */
+   -webkit-mask-image: -webkit-radial-gradient(white, black);
+ }
  /* ── Universal Custom Modal ─────────────────────────── */
  #customModal {
  display: none;
@@ -2693,39 +2732,62 @@
  _dragSrcIndex = null;
  });
 
- // Touch drag
+ // Touch drag — passive-safe approach:
+ // All per-row listeners are { passive:true } so the browser can scroll freely.
+ // A single { passive:false } listener is attached to the CONTAINER only after
+ // the finger has moved > DRAG_THRESHOLD px, committing to a real drag.
+ const DRAG_THRESHOLD = 8;
  let touchStartY = 0;
  let touchItem = null;
+ let _dragConfirmed = false;
+
+ if (!container._touchMoveBlocker) {
+   container._touchMoveBlocker = (ev) => {
+     if (!container._activeDragItem) return;
+     const y = ev.touches[0].clientY;
+     ev.preventDefault();
+     const items = Array.from(container.querySelectorAll('.mosque-item'));
+     container.querySelectorAll('.mosque-item').forEach(el => el.classList.remove('drag-over'));
+     for (const item of items) {
+       const rect = item.getBoundingClientRect();
+       if (y >= rect.top && y <= rect.bottom && item !== container._activeDragItem) {
+         item.classList.add('drag-over'); break;
+       }
+     }
+   };
+ }
+
  tapRow.addEventListener('touchstart', (e) => {
- touchStartY = e.touches[0].clientY;
- touchItem = div;
- div.classList.add('dragging');
+   touchStartY = e.touches[0].clientY;
+   touchItem = div;
+   _dragConfirmed = false;
  }, { passive: true });
+
  tapRow.addEventListener('touchmove', (e) => {
- e.preventDefault();
- const y = e.touches[0].clientY;
- const items = Array.from(container.querySelectorAll('.mosque-item'));
- container.querySelectorAll('.mosque-item').forEach(el => el.classList.remove('drag-over'));
- for (const item of items) {
- const rect = item.getBoundingClientRect();
- if (y >= rect.top && y <= rect.bottom && item !== touchItem) {
- item.classList.add('drag-over');
- break;
- }
- }
- }, { passive: false });
- tapRow.addEventListener('touchend', (e) => {
- div.classList.remove('dragging');
- const items = Array.from(container.querySelectorAll('.mosque-item'));
- const overItem = items.find(el => el.classList.contains('drag-over'));
- if (overItem) {
- const toIdx = parseInt(overItem.dataset.index);
- container.querySelectorAll('.mosque-item').forEach(el => el.classList.remove('drag-over'));
- if (toIdx !== index) _moveEntry(mode, index, toIdx);
- } else {
- container.querySelectorAll('.mosque-item').forEach(el => el.classList.remove('drag-over'));
- }
- });
+   if (_dragConfirmed) return;
+   if (Math.abs(e.touches[0].clientY - touchStartY) > DRAG_THRESHOLD) {
+     _dragConfirmed = true;
+     container._activeDragItem = touchItem;
+     div.classList.add('dragging');
+     container.addEventListener('touchmove', container._touchMoveBlocker, { passive: false });
+   }
+ }, { passive: true });
+
+ tapRow.addEventListener('touchend', () => {
+   container.removeEventListener('touchmove', container._touchMoveBlocker);
+   container._activeDragItem = null;
+   _dragConfirmed = false;
+   div.classList.remove('dragging');
+   const items = Array.from(container.querySelectorAll('.mosque-item'));
+   const overItem = items.find(el => el.classList.contains('drag-over'));
+   if (overItem) {
+     const toIdx = parseInt(overItem.dataset.index);
+     container.querySelectorAll('.mosque-item').forEach(el => el.classList.remove('drag-over'));
+     if (toIdx !== index) _moveEntry(mode, index, toIdx);
+   } else {
+     container.querySelectorAll('.mosque-item').forEach(el => el.classList.remove('drag-over'));
+   }
+ }, { passive: true });
  }
 
  container.appendChild(div);
