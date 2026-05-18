@@ -202,7 +202,7 @@
 
     await showAlert({
       icon: '✅',
-      ur: 'رنگ سیٹ ہو گئے',
+      ur: 'رنگ ری سیٹ ہو گئے',
       en: 'Colours have been reset to default.',
       type: 'success'
     });
@@ -315,24 +315,21 @@
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-512.png">
     <script>
+      // Landscape lock
       if (screen.orientation && screen.orientation.lock) {
         screen.orientation.lock("landscape").catch(function(){});
       }
 
-      // Fullscreen on user touch
+      // Fullscreen
       function goFullscreen() {
         var el = document.documentElement;
         if (el.requestFullscreen) el.requestFullscreen();
         else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
         else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
       }
-
-      // Auto fullscreen on load (may need user touch on Android)
       window.addEventListener('load', function() {
         setTimeout(goFullscreen, 1000);
       });
-
-      // Fullscreen on any touch/click
       document.addEventListener('click', goFullscreen);
       document.addEventListener('touchstart', goFullscreen);
     </script>
@@ -401,7 +398,7 @@
             --c-clock: #f0c040; --c-seconds: #c8a030;
             --c-date-g: #56d0e8; --c-date-h: #4be87a; --c-headers: #56d0e8;
             --c-pr-en: #f0c040; --c-pr-ur: #4be87a;
-            --c-azan: #f05555; --c-jamaat: #38e870; --c-scroll: #56d0e8; --c-curr-pr: #56d0e8;
+            --c-azan: #f05555; --c-jamaat: #38e870; --c-curr-pr: #56d0e8;
             --c-azan-fajr: #f05555; --c-jamaat-fajr: #38e870;
             --c-azan-dhuhr: #f05555; --c-jamaat-dhuhr: #38e870;
             --c-azan-asr: #f05555; --c-jamaat-asr: #38e870;
@@ -467,6 +464,7 @@
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             height: 100vh; overflow: hidden; cursor: default;
+            transition: opacity 0.5s ease;
         }
 
         *:focus { outline: 2px solid var(--c-headers) !important; outline-offset: 2px !important; }
@@ -524,7 +522,6 @@
         .col-pr-ur   { color: var(--c-pr-ur); }
         .col-azan    { color: var(--c-azan);   font-variant-numeric: tabular-nums; }
         .col-jamaat  { color: var(--c-jamaat); font-variant-numeric: tabular-nums; }
-        .col-scroll  { color: var(--c-scroll); }
         .color-tomorrow { color: var(--c-tomorrow) !important; }
 
         .col-left, .col-center, .col-right {
@@ -675,14 +672,14 @@
 
         .prayer-header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 0.5vh 0.8vw;
+            padding: 1vh 0.8vw;
             margin-bottom: 0.25vh; flex-shrink: 0;
             background: transparent; border-radius: 6px;
         }
         .prayer-header-side { display: flex; flex-direction: column; align-items: center; gap: 1px; }
-        .prayer-header-side span:first-child { font-size: calc(14px * var(--fs)); letter-spacing: 1px; opacity: 0.6; font-family: 'Rajdhani', sans-serif; }
-        .prayer-header-side span:last-child { font-size: calc(25.9px * var(--fs)); font-family: 'Orbitron', sans-serif; }
-        .prayer-header h2 { margin: 0; font-size: calc(46px * var(--fs)); letter-spacing: 2px; font-family: 'Rajdhani', sans-serif; font-weight: 700; }
+        .prayer-header-side span:first-child { font-size: calc(20px * var(--fs)); letter-spacing: 1px; opacity: 0.6; font-family: 'Rajdhani', sans-serif; }
+        .prayer-header-side span:last-child { font-size: calc(38px * var(--fs)); font-family: 'Orbitron', sans-serif; }
+        .prayer-header h2 { margin: 0; font-size: calc(58px * var(--fs)); letter-spacing: 2px; font-family: 'Rajdhani', sans-serif; font-weight: 700; }
 
         .prayer-list-box { width: 100%; display: flex; flex-direction: column; gap: 0; flex: 1; min-height: 0; }
         .prayer-list-header {
@@ -706,11 +703,11 @@
             padding: 0 0.2vw; line-height: 1;
         }
         .prayer-item-name .en-name {
-            font-size: max(calc(var(--en-size) * var(--fs)), calc(52px * var(--fs))); letter-spacing: 1.5px; font-weight: 700;
+            font-size: max(calc(var(--en-size) * var(--fs)), calc(42px * var(--fs))); letter-spacing: 1.5px; font-weight: 700;
             color: var(--c-pr-en); font-family: 'Rajdhani', sans-serif;
         }
         .prayer-item-name .ur-name {
-            font-family: 'Amiri', serif; font-size: max(calc(var(--ur-size) * var(--fs)), calc(54px * var(--fs)));
+            font-family: 'Amiri', serif; font-size: max(calc(var(--ur-size) * var(--fs)), calc(44px * var(--fs)));
             color: var(--c-pr-ur); line-height: 1;
         }
         .prayer-item-times {
@@ -719,7 +716,7 @@
         }
         .prayer-item-times .pt {
             font-family: 'Orbitron', sans-serif;
-            font-size: calc(51.8px * var(--fs)); font-weight: 700;
+            font-size: calc(44px * var(--fs)); font-weight: 700;
             letter-spacing: 0px; font-variant-numeric: tabular-nums;
             text-align: center; width: 50%; line-height: 1.05;
         }
@@ -741,8 +738,8 @@
 
         .tomorrow-box {
             text-align: center; display: flex; flex-direction: column; align-items: center;
-            gap: 0;
-            padding-top: 0.4vh; flex-shrink: 0;
+            gap: 0.3vh;
+            padding-top: 1vh; flex-shrink: 0;
             background: transparent;
         }
         @keyframes blinkTomorrow { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
@@ -765,25 +762,7 @@
 
         #leftInfoArea { display: flex; flex-direction: column; gap: 0.8vh; margin-top: auto; }
 
-        .footer-wrapper { width: 100%; margin-top: 1.2vh; flex-shrink: 0; margin-bottom: 0.3vh; }
-        .footer-scroll {
-            background: var(--footer-bg, rgba(86,208,232,0.06));
-            width: 100%; padding: 0.7vh 1.5vw;
-            border: none;
-            border-radius: 6px; overflow: hidden; white-space: nowrap;
-            position: relative;
-        }
-        .footer-scroll::before {
-            display: none;
-        }
-        .scroll-text {
-            display: inline-block;
-            font-size: calc(32.4px * var(--fs)); font-weight: 600; letter-spacing: 1px;
-            font-family: 'Rajdhani', sans-serif;
-            animation: moveLeft 25s linear infinite;
-        }
-        @keyframes moveLeft { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        .static-scroll { animation: none !important; display: block !important; text-align: center; width: 100%; transform: none !important; white-space: normal !important; overflow: hidden; }
+
         @keyframes pulsePulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
         .top-buttons { position: fixed; top: max(10px, env(safe-area-inset-top, 10px)); right: max(8px, env(safe-area-inset-right, 8px)); display: flex; gap: 10px; z-index: 9999; transition: opacity 0.6s ease, visibility 0.6s ease; }
@@ -1180,13 +1159,7 @@
             background-color: rgba(86,208,232,0.06) !important;
         }
 
-        body:not([data-mode="all"]) .footer-wrapper { display: none !important; }
-        body[data-mode="dashboard"]  .footer-scroll,
-        body[data-mode="dashboard2"] .footer-scroll,
-        body[data-mode="dashboard2"] .footer-wrapper,
-        body[data-mode="left"]       .footer-scroll,
-        body[data-mode="center"]     .footer-scroll,
-        body[data-mode="right"]      .footer-scroll { display: none !important; }
+
         body[data-mode="left"]   .col-center, body[data-mode="left"]   .col-right  { display: none !important; }
         body[data-mode="center"] .col-left,   body[data-mode="center"] .col-right  { display: none !important; }
         body[data-mode="right"]  .col-left,   body[data-mode="right"]  .col-center { display: none !important; }
@@ -1302,26 +1275,24 @@
             #makroohEng  { font-size: 1.6vh !important; }
 
             /* ── Right col: prayer header ── */
-            .prayer-header h2                    { font-size: 3.2vh !important; letter-spacing: 0.2vh !important; }
-            .prayer-header-side span:first-child { font-size: 1.6vh !important; }
-            .prayer-header-side span:last-child  { font-size: 2.6vh !important; }
-            .prayer-header-side                  { gap: 0.2vh !important; }
+            .prayer-header h2                    { font-size: 4vh !important; letter-spacing: 0.2vh !important; }
+            .prayer-header-side span:first-child { font-size: 2.2vh !important; }
+            .prayer-header-side span:last-child  { font-size: 3.4vh !important; }
+            .prayer-header-side                  { gap: 0.3vh !important; }
 
             /* ── Right col: AZAN / JAMAAT column headers ── */
             .prayer-list-header .lbl-col { font-size: 1.8vh !important; letter-spacing: 0.2vh !important; }
 
             /* ── Right col: prayer name labels ── */
-            .prayer-item-name .en-name { font-size: 3.8vh !important; letter-spacing: 0.1vh !important; }
-            .prayer-item-name .ur-name { font-size: 3.8vh !important; }
+            .prayer-item-name .en-name { font-size: 3.1vh !important; letter-spacing: 0.1vh !important; }
+            .prayer-item-name .ur-name { font-size: 3.1vh !important; }
 
             /* ── Right col: prayer azan/jamaat times ── */
-            .prayer-item-times .pt { font-size: 4.5vh !important; }
+            .prayer-item-times .pt { font-size: 3.8vh !important; }
 
             /* ── Tomorrow box ── */
-            .tomorrow-box .color-tomorrow { font-size: 2.4vh !important; }
+            .tomorrow-box .color-tomorrow { font-size: 3.2vh !important; }
 
-            /* ── Scroll text footer ── */
-            .scroll-text { font-size: 2vh !important; letter-spacing: 0.1vh !important; }
 
             /* ── Sahr/iftar top strip ── */
             .sahr-iftar-top { font-size: 1.5vh !important; }
@@ -1379,17 +1350,17 @@
 
             /* ── Dashboard prayer-col: override the max()/clamp() rules that ignore --fs ── */
             body[data-mode="dashboard"]  #db-prayer-col .db-row-name .db-en,
-            body[data-mode="dashboard2"] #db-prayer-col .db-row-name .db-en  { font-size: calc(20px * 0.55) !important; }
+            body[data-mode="dashboard2"] #db-prayer-col .db-row-name .db-en  { font-size: calc(20px * 0.85) !important; }
             body[data-mode="dashboard"]  #db-prayer-col .db-row-name .db-ur,
-            body[data-mode="dashboard2"] #db-prayer-col .db-row-name .db-ur  { font-size: calc(20px * 0.55) !important; }
+            body[data-mode="dashboard2"] #db-prayer-col .db-row-name .db-ur  { font-size: calc(20px * 0.85) !important; }
             body[data-mode="dashboard"]  #db-prayer-col .db-row-times .dbt,
             body[data-mode="dashboard2"] #db-prayer-col .db-row-times .dbt   { font-size: calc(36px * 0.55) !important; }
             body[data-mode="dashboard"]  #db-prayer-col .db-col-hdr span,
             body[data-mode="dashboard2"] #db-prayer-col .db-col-hdr span     { font-size: calc(15px * 0.55) !important; }
 
             /* ── Dashboard2 mobile: bigger prayer name labels ── */
-            body[data-mode="dashboard2"] #db-prayer-col .db-row-name .db-en  { font-size: 2.8vh !important; }
-            body[data-mode="dashboard2"] #db-prayer-col .db-row-name .db-ur  { font-size: 2.8vh !important; }
+            body[data-mode="dashboard2"] #db-prayer-col .db-row-name .db-en  { font-size: 4.2vh !important; }
+            body[data-mode="dashboard2"] #db-prayer-col .db-row-name .db-ur  { font-size: 4.2vh !important; }
 
             /* ── Dashboard2 mobile: fix intermittent clock cutoff ──────────────────────
                The TV admin may save a clockScale > 100 (e.g. 130%). On mobile that
@@ -2545,8 +2516,8 @@
         </div>
 
         <div class="panel-box tomorrow-box">
-            <div class="color-tomorrow" style="font-size: calc(33.5px * var(--fs)); font-weight: bold; line-height: 1.2;">TOMORROW'S <span id="tmrwPrayerNameEn">--</span> | کل <span id="tmrwPrayerNameUr" class="nastaleeq-text">--</span></div>
-            <div class="color-tomorrow" style="font-family: 'Orbitron', sans-serif; font-size: calc(62px * var(--fs)); letter-spacing: 2px; line-height: 1.1;" id="tmrwPrayerTime">--:--</div>
+            <div class="color-tomorrow" style="font-size: calc(44px * var(--fs)); font-weight: bold; line-height: 1.2;">TOMORROW'S <span id="tmrwPrayerNameEn">--</span> | کل <span id="tmrwPrayerNameUr" class="nastaleeq-text">--</span></div>
+            <div class="color-tomorrow" style="font-family: 'Orbitron', sans-serif; font-size: calc(82px * var(--fs)); letter-spacing: 2px; line-height: 1.1;" id="tmrwPrayerTime">--:--</div>
         </div>
 
     </div>
@@ -2797,11 +2768,6 @@
 
 
 
-<div class="footer-scroll led-text col-scroll">
-    <div class="scroll-text nastaleeq-text" id="scrollText">
-        <span class="led-text">Please keep your mobile phones turned off</span> &nbsp;&nbsp; | &nbsp;&nbsp; براہِ کرم اپنے موبائل فون بند رکھیں
-    </div>
-</div>
 </div>
 
 <div id="settingsModal" class="modal">
@@ -2932,23 +2898,8 @@
                             <div style="font-size: 11px; color: #aaa; margin-top: 4px;" class="lang-text" data-ur="چاشت (ضحی) کا حساب — طلوع اور زوال کے درمیان ایک چوتھائی یا نصف فاصلہ" data-en="How to calculate Chasht (Duha) time — a quarter or halfway between sunrise and Zawal">How to calculate Chasht (Duha) time — a quarter or halfway between sunrise and Zawal</div>
                         </td>
                     </tr>
-                    <tr id="rowScrollMode">
-                        <td>
-                            <span class="lang-text" data-ur="نیچے کی پٹی (Scroll Message)" data-en="Bottom Scroll Message">نیچے کی پٹی (Scroll Message)</span><br>
-                            <select tabindex="0" id="configScrollMode">
-                                <option value="scroll" class="lang-text" data-ur="چلتی ہوئی (Scrolling)" data-en="Scrolling">چلتی ہوئی (Scrolling)</option>
-                                <option value="static" class="lang-text" data-ur="رکی ہوئی (Static/Center)" data-en="Static (Center)">رکی ہوئی (Static/Center)</option>
-                            </select>
-                            <div style="font-size: 11px; color: #aaa; margin-top: 4px;" class="lang-text" data-ur="صرف ALL موڈ میں — نچلی پٹی کا طرز منتخب کریں: مسلسل چلتا ہوا یا درمیان میں رکا ہوا" data-en="Only in ALL mode — choose whether the bottom ticker scrolls continuously or stays centred">Only in ALL mode — choose whether the bottom ticker scrolls continuously or stays centred</div>
-                        </td>
-                    </tr>
-                    <tr id="rowCustomNotice">
-                        <td>
-                            <span class="lang-text" data-ur="اسکرول میں اپنا نوٹس (Custom Notice)" data-en="Custom Scroll Notice">اسکرول میں اپنا نوٹس (Custom Notice)</span><br>
-                            <input tabindex="0" type="text" id="configCustomNotice" placeholder="اگر خالی ہوگا تو ڈیفالٹ میسج چلے گا" data-placeholder-ur="اگر خالی ہوگا تو ڈیفالٹ میسج چلے گا" data-placeholder-en="Leave empty to show default message">
-                            <div style="font-size: 11px; color: #aaa; margin-top: 4px;" class="lang-text" data-ur="صرف ALL موڈ میں — نیچے کی پٹی میں اپنا پیغام ڈالیں؛ خالی چھوڑیں تو ڈیفالٹ میسج چلے گا" data-en="Only in ALL mode — type a custom message for the bottom ticker; leave empty to show the default notice">Only in ALL mode — type a custom message for the bottom ticker; leave empty to show the default notice</div>
-                        </td>
-                    </tr>
+
+
                     <tr>
                         <td>
                             <span class="lang-text" data-ur="جمعہ کا وقت دکھائیں" data-en="Show Jumuah Time">جمعہ کا وقت دکھائیں / Show Jumuah Time</span><br>
@@ -3145,7 +3096,7 @@
                     <div class="color-item"><span class="lang-text" data-ur="ہجری تاریخ" data-en="Hijri Date">ہجری تاریخ</span><input tabindex="0" type="color" id="c_date_h"></div>
                     <div class="color-item"><span class="lang-text" data-ur="انگریزی تاریخ" data-en="Gregorian Date">انگریزی تاریخ</span><input tabindex="0" type="color" id="c_date_g"></div>
                     <div class="color-item"><span class="lang-text" data-ur="موجودہ نماز کا نام" data-en="Current Prayer Name">موجودہ نماز کا نام</span><input tabindex="0" type="color" id="c_curr_pr"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="نیچے چلنے والی پٹی" data-en="Bottom Scroll Bar">نیچے چلنے والی پٹی</span><input tabindex="0" type="color" id="c_scroll"></div>
+
                     <div class="color-item"><span class="lang-text" data-ur="پینل کی لکیریں" data-en="Panel Lines">پینل کی لکیریں</span><input tabindex="0" type="color" id="c_panel_line"></div>
                     <div class="color-item"><span class="lang-text" data-ur="جماعت بیل آئیکن رنگ" data-en="Jamaat Bell Icon Color">جماعت بیل آئیکن رنگ</span><input tabindex="0" type="color" id="c_jamaat_notify_icon"></div>
                     <div class="color-item"><span class="lang-text" data-ur="جماعت کاؤنٹ ڈاؤن رنگ" data-en="Jamaat Countdown Text Color">جماعت کاؤنٹ ڈاؤن رنگ</span><input tabindex="0" type="color" id="c_jamaat_notify_text"></div>
@@ -3331,7 +3282,7 @@
     const defaultScrollText = "<span class='led-text'>Please keep your mobile phones turned off</span> &nbsp;&nbsp; | &nbsp;&nbsp; براہِ کرم اپنے موبائل فون بند رکھیں";
 
     const defaultConfig = {
-        general: { manualDate: "", fiqh: "1", eidTime: "07:00", showEid1: true, ishraqOffset: 15, chashtMode: "quarter", hijriOffset: "0", displayMode: "all", rotation: "90deg", scrollMode: "scroll", urduFontSize: "18", enFontSize: "18", customNotice: "", eid2: "", eid3: "", clockScale: 100, showJumuah: "yes" },
+        general: { manualDate: "", fiqh: "1", eidTime: "07:00", showEid1: true, ishraqOffset: 15, chashtMode: "quarter", hijriOffset: "0", displayMode: "all", rotation: "90deg", urduFontSize: "18", enFontSize: "18", eid2: "", eid3: "", clockScale: 100, showJumuah: "yes" },
         location: { mode: "auto", lat: "", lon: "", city: "" },
         timings: {
             fajr:   { mode: "auto", fajrJamaatBeforeSunrise: 30, fajrAzanBeforeJamaat: 20, offset: 0, aRound: 5, jGap: 20, jRound: 5, name: "فجر" },
@@ -3345,12 +3296,13 @@
         },
         advColors: {
             bg: "#111111", panel: "#0a0a0a", clock: "#ffaa00", clockGlow: "#f0c040", headers: "#00ffff", prEn: "#ffaa00", prUr: "#00ff00", azan: "#ff3333", jamaat: "#00ff00",
-            dateG: "#00ffff", dateH: "#00ff00", currPr: "#00ffff", scroll: "#00ffff", seconds: "#ffaa00",
+            dateG: "#00ffff", dateH: "#00ff00", currPr: "#00ffff", seconds: "#ffaa00",
             azanFajr: "#ff3333", jamaatFajr: "#00ff00", azanDhuhr: "#ff3333", jamaatDhuhr: "#00ff00", azanAsr: "#ff3333", jamaatAsr: "#00ff00",
             azanMaghrib: "#ff3333", jamaatMaghrib: "#00ff00", azanIsha: "#ff3333", jamaatIsha: "#00ff00", azanJumuah: "#ff3333", jamaatJumuah: "#00ff00",
             calAllah: "#ffdd00", calMuhammad: "#ffdd00", calBismillah: "#22ff44", sahrName: "#ff5555", sahrTime: "#ff5555", iftarName: "#ff5555", iftarTime: "#ff5555",
             tzgName: "#ffdd00", tzgTime: "#ffdd00", ecName: "#00ddff", ecTime: "#00ddff", tomorrow: "#ffdd00",
-            sahrTop: "#ff5555", iftarTop: "#ff5555", rangeName: "#00ddff", rangeTimes: "#00ddff", lblAzan: "#aaaaaa", lblJamaat: "#aaaaaa", panelLine: "rgba(86,208,232,0.4)", jamaatNotifyIcon: "#f0c040", jamaatNotifyText: "#f0c040"
+            sahrTop: "#ff5555", iftarTop: "#ff5555", rangeName: "#00ddff", rangeTimes: "#00ddff", lblAzan: "#aaaaaa", lblJamaat: "#aaaaaa", panelLine: "rgba(86,208,232,0.4)", jamaatNotifyIcon: "#f0c040", jamaatNotifyText: "#f0c040",
+            globalColor: "#f0c040"
         }
     };
 
@@ -3393,12 +3345,7 @@
         // Portrait Rotation: only relevant when a single panel is rotated (center/left/right)
         var rotRow = document.getElementById('rowRotation');
         if (rotRow) rotRow.style.display = (mode === 'center' || mode === 'left' || mode === 'right') ? 'table-row' : 'none';
-        // Scroll bar settings: only exist in 'all' mode
-        var scrollRow = document.getElementById('rowScrollMode');
-        var noticeRow = document.getElementById('rowCustomNotice');
         var isAll = (mode === 'all');
-        if (scrollRow) scrollRow.style.display = isAll ? 'table-row' : 'none';
-        if (noticeRow) noticeRow.style.display = isAll ? 'table-row' : 'none';
     }
     window.updateModeConditionalRows = updateModeConditionalRows;
 
@@ -3438,11 +3385,9 @@
         document.getElementById("configChasht").value = currentConfig.general.chashtMode || "quarter";
         document.getElementById("configHijriOffset").value = currentConfig.general.hijriOffset || "0";
 
-        document.getElementById("configScrollMode").value = currentConfig.general.scrollMode || "scroll";
-        let scrollEl = document.getElementById("scrollText");
-        if(currentConfig.general.scrollMode === "static") { scrollEl.classList.add("static-scroll"); } else { scrollEl.classList.remove("static-scroll"); }
 
-        document.getElementById("configCustomNotice").value = currentConfig.general.customNotice || "";
+
+
         document.getElementById("configShowJumuah").value = currentConfig.general.showJumuah || "yes";
 
         document.getElementById("cfg_jum2_a") && (document.getElementById("cfg_jum2_a").value = ""); // legacy compat
@@ -3518,7 +3463,7 @@
         document.getElementById("c_cal_muhammad").value = ac.calMuhammad || ac.calligraphy || "#ffdd00";
         document.getElementById("c_cal_bismillah").value = ac.calBismillah || ac.calligraphy || "#22ff44";
 
-        document.getElementById("c_date_g").value = ac.dateG; document.getElementById("c_date_h").value = ac.dateH; document.getElementById("c_curr_pr").value = ac.currPr; document.getElementById("c_scroll").value = ac.scroll;
+        document.getElementById("c_date_g").value = ac.dateG; document.getElementById("c_date_h").value = ac.dateH; document.getElementById("c_curr_pr").value = ac.currPr;
         document.getElementById("c_sahr_name").value = ac.sahrName || "#ff5555"; document.getElementById("c_sahr_time").value = ac.sahrTime || ac.sahrName || "#ff5555"; document.getElementById("c_iftar_name").value = ac.iftarName || "#ff5555"; document.getElementById("c_iftar_time").value = ac.iftarTime || ac.iftarName || "#ff5555";
         document.getElementById("c_tzg_name").value = ac.tzgName || "#ffdd00"; document.getElementById("c_tzg_time").value = ac.tzgTime || ac.tzgName || "#ffdd00"; document.getElementById("c_ec_name").value = ac.ecName || "#00ddff"; document.getElementById("c_ec_time").value = ac.ecTime || ac.ecName || "#00ddff"; document.getElementById("c_tomorrow").value = ac.tomorrow || "#ffdd00";
 
@@ -3529,10 +3474,8 @@
         document.getElementById("c_jamaat_notify_icon").value = ac.jamaatNotifyIcon || "#f0c040";
         document.getElementById("c_jamaat_notify_text").value = ac.jamaatNotifyText || "#f0c040";
 
-        // Restore global color picker if previously saved
-        if (ac.globalColor) {
-            document.getElementById("c_global").value = ac.globalColor;
-        }
+        // Restore global color picker (fall back to default if not previously saved)
+        document.getElementById("c_global").value = ac.globalColor || defaultConfig.advColors.globalColor || "#f0c040";
 
         applyColorsToBoard();
         toggleSettingsLang(true);
@@ -3554,7 +3497,7 @@
         'c_sahr_top','c_iftar_top','c_sahr_name','c_sahr_time',
         'c_iftar_name','c_iftar_time','c_range_name','c_range_times',
         'c_tzg_name','c_tzg_time','c_ec_name','c_ec_time',
-        'c_tomorrow','c_date_h','c_date_g','c_curr_pr','c_scroll',
+        'c_tomorrow','c_date_h','c_date_g','c_curr_pr',
         'c_panel_line','c_jamaat_notify_icon','c_jamaat_notify_text'
     ];
 
@@ -3576,7 +3519,7 @@
         document.getElementById("c_bg").value = ac.bg; document.getElementById("c_panel").value = ac.panel; document.getElementById("c_clock").value = ac.clock; document.getElementById("c_clock_glow").value = ac.clockGlow || ac.clock; document.getElementById("c_seconds").value = ac.seconds || ac.clock; document.getElementById("c_headers").value = ac.headers; document.getElementById("c_pr_en").value = ac.prEn; document.getElementById("c_pr_ur").value = ac.prUr; document.getElementById("c_azan").value = ac.azan; document.getElementById("c_jamaat").value = ac.jamaat;
         document.getElementById("c_azan_fajr").value = ac.azanFajr; document.getElementById("c_jamaat_fajr").value = ac.jamaatFajr; document.getElementById("c_azan_dhuhr").value = ac.azanDhuhr; document.getElementById("c_jamaat_dhuhr").value = ac.jamaatDhuhr; document.getElementById("c_azan_asr").value = ac.azanAsr; document.getElementById("c_jamaat_asr").value = ac.jamaatAsr; document.getElementById("c_azan_maghrib").value = ac.azanMaghrib; document.getElementById("c_jamaat_maghrib").value = ac.jamaatMaghrib; document.getElementById("c_azan_isha").value = ac.azanIsha; document.getElementById("c_jamaat_isha").value = ac.jamaatIsha; document.getElementById("c_azan_jumuah").value = ac.azanJumuah; document.getElementById("c_jamaat_jumuah").value = ac.jamaatJumuah;
         document.getElementById("c_cal_allah").value = ac.calAllah; document.getElementById("c_cal_muhammad").value = ac.calMuhammad; document.getElementById("c_cal_bismillah").value = ac.calBismillah;
-        document.getElementById("c_date_g").value = ac.dateG; document.getElementById("c_date_h").value = ac.dateH; document.getElementById("c_curr_pr").value = ac.currPr; document.getElementById("c_scroll").value = ac.scroll;
+        document.getElementById("c_date_g").value = ac.dateG; document.getElementById("c_date_h").value = ac.dateH; document.getElementById("c_curr_pr").value = ac.currPr;
         document.getElementById("c_sahr_name").value = ac.sahrName; document.getElementById("c_sahr_time").value = ac.sahrTime; document.getElementById("c_iftar_name").value = ac.iftarName; document.getElementById("c_iftar_time").value = ac.iftarTime;
         document.getElementById("c_tzg_name").value = ac.tzgName; document.getElementById("c_tzg_time").value = ac.tzgTime; document.getElementById("c_ec_name").value = ac.ecName; document.getElementById("c_ec_time").value = ac.ecTime; document.getElementById("c_tomorrow").value = ac.tomorrow;
         document.getElementById("c_sahr_top").value = ac.sahrTop; document.getElementById("c_iftar_top").value = ac.iftarTop;
@@ -3584,7 +3527,7 @@
         document.getElementById("c_lbl_azan").value = ac.lblAzan; document.getElementById("c_lbl_jamaat").value = ac.lblJamaat;
         document.getElementById("c_panel_line").value = ac.panelLine || "#56d0e8";
         document.getElementById("c_jamaat_notify_icon").value = ac.jamaatNotifyIcon; document.getElementById("c_jamaat_notify_text").value = ac.jamaatNotifyText;
-        document.getElementById("c_global").value = "#f0c040";
+        document.getElementById("c_global").value = dc.globalColor || "#f0c040";
         applyColorsToBoard();
     }
 
@@ -3600,11 +3543,11 @@
             let isLight = lum > 128;
             root.setProperty('--scan-alpha', isLight ? '0' : '0.025');
             root.setProperty('--board-shadow', isLight ? '0 2px 12px rgba(0,0,0,0.12)' : '0 0 60px rgba(0,0,0,0.95)');
-            root.setProperty('--footer-bg', isLight ? 'rgba(0,0,0,0.04)' : 'rgba(86,208,232,0.06)');
+            
         } catch(e) {}
 
         root.setProperty('--c-board', ac.board || ac.bg || '#040810');
-        root.setProperty('--c-clock', ac.clock || '#ff6600'); root.setProperty('--c-clock-glow', ac.clockGlow || ac.clock || '#f0c040'); root.setProperty('--c-seconds', ac.seconds || ac.clock || '#ff6600'); root.setProperty('--c-headers', ac.headers || '#00ddff'); root.setProperty('--c-pr-en', ac.prEn || '#ffdd00'); root.setProperty('--c-pr-ur', ac.prUr || '#22ff44'); root.setProperty('--c-azan', ac.azan || '#ff5555'); root.setProperty('--c-jamaat', ac.jamaat || '#33ff55'); root.setProperty('--c-date-g', ac.dateG || '#00ddff'); root.setProperty('--c-date-h', ac.dateH || '#22ff44'); root.setProperty('--c-curr-pr', ac.currPr || '#00ddff'); root.setProperty('--c-scroll', ac.scroll || '#00ddff');
+        root.setProperty('--c-clock', ac.clock || '#ff6600'); root.setProperty('--c-clock-glow', ac.clockGlow || ac.clock || '#f0c040'); root.setProperty('--c-seconds', ac.seconds || ac.clock || '#ff6600'); root.setProperty('--c-headers', ac.headers || '#00ddff'); root.setProperty('--c-pr-en', ac.prEn || '#ffdd00'); root.setProperty('--c-pr-ur', ac.prUr || '#22ff44'); root.setProperty('--c-azan', ac.azan || '#ff5555'); root.setProperty('--c-jamaat', ac.jamaat || '#33ff55'); root.setProperty('--c-date-g', ac.dateG || '#00ddff'); root.setProperty('--c-date-h', ac.dateH || '#22ff44'); root.setProperty('--c-curr-pr', ac.currPr || '#00ddff');
         root.setProperty('--c-azan-fajr', ac.azanFajr || ac.azan); root.setProperty('--c-jamaat-fajr', ac.jamaatFajr || ac.jamaat); root.setProperty('--c-azan-dhuhr', ac.azanDhuhr || ac.azan); root.setProperty('--c-jamaat-dhuhr', ac.jamaatDhuhr || ac.jamaat); root.setProperty('--c-azan-asr', ac.azanAsr || ac.azan); root.setProperty('--c-jamaat-asr', ac.jamaatAsr || ac.jamaat); root.setProperty('--c-azan-maghrib', ac.azanMaghrib || ac.azan); root.setProperty('--c-jamaat-maghrib', ac.jamaatMaghrib || ac.jamaat); root.setProperty('--c-azan-isha', ac.azanIsha || ac.azan); root.setProperty('--c-jamaat-isha', ac.jamaatIsha || ac.jamaat); root.setProperty('--c-azan-jumuah', ac.azanJumuah || ac.azanDhuhr || ac.azan); root.setProperty('--c-jamaat-jumuah', ac.jamaatJumuah || ac.jamaatDhuhr || ac.jamaat);
 
         root.setProperty('--c-cal-allah', ac.calAllah || ac.calligraphy || "#ffdd00");
@@ -4254,11 +4197,6 @@ const rangeEnd = document.getElementById('rangeEnd');
 
             if (tmrwPrayer.jamaat12 !== activePrayerCenter.jamaat12 || tmrwPrayer.en !== activePrayerCenter.en) {
                 let alertMsg = `<span class="col-pr-en" style="font-family: 'Share Tech Mono', monospace;">TOMORROW ${tmrwPrayer.en} JAMAAT: ${tmrwPrayer.jamaat12}</span> &nbsp;&nbsp; | &nbsp;&nbsp; <span class="nastaleeq-text" style="color: var(--c-pr-en);">آئندہ کل ${tmrwPrayer.ur} کی جماعت ${tmrwPrayer.jamaat12} پر ہوگی</span>`;
-                document.getElementById('scrollText').innerHTML = alertMsg;
-            } else if (currentConfig.general.customNotice && currentConfig.general.customNotice.trim() !== "") {
-                document.getElementById('scrollText').innerHTML = `<span class="led-text" style="color: var(--c-pr-en);">${currentConfig.general.customNotice}</span>`;
-            } else {
-                document.getElementById('scrollText').innerHTML = defaultScrollText;
             }
         }
     }
@@ -4674,13 +4612,20 @@ const rangeEnd = document.getElementById('rangeEnd');
         function tick(){
             var mode = document.body.getAttribute('data-mode');
             var wrap = g('db-wrap');
-            if(mode === 'dashboard' || mode === 'dashboard2'){
-                if(wrap) wrap.style.display = 'flex';
-                if(prevMode !== 'dashboard' && prevMode !== 'dashboard2') startCycle();
+            var isDash = (mode === 'dashboard' || mode === 'dashboard2');
+            var wasDash = (prevMode === 'dashboard' || prevMode === 'dashboard2');
+            // Only update db-wrap.style.display if setDisplayMode is not mid-fade.
+            // During the fade (body opacity < 1), setDisplayMode already set display
+            // correctly — tick() overwriting it would cause a visible snap.
+            var midFade = (document.body.style.opacity !== '' && parseFloat(document.body.style.opacity) < 1);
+            if (!midFade) {
+                if(wrap) wrap.style.display = isDash ? 'flex' : 'none';
+            }
+            if(isDash){
+                if(!wasDash) startCycle();
                 syncDB();
             } else {
-                if(wrap) wrap.style.display = 'none';
-                if(prevMode === 'dashboard' || prevMode === 'dashboard2') stopCycle();
+                if(wasDash) stopCycle();
             }
             prevMode = mode;
         }
@@ -5295,13 +5240,24 @@ const rangeEnd = document.getElementById('rangeEnd');
 })();
 
 </script>
-</body>
 <script>
     window.listenerAttached = false;
+    // Store refs to the active Firebase listeners so we can detach them before re-attaching
+    // on visibility restore (prevents duplicate callbacks — Bug 13 fix).
+    window._fbSettingsRef  = null;
+    window._fbPinResetRef  = null;
+
     // FIX BUG 2: On Android TV, power-off/on can leave the WebView in a stale state.
     // Reset the flag when the page becomes visible again so Firebase listener re-attaches.
+    // FIX BUG 13: Detach existing listeners before resetting the flag, so re-attaching in
+    // startFirebaseListener() doesn't create a second parallel .on() callback.
     document.addEventListener('visibilitychange', function() {
         if (document.visibilityState === 'visible' && window._firebaseListenerReset) {
+            // Detach existing listeners before allowing re-attach
+            try {
+                if (window._fbSettingsRef)  { window._fbSettingsRef.off('value');  window._fbSettingsRef  = null; }
+                if (window._fbPinResetRef)  { window._fbPinResetRef.off('value');  window._fbPinResetRef  = null; }
+            } catch(e) {}
             window.listenerAttached = false;
             window._firebaseListenerReset = false;
         }
@@ -5632,15 +5588,28 @@ const rangeEnd = document.getElementById('rangeEnd');
                 if (window.listenerAttached) return;
                 window.listenerAttached = true;
 
+                // Store refs so visibilitychange can detach them before re-attaching (Bug 13 fix)
+                window._fbPinResetRef  = db.ref('mosques/' + id + '/pinResetRequest');
+                window._fbSettingsRef  = db.ref('mosques/' + id + '/settings');
+
                 // ── PIN Reset Request listener ──────────────────────
-                db.ref('mosques/' + id + '/pinResetRequest').on('value', (snap) => {
+                window._fbPinResetRef.on('value', (snap) => {
                     const data = snap.val();
                     if (data && data.status === 'pending') {
                         showPinResetApproval(id, snap.ref);
+                    } else if (data && data.status === 'cancelled') {
+                        // Admin cancelled the reset request — close the approval overlay if open
+                        const approvalOverlay = document.getElementById('pin-reset-approval-overlay');
+                        if (approvalOverlay && approvalOverlay.style.display === 'flex') {
+                            // Clean up timers and hide
+                            if (typeof _pinApprovalTimer !== 'undefined') { clearTimeout(_pinApprovalTimer); }
+                            if (typeof _pinApprovalInterval !== 'undefined') { clearInterval(_pinApprovalInterval); }
+                            approvalOverlay.style.display = 'none';
+                        }
                     }
                 });
 
-                db.ref('mosques/' + id + '/settings').on('value', (snapshot) => {
+                window._fbSettingsRef.on('value', (snapshot) => {
 
                     if (window._isSaving) return;
 
@@ -5668,7 +5637,7 @@ const rangeEnd = document.getElementById('rangeEnd');
                         }
 
                         localStorage.setItem("masjidConfig_tv40", JSON.stringify(currentConfig));
-                        document.body.setAttribute('data-mode', currentConfig.general.displayMode);
+                        setDisplayMode(currentConfig.general.displayMode, true);
                         if(typeof applyColorsToBoard === 'function') applyColorsToBoard();
                         if(typeof fetchDailyTimes === 'function') fetchDailyTimes();
 
@@ -5796,6 +5765,41 @@ const rangeEnd = document.getElementById('rangeEnd');
     }
     // ──────────────────────────────────────────────────────────────────
 
+    // ── Animated mode switcher ────────────────────────────────────────────
+    // Use this for any user-triggered or remote-triggered display-mode change.
+    // It fades the body out, swaps data-mode, syncs db-wrap display immediately
+    // (bypassing the 1-second tick() delay), then fades back in after a paint frame.
+    // Pass animate=false for silent startup calls (no visible flash).
+    window.setDisplayMode = function(newMode, animate) {
+        if (!animate) {
+            document.body.setAttribute('data-mode', newMode);
+            var wrap = document.getElementById('db-wrap');
+            if (wrap) wrap.style.display = (newMode === 'dashboard' || newMode === 'dashboard2') ? 'flex' : 'none';
+            return;
+        }
+        // Cancel any in-progress transition to avoid stacking fades
+        if (window._modeTransitionTimer) clearTimeout(window._modeTransitionTimer);
+        // 1. Smoothly fade out over 500ms
+        document.body.style.opacity = '0';
+        window._modeTransitionTimer = setTimeout(function() {
+            // 2. Swap mode — happens while body is invisible
+            document.body.setAttribute('data-mode', newMode);
+            // 3. Sync db-wrap inline display immediately (tick() runs every 1s,
+            //    too slow — we do it here so the right element is visible on fade-in)
+            var wrap = document.getElementById('db-wrap');
+            if (wrap) wrap.style.display = (newMode === 'dashboard' || newMode === 'dashboard2') ? 'flex' : 'none';
+            // 4. Two rAF frames ensure the browser has painted the new layout
+            //    before we start fading back in
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    document.body.style.opacity = '1';
+                    window._modeTransitionTimer = null;
+                });
+            });
+        }, 500); // wait for fade-out to complete
+    };
+    // ─────────────────────────────────────────────────────────────────────
+
     function saveSettings() {
         window._isSaving = true;
         currentConfig.general.manualDate = document.getElementById("configManualDate").value;
@@ -5804,7 +5808,7 @@ const rangeEnd = document.getElementById('rangeEnd');
         var _enEl = document.getElementById("configEnSize"); currentConfig.general.enFontSize = _enEl ? _enEl.value : (currentConfig.general.enFontSize || "14");
         var _csEl = document.getElementById("configClockScale"); currentConfig.general.clockScale = _csEl ? _csEl.value : (currentConfig.general.clockScale || 100);
         currentConfig.general.displayMode = document.getElementById("configDisplayMode").value;
-        document.body.setAttribute('data-mode', currentConfig.general.displayMode);
+        setDisplayMode(currentConfig.general.displayMode, true);
         // Apply heading sizes for the newly selected mode
         if (typeof hsSaveAll === 'function') hsSaveAll();
         currentConfig.general.rotation = document.getElementById("configRotation").value;
@@ -5820,11 +5824,9 @@ const rangeEnd = document.getElementById('rangeEnd');
         currentConfig.general.ishraqOffset = parseInt(document.getElementById("configIshraq").value);
         currentConfig.general.chashtMode = document.getElementById("configChasht").value;
         currentConfig.general.hijriOffset = document.getElementById("configHijriOffset").value;
-        let scrollMode = document.getElementById("configScrollMode").value;
-        currentConfig.general.scrollMode = scrollMode; let scrollEl = document.getElementById("scrollText");
-        if(scrollMode === "static") { scrollEl.classList.add("static-scroll"); } else { scrollEl.classList.remove("static-scroll"); }
 
-        currentConfig.general.customNotice = document.getElementById("configCustomNotice").value;
+
+
         currentConfig.general.showJumuah = document.getElementById("configShowJumuah").value;
 
         // Collect dynamic extra Eid rows
@@ -5880,7 +5882,7 @@ const rangeEnd = document.getElementById('rangeEnd');
             bg: document.getElementById("c_bg").value, panel: document.getElementById("c_panel").value, clock: document.getElementById("c_clock").value, clockGlow: document.getElementById("c_clock_glow").value, seconds: document.getElementById("c_seconds").value, headers: document.getElementById("c_headers").value, prEn: document.getElementById("c_pr_en").value, prUr: document.getElementById("c_pr_ur").value, azan: document.getElementById("c_azan").value, jamaat: document.getElementById("c_jamaat").value,
             azanFajr: document.getElementById("c_azan_fajr").value, jamaatFajr: document.getElementById("c_jamaat_fajr").value, azanDhuhr: document.getElementById("c_azan_dhuhr").value, jamaatDhuhr: document.getElementById("c_jamaat_dhuhr").value, azanAsr: document.getElementById("c_azan_asr").value, jamaatAsr: document.getElementById("c_jamaat_asr").value, azanMaghrib: document.getElementById("c_azan_maghrib").value, jamaatMaghrib: document.getElementById("c_jamaat_maghrib").value, azanIsha: document.getElementById("c_azan_isha").value, jamaatIsha: document.getElementById("c_jamaat_isha").value, azanJumuah: document.getElementById("c_azan_jumuah").value, jamaatJumuah: document.getElementById("c_jamaat_jumuah").value,
             calAllah: document.getElementById("c_cal_allah").value, calMuhammad: document.getElementById("c_cal_muhammad").value, calBismillah: document.getElementById("c_cal_bismillah").value,
-            tomorrow: document.getElementById("c_tomorrow").value, dateG: document.getElementById("c_date_g").value, dateH: document.getElementById("c_date_h").value, currPr: document.getElementById("c_curr_pr").value, scroll: document.getElementById("c_scroll").value,
+            tomorrow: document.getElementById("c_tomorrow").value, dateG: document.getElementById("c_date_g").value, dateH: document.getElementById("c_date_h").value, currPr: document.getElementById("c_curr_pr").value,
             sahrName: document.getElementById("c_sahr_name").value, sahrTime: document.getElementById("c_sahr_time").value, iftarName: document.getElementById("c_iftar_name").value, iftarTime: document.getElementById("c_iftar_time").value, tzgName: document.getElementById("c_tzg_name").value, tzgTime: document.getElementById("c_tzg_time").value, ecName: document.getElementById("c_ec_name").value, ecTime: document.getElementById("c_ec_time").value,
             sahrTop: document.getElementById("c_sahr_top").value, iftarTop: document.getElementById("c_iftar_top").value, rangeName: document.getElementById("c_range_name").value, rangeTimes: document.getElementById("c_range_times").value, lblAzan: document.getElementById("c_lbl_azan").value, lblJamaat: document.getElementById("c_lbl_jamaat").value,
             panelLine: document.getElementById("c_panel_line").value, jamaatNotifyIcon: document.getElementById("c_jamaat_notify_icon").value, jamaatNotifyText: document.getElementById("c_jamaat_notify_text").value,
@@ -6219,8 +6221,8 @@ const rangeEnd = document.getElementById('rangeEnd');
 #ccp-overlay {
     display: none; position: fixed; inset: 0; z-index: 999999;
     background: rgba(0,0,0,0.82);
-    justify-content: center; align-items: flex-start; padding: 16px;
-    overflow-y: auto;
+    justify-content: center; align-items: center; padding: 12px;
+    /* No overflow-y: auto — layout is designed to fit without scrolling */
 }
 #ccp-overlay.show { display: flex; }
 
@@ -6228,24 +6230,38 @@ const rangeEnd = document.getElementById('rangeEnd');
     background: linear-gradient(160deg, #0f1e30 0%, #070d18 100%);
     border: 2px solid #56d0e8;
     border-radius: 18px;
-    padding: 22px 22px 18px;
-    width: 340px; max-width: 100%;
+    padding: 16px 18px 14px;
+    /* Wide: use as much horizontal room as available, cap at 700px for desktop */
+    width: min(700px, calc(100vw - 24px));
     box-shadow: 0 0 40px rgba(86,208,232,0.18), 0 16px 48px rgba(0,0,0,0.85);
     animation: ccpIn 0.22s cubic-bezier(0.34,1.56,0.64,1) both;
     font-family: 'Rajdhani', sans-serif;
-    margin: auto;
 }
 @keyframes ccpIn { from { transform: scale(0.82); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 #ccp-title {
-    font-size: 16px; font-weight: 700; letter-spacing: 1.5px;
-    color: #56d0e8; text-align: center; margin-bottom: 16px;
+    font-size: 15px; font-weight: 700; letter-spacing: 1.5px;
+    color: #56d0e8; text-align: center; margin-bottom: 12px;
     text-transform: uppercase;
 }
 
+/* ── Two-column body: spectrum+hue LEFT, swatches+hex+btns RIGHT ── */
+#ccp-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: start;
+}
+
+/* Left column */
+#ccp-left { display: flex; flex-direction: column; gap: 10px; }
+
 /* Spectrum canvas */
 #ccp-spectrum {
-    width: 100%; height: 170px; border-radius: 10px;
+    width: 100%;
+    /* Height is set responsively: enough to be usable but fits in viewport */
+    height: clamp(130px, 22vw, 200px);
+    border-radius: 10px;
     cursor: crosshair; display: block;
     border: 1px solid rgba(255,255,255,0.1);
     touch-action: none;
@@ -6257,10 +6273,10 @@ const rangeEnd = document.getElementById('rangeEnd');
     box-shadow: 0 0 4px rgba(0,0,0,0.8);
     pointer-events: none; transform: translate(-50%, -50%);
 }
-#ccp-spectrum-wrap { position: relative; margin-bottom: 10px; overflow: hidden; border-radius: 10px; }
+#ccp-spectrum-wrap { position: relative; overflow: hidden; border-radius: 10px; }
 
 /* Hue slider */
-#ccp-hue-wrap { margin-bottom: 12px; position: relative; }
+#ccp-hue-wrap { position: relative; }
 #ccp-hue {
     width: 100%; height: 14px; border-radius: 7px; cursor: pointer;
     background: linear-gradient(to right,
@@ -6281,13 +6297,16 @@ const rangeEnd = document.getElementById('rangeEnd');
     box-shadow: 0 0 6px rgba(0,0,0,0.5); cursor: pointer;
 }
 
-/* Preset swatches */
+/* Right column */
+#ccp-right { display: flex; flex-direction: column; gap: 10px; }
+
+/* Preset swatches — more columns since we have space */
 #ccp-swatches {
     display: grid; grid-template-columns: repeat(8, 1fr);
-    gap: 6px; margin-bottom: 12px;
+    gap: 5px;
 }
 .ccp-swatch {
-    height: 28px; border-radius: 6px; cursor: pointer;
+    height: clamp(24px, 4vw, 30px); border-radius: 6px; cursor: pointer;
     border: 2px solid rgba(255,255,255,0.1);
     transition: transform 0.12s, border-color 0.12s;
     outline: none;
@@ -6300,7 +6319,7 @@ const rangeEnd = document.getElementById('rangeEnd');
 
 /* Hex + preview row */
 #ccp-hex-row {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px;
 }
 #ccp-preview {
     width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
@@ -6312,15 +6331,15 @@ const rangeEnd = document.getElementById('rangeEnd');
 #ccp-hex-input {
     flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(86,208,232,0.3);
     border-radius: 7px; padding: 7px 10px; color: #fff;
-    font-family: 'Orbitron', monospace; font-size: 14px; letter-spacing: 1px;
+    font-family: 'Orbitron', monospace; font-size: 13px; letter-spacing: 1px;
     outline: none; text-transform: uppercase;
 }
 #ccp-hex-input:focus { border-color: #56d0e8; box-shadow: 0 0 0 2px rgba(86,208,232,0.18); }
 
 /* Buttons */
-#ccp-btns { display: flex; gap: 10px; }
+#ccp-btns { display: flex; gap: 10px; margin-top: auto; }
 #ccp-btn-cancel, #ccp-btn-set {
-    flex: 1; padding: 12px 0; border-radius: 10px;
+    flex: 1; padding: 11px 0; border-radius: 10px;
     font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 700;
     cursor: pointer; letter-spacing: 0.5px; transition: all 0.15s;
     border: 2px solid transparent;
@@ -6339,29 +6358,43 @@ const rangeEnd = document.getElementById('rangeEnd');
 #ccp-btn-set:hover, #ccp-btn-set:focus {
     box-shadow: 0 4px 16px rgba(75,232,122,0.4); outline: none;
 }
+
+/* Narrow fallback: stack single-column if viewport is genuinely tiny (<360px) */
+@media (max-width: 359px) {
+    #ccp-body { grid-template-columns: 1fr; }
+    #ccp-box  { padding: 14px 14px 12px; }
+}
 </style>
 
 <div id="ccp-overlay">
   <div id="ccp-box">
     <div id="ccp-title" class="lang-text" data-ur="رنگ منتخب کریں" data-en="Select Colour">Select Colour</div>
-    <div id="ccp-spectrum-wrap">
-      <canvas id="ccp-spectrum"></canvas>
-      <div id="ccp-spectrum-thumb"></div>
-    </div>
-    <div id="ccp-hue-wrap">
-      <input type="range" id="ccp-hue" min="0" max="360" value="0">
-    </div>
-    <div id="ccp-swatches"></div>
-    <div id="ccp-hex-row">
-      <div id="ccp-preview"></div>
-      <div style="flex:1">
-        <div id="ccp-hex-label">HEX</div>
-        <input id="ccp-hex-input" type="text" maxlength="7" spellcheck="false" placeholder="#RRGGBB">
+    <div id="ccp-body">
+      <!-- Left: swatches + hex + buttons -->
+      <div id="ccp-right">
+        <div id="ccp-swatches"></div>
+        <div id="ccp-hex-row">
+          <div id="ccp-preview"></div>
+          <div style="flex:1">
+            <div id="ccp-hex-label">HEX</div>
+            <input id="ccp-hex-input" type="text" maxlength="7" spellcheck="false" placeholder="#RRGGBB">
+          </div>
+        </div>
+        <div id="ccp-btns">
+          <button id="ccp-btn-cancel" tabindex="0" class="lang-text" data-ur="منسوخ" data-en="CANCEL">CANCEL</button>
+          <button id="ccp-btn-set"    tabindex="0" class="lang-text" data-ur="سیٹ کریں" data-en="SET">SET</button>
+        </div>
       </div>
-    </div>
-    <div id="ccp-btns">
-      <button id="ccp-btn-cancel" tabindex="0" class="lang-text" data-ur="منسوخ" data-en="CANCEL">CANCEL</button>
-      <button id="ccp-btn-set"    tabindex="0" class="lang-text" data-ur="سیٹ کریں" data-en="SET">SET</button>
+      <!-- Right: spectrum + hue slider -->
+      <div id="ccp-left">
+        <div id="ccp-spectrum-wrap">
+          <canvas id="ccp-spectrum"></canvas>
+          <div id="ccp-spectrum-thumb"></div>
+        </div>
+        <div id="ccp-hue-wrap">
+          <input type="range" id="ccp-hue" min="0" max="360" value="0">
+        </div>
+      </div>
     </div>
   </div>
 </div>

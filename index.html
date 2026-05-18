@@ -169,6 +169,62 @@
      must also get a layer in activeLayer() or focus will bleed to the page.
 
   ┌─────────────────────────────────────────────────────────────────────────────┐
+  │  SYSTEM 5 — MOBILE LANDSCAPE HORIZONTAL LAYOUT                             │
+  └─────────────────────────────────────────────────────────────────────────────┘
+
+  HOW IT WORKS:
+  • On mobile landscape (max-width:900px AND max-height:500px) the page is too
+    short to stack heading + content vertically, so every mode/screen switches
+    to a side-by-side row layout instead.
+  • A left "heading column" div shows the title and mode/screen label.
+    The right side holds the main content box (code input, saved list, toggles,
+    help text, etc.).
+  • The main #main-heading and #mode-title are hidden in landscape; the heading
+    column takes their place so the body layout can be flex-direction:row.
+
+  WHICH ELEMENTS HANDLE EACH MODE/SCREEN:
+      link_tv mode   → body.link-tv-mode + #link-tv-heading-col
+      musalli mode   → body.musalli-mode + #musalli-heading-col
+      admin mode     → body.admin-mode  + #admin-heading-col
+      Settings screen → #settings-screen  (heading = first child div,
+                                            content = last child div)
+      Info/Help screen → #help-screen     (same pattern as settings)
+
+  HOW MODE HEADING COLUMNS WORK (link_tv / musalli / admin):
+  • Each has a hidden <div id="xxx-heading-col"> in the HTML (search:
+    "Left column for horizontal") that mirrors the page title + mode subtitle.
+  • _applyLang() updates these mirrors whenever language changes
+    (search: "Mirror for horizontal").
+  • CSS shows the column (display:flex) only when the matching body class
+    is active AND the landscape media query fires.
+  • The body class (e.g. body.link-tv-mode) is set in JS when a mode is
+    selected (search: "Horizontal layout class per mode").
+
+  HOW SETTINGS + HELP SCREENS WORK:
+  • These are position:fixed fullscreen divs, so they already cover the whole
+    viewport — no body class needed.
+  • In landscape the media query switches them from flex-direction:column to
+    flex-direction:row, turning the existing heading <div> (first child) into
+    the left column and the content <div> (last child) into the right column.
+  • No JS changes are needed; it is purely CSS.
+
+  RULES — IF YOU ADD A NEW FULLSCREEN SCREEN:
+  ✅ Follow the settings/help pattern: outer div is flex-direction:column by
+     default; first child = heading, last child = scrollable content.
+  ✅ Add a landscape @media (max-width:900px) and (max-height:500px) block
+     that sets flex-direction:row on the outer div and sizes both children
+     (flex:0 0 auto for heading, flex:1 1 auto for content).
+  ✅ Keep heading font sizes responsive with clamp() — the column is narrow.
+  ✅ Set max-height + overflow-y:auto on the content card so it stays
+     scrollable when the viewport is only ~350px tall.
+
+  ❌ NEVER hardcode pixel widths on the heading column — use max-width + auto
+  ❌ NEVER remove the flex-shrink:0 / flex:0 0 auto on the heading div or it
+     will collapse when the content box tries to fill all available space
+  ❌ NEVER add a new mode without also adding a heading-col div in the HTML,
+     mirroring it in _applyLang(), and adding the landscape CSS block
+
+  ┌─────────────────────────────────────────────────────────────────────────────┐
   │  GENERAL RULES FOR ALL CHANGES                                             │
   └─────────────────────────────────────────────────────────────────────────────┘
 
@@ -437,6 +493,9 @@
  z-index: 1000;
  box-shadow: 0 4px 14px rgba(0,0,0,0.6), 0 0 10px rgba(86,208,232,0.2);
  transition: all 0.2s;
+ /* flex is set inline (display:flex) when shown; declare it here so the
+    browser uses flex layout whenever the element is visible */
+ flex-direction: row;
  }
  #back-arrow-btn:hover {
  background: linear-gradient(135deg, #2a4a6a 0%, #1a3245 100%);
@@ -1220,6 +1279,228 @@
  letter-spacing: 0.3px;
  }
 
+ /* ── MUSALLI HEADING COLUMN ── */
+ #musalli-heading-col {
+   display: none;
+   flex-direction: column;
+   align-items: flex-start;
+   justify-content: center;
+   flex: 0 0 auto;
+   min-width: 110px;
+   max-width: 40vw;
+ }
+
+ #musalli-heading-col #mus-main-heading {
+   color: #4be87a;
+   font-family: 'Inter', sans-serif;
+   font-size: clamp(18px, 5vw, 30px);
+   font-weight: 700;
+   text-shadow: 0 0 20px rgba(75,232,122,0.25);
+   direction: ltr;
+   line-height: 1.3;
+   margin: 0 0 6px 0;
+   letter-spacing: 0px;
+ }
+
+ #musalli-heading-col #mus-sub-heading {
+   color: #2a8a4a;
+   font-family: 'Inter', sans-serif;
+   font-size: clamp(11px, 2.5vw, 14px);
+   font-weight: 500;
+   direction: ltr;
+   letter-spacing: 0.3px;
+   line-height: 1.4;
+ }
+
+ /* ── ADMIN HEADING COLUMN ── */
+ #admin-heading-col {
+   display: none;
+   flex-direction: column;
+   align-items: flex-start;
+   justify-content: center;
+   flex: 0 0 auto;
+   min-width: 110px;
+   max-width: 40vw;
+ }
+
+ #admin-heading-col #adm-main-heading {
+   color: #f0c040;
+   font-family: 'Inter', sans-serif;
+   font-size: clamp(18px, 5vw, 30px);
+   font-weight: 700;
+   text-shadow: 0 0 20px rgba(240,192,64,0.25);
+   direction: ltr;
+   line-height: 1.3;
+   margin: 0 0 6px 0;
+   letter-spacing: 0px;
+ }
+
+ #admin-heading-col #adm-sub-heading {
+   color: #aa8820;
+   font-family: 'Inter', sans-serif;
+   font-size: clamp(11px, 2.5vw, 14px);
+   font-weight: 500;
+   direction: ltr;
+   letter-spacing: 0.3px;
+   line-height: 1.4;
+ }
+
+ /* ── MUSALLI + ADMIN HORIZONTAL LAYOUT (mobile landscape only) ── */
+ @media (max-width: 900px) and (max-height: 500px) {
+   body.musalli-mode,
+   body.admin-mode {
+     flex-direction: row !important;
+     align-items: center !important;
+     justify-content: center !important;
+     padding: 10px 4vw 10px !important;
+     gap: 4vw;
+   }
+   body.musalli-mode #main-heading,
+   body.musalli-mode #mode-title,
+   body.admin-mode #main-heading,
+   body.admin-mode #mode-title {
+     display: none !important;
+   }
+   body.musalli-mode #musalli-heading-col {
+     display: flex !important;
+   }
+   body.admin-mode #admin-heading-col {
+     display: flex !important;
+   }
+   body.musalli-mode #saved-mosques-area,
+   body.musalli-mode #code-input-area,
+   body.admin-mode #saved-mosques-area,
+   body.admin-mode #code-input-area {
+     margin: 0 !important;
+     flex: 1 1 auto;
+     max-width: 560px !important;
+     width: 100% !important;
+   }
+   /* When PIN area is visible in admin landscape: split code + PIN side by side */
+   body.admin-mode #code-input-area:has(#pin-input-area[style*="block"]) {
+     display: flex !important;
+     flex-direction: row !important;
+     align-items: flex-start !important;
+     gap: 14px !important;
+     padding: 14px !important;
+   }
+   body.admin-mode #code-input-area:has(#pin-input-area[style*="block"]) #code-fields-col {
+     flex: 1 1 0;
+     min-width: 0;
+   }
+   body.admin-mode #code-input-area:has(#pin-input-area[style*="block"]) #pin-input-area {
+     flex: 1 1 0;
+     min-width: 0;
+     margin-top: 0 !important;
+     border-top: none !important;
+     border-left: 1px solid rgba(86,208,232,0.2) !important;
+     padding-top: 0 !important;
+     padding-left: 14px !important;
+   }
+ }
+
+ /* ── LINK TV HEADING COLUMN ── */
+ #link-tv-heading-col {
+   display: none;
+   flex-direction: column;
+   align-items: flex-start;
+   justify-content: center;
+   flex: 0 0 auto;
+   min-width: 110px;
+   max-width: 40vw;
+ }
+
+ #link-tv-heading-col #ltv-main-heading {
+   color: #56d0e8;
+   font-family: 'Inter', sans-serif;
+   font-size: clamp(18px, 5vw, 30px);
+   font-weight: 700;
+   text-shadow: 0 0 20px rgba(86,208,232,0.25);
+   direction: ltr;
+   line-height: 1.3;
+   margin: 0 0 6px 0;
+   letter-spacing: 0px;
+ }
+
+ #link-tv-heading-col #ltv-sub-heading {
+   color: #4a8a9a;
+   font-family: 'Inter', sans-serif;
+   font-size: clamp(11px, 2.5vw, 14px);
+   font-weight: 500;
+   direction: ltr;
+   letter-spacing: 0.3px;
+   line-height: 1.4;
+ }
+
+ /* ── LINK TV HORIZONTAL LAYOUT
+    Only on MOBILE LANDSCAPE: wide enough to split but short (rotated phone).
+    max-width:900px keeps laptops/desktops out entirely. ── */
+ @media (max-width: 900px) and (max-height: 500px) {
+   body.link-tv-mode {
+     flex-direction: row !important;
+     align-items: center !important;
+     justify-content: center !important;
+     padding: 10px 4vw 10px !important;
+     gap: 4vw;
+   }
+   body.link-tv-mode #main-heading,
+   body.link-tv-mode #mode-title {
+     display: none !important;
+   }
+   body.link-tv-mode #link-tv-heading-col {
+     display: flex !important;
+   }
+   body.link-tv-mode #saved-mosques-area,
+   body.link-tv-mode #code-input-area {
+     margin: 0 !important;
+     flex: 1 1 auto;
+     max-width: 560px !important;
+     width: 100% !important;
+   }
+   /* PIN visible: split code + PIN side by side */
+   body.link-tv-mode #code-input-area:has(#pin-input-area[style*="block"]) {
+     display: flex !important;
+     flex-direction: row !important;
+     align-items: flex-start !important;
+     gap: 14px !important;
+     padding: 14px !important;
+   }
+   body.link-tv-mode #code-input-area:has(#pin-input-area[style*="block"]) #code-fields-col {
+     flex: 1 1 0;
+     min-width: 0;
+   }
+   body.link-tv-mode #code-input-area:has(#pin-input-area[style*="block"]) #pin-input-area {
+     flex: 1 1 0;
+     min-width: 0;
+     margin-top: 0 !important;
+     border-top: none !important;
+     border-left: 1px solid rgba(86,208,232,0.2) !important;
+     padding-top: 0 !important;
+     padding-left: 14px !important;
+   }
+   /* Layout selection visible: split code + layout side by side */
+   body.link-tv-mode #code-input-area:has(#layout-selection[style*="block"]) {
+     display: flex !important;
+     flex-direction: row !important;
+     align-items: flex-start !important;
+     gap: 14px !important;
+     padding: 14px !important;
+   }
+   body.link-tv-mode #code-input-area:has(#layout-selection[style*="block"]) #code-fields-col {
+     flex: 1 1 0;
+     min-width: 0;
+   }
+   body.link-tv-mode #code-input-area:has(#layout-selection[style*="block"]) #layout-selection {
+     flex: 1 1 0;
+     min-width: 0;
+     margin-top: 0 !important;
+     border-top: none !important;
+     border-left: 1px solid rgba(86,208,232,0.2) !important;
+     padding-top: 0 !important;
+     padding-left: 14px !important;
+   }
+ }
+
  h3 {
  font-family: 'Inter', sans-serif;
  font-weight: 700;
@@ -1420,6 +1701,64 @@
      padding-top: 1vh !important;
    }
  }
+
+ /* ── Settings + Help: HORIZONTAL LAYOUT on mobile landscape ── */
+ @media (max-width: 900px) and (max-height: 500px) {
+   #settings-screen,
+   #help-screen {
+     flex-direction: row !important;
+     align-items: stretch !important;
+     justify-content: flex-start !important;
+   }
+   #settings-screen > div:first-child,
+   #help-screen > div:first-child {
+     flex: 0 0 auto !important;
+     width: auto !important;
+     min-width: 110px !important;
+     max-width: 38vw !important;
+     padding: 10px 3vw 10px 4vw !important;
+     display: flex !important;
+     flex-direction: column !important;
+     align-items: flex-start !important;
+     justify-content: center !important;
+     text-align: left !important;
+   }
+   #settings-h1, #help-h1 {
+     font-size: clamp(16px, 4vw, 24px) !important;
+     margin: 0 0 4px 0 !important;
+     line-height: 1.3 !important;
+   }
+   #settings-h2, #help-h2 {
+     font-size: clamp(12px, 2.8vw, 16px) !important;
+     margin: 0 !important;
+     line-height: 1.3 !important;
+   }
+   #settings-screen > div:last-child,
+   #help-screen > div:last-child {
+     flex: 1 1 auto !important;
+     min-width: 0 !important;
+     width: auto !important;
+     height: 100% !important;
+     padding: 10px 4vw 10px 0 !important;
+     display: flex !important;
+     flex-direction: column !important;
+     align-items: stretch !important;
+     justify-content: center !important;
+     overflow: hidden !important;
+   }
+   #settings-screen > div:last-child > div {
+     max-width: 100% !important;
+     max-height: calc(100vh - 20px) !important;
+     overflow-y: auto !important;
+   }
+   #help-screen > div:last-child {
+     max-width: 100% !important;
+     padding-bottom: 10px !important;
+   }
+   .help-scroll-area {
+     max-height: calc(100vh - 20px) !important;
+   }
+ }
  </style>
 </head>
 <body>
@@ -1484,6 +1823,10 @@
  <!-- Small hint: which Link TV entry will be launched -->
  <div id="autostart-link-hint" style="display:none; font-size:12px; color:#667788; text-align:center; direction:ltr; margin:-6px 0 4px 0; font-family:'Inter',sans-serif;">
  <span id="autostart-hint-prefix">Will open:</span> <span style="color:#56d0e8; font-weight:700;" id="autostart-link-name">—</span> <span id="autostart-hint-suffix">(top of saved list)</span>
+ </div>
+ <!-- Warning: shown when no linked TVs are saved -->
+ <div id="autostart-no-link-warn" style="display:none; font-size:12px; color:#f0a030; text-align:center; direction:ltr; margin:-6px 0 4px 0; font-family:'Inter',sans-serif; background:rgba(240,160,48,0.08); border:1px solid rgba(240,160,48,0.3); border-radius:8px; padding:7px 12px;">
+  ⚠️ <span id="autostart-no-link-warn-text">No linked TV — add one via Link TV first.</span>
  </div>
 
  </div>
@@ -1605,6 +1948,24 @@
  </div>
 </div>
 
+<!-- Left column for horizontal link-tv layout -->
+<div id="link-tv-heading-col">
+  <div id="ltv-main-heading">Masjid Board</div>
+  <div id="ltv-sub-heading">Link Secondary TV</div>
+</div>
+
+<!-- Left column for horizontal musalli layout -->
+<div id="musalli-heading-col">
+  <div id="mus-main-heading">Masjid Board</div>
+  <div id="mus-sub-heading">Musalli (Worshipper) View</div>
+</div>
+
+<!-- Left column for horizontal admin layout -->
+<div id="admin-heading-col">
+  <div id="adm-main-heading">Masjid Board</div>
+  <div id="adm-sub-heading">Admin / Imam Remote</div>
+</div>
+
 <h1 id="main-heading">Masjid Board</h1>
 <p id="main-subtitle-en" style="color: #7a9aaa; font-size: clamp(14px, 2.8vw, 17px); margin: 0 0 3.5vh 0; font-weight: 500; letter-spacing: 0.5px; font-family: 'Inter', sans-serif; direction: ltr; line-height: 1.5;">How would you like to use this device?</p>
 <p id="mode-title" style="display:none;"></p>
@@ -1639,12 +2000,14 @@
 </div>
 
 <div id="code-input-area">
+ <div id="code-fields-col">
  <p id="box-msg" style="font-size: 14px; margin-bottom: 10px;"></p>
  
  <input type="text" inputmode="numeric" maxlength="8" id="masjidCode" placeholder="00000000">
  <div id="digit-counter" style="direction:ltr;">0 / 8 — digits</div>
 
  <button class="btn btn-tv" id="connect-btn" style="width: 100%; margin: 0; direction:ltr;" onclick="submitCode()">Connect</button>
+ </div>
 
  <!-- PIN box — appears after code verified (admin & link_tv) -->
  <div id="pin-input-area" style="display:none; margin-top: 18px; border-top: 1px solid rgba(86,208,232,0.2); padding-top: 16px;">
@@ -1785,14 +2148,31 @@
  const mainOn = document.getElementById('autostart-toggle').checked;
  const linkOn = document.getElementById('autostart-link-toggle').checked;
 
- // Grey out the OTHER row when one is ON
- document.getElementById('autostart-main-row').classList.toggle('setting-disabled', linkOn && !mainOn);
- document.getElementById('autostart-link-row').classList.toggle('setting-disabled', mainOn && !linkOn);
+ // Check if any linked TVs are saved
+ let hasLinks = false;
+ try { hasLinks = (JSON.parse(localStorage.getItem('saved_links')) || []).length > 0; } catch(e) {}
+
+ const linkRow    = document.getElementById('autostart-link-row');
+ const noLinkWarn = document.getElementById('autostart-no-link-warn');
+ const linkToggle = document.getElementById('autostart-link-toggle');
+
+ if (!hasLinks) {
+  // No saved linked TVs: grey out row, show warning, force toggle off
+  linkRow.classList.add('setting-disabled');
+  if (noLinkWarn) noLinkWarn.style.display = 'block';
+  if (linkToggle) linkToggle.checked = false;
+  localStorage.setItem('autostart_link_tv', 'false');
+ } else {
+  if (noLinkWarn) noLinkWarn.style.display = 'none';
+  // Normal mutual-exclusion greying
+  document.getElementById('autostart-main-row').classList.toggle('setting-disabled', linkOn && !mainOn);
+  linkRow.classList.toggle('setting-disabled', mainOn && !linkOn);
+ }
 
  // Hint: show which Link TV will launch
- const hint = document.getElementById('autostart-link-hint');
+ const hint   = document.getElementById('autostart-link-hint');
  const nameEl = document.getElementById('autostart-link-name');
- if (linkOn) {
+ if (linkOn && hasLinks) {
  try {
  const links = JSON.parse(localStorage.getItem('saved_links')) || [];
  nameEl.textContent = links.length > 0
@@ -1900,6 +2280,16 @@
  }
 
  function _startLinkTimer() {
+  // Guard: if no saved linked TVs exist, disable the toggle and bail out silently
+  let hasLinks = false;
+  try { hasLinks = (JSON.parse(localStorage.getItem('saved_links')) || []).length > 0; } catch(e) {}
+  if (!hasLinks) {
+   localStorage.setItem('autostart_link_tv', 'false');
+   const lt = document.getElementById('autostart-link-toggle');
+   if (lt) lt.checked = false;
+   _updateAutostartUI();
+   return; // no countdown, no popup
+  }
   _autostartLinkTimer = setTimeout(function () {
    _hideAutostartPopup();
    _launchTopLinkTv();
@@ -2067,6 +2457,11 @@
  // Show back arrow, hide exit btn
  document.getElementById('back-arrow-btn').style.display = 'flex';
  document.getElementById('back-arrow-btn').onclick = handleBack;
+ // Horizontal layout class per mode (mobile landscape)
+ document.body.classList.remove('link-tv-mode', 'musalli-mode', 'admin-mode');
+ if (mode === 'link_tv') document.body.classList.add('link-tv-mode');
+ else if (mode === 'musalli') document.body.classList.add('musalli-mode');
+ else if (mode === 'admin') document.body.classList.add('admin-mode');
 
  const modeTitles = {
  'musalli': { en: 'Musalli (Worshipper) View' },
@@ -2140,6 +2535,7 @@
  document.getElementById('main-subtitle-en').style.display = 'block';
  document.getElementById('mode-title').style.display = 'none';
  document.getElementById('back-arrow-btn').style.display = 'none';
+ document.body.classList.remove('link-tv-mode', 'musalli-mode', 'admin-mode');
  _resetReorderBtn();
  resetCodeInput();
  if (typeof _applyLang === 'function') setTimeout(_applyLang, 0);
@@ -2184,14 +2580,15 @@
  let _dragSrcIndex = null;
 
  function toggleReorderMode() {
+ if (!_reorderCurrentMode) return; // no mode active yet — nothing to reorder
  _reorderMode = !_reorderMode;
  const btn = document.getElementById('reorder-btn');
  if (_reorderMode) {
  btn.classList.add('active');
- btn.innerHTML = '✔ Done Reordering'; btn.style.direction = 'ltr';
+ btn.textContent = _t('doneReorder'); btn.style.direction = 'ltr';
  } else {
  btn.classList.remove('active');
- btn.innerHTML = '⇅ Reorder'; btn.style.direction = 'ltr';
+ btn.textContent = _t('reorder'); btn.style.direction = 'ltr';
  }
  renderSavedEntries(_reorderCurrentMode);
  }
@@ -2229,7 +2626,7 @@
  if (_reorderMode) {
  _reorderMode = false;
  reorderBtn.classList.remove('active');
- reorderBtn.innerHTML = '⇅ <span style="font-size:12px; opacity:0.75;">Reorder</span>';
+ reorderBtn.textContent = _t('reorder'); reorderBtn.style.direction = 'ltr';
  }
  }
 
@@ -2347,7 +2744,7 @@
  const btn = document.getElementById('reorder-btn');
  btn.style.display = 'none';
  btn.classList.remove('active');
- btn.innerHTML = '⇅ Reorder'; btn.style.direction = 'ltr';
+ btn.textContent = _t('reorder'); btn.style.direction = 'ltr';
  }
 
  function openSavedEntry(mode, index) {
@@ -2381,7 +2778,7 @@
  document.getElementById('masjidCode').readOnly = true;
  document.getElementById('masjidCode').style.opacity = '0.5';
  document.getElementById('box-msg').innerHTML = _t('msgAdmin');
- const connectBtn = document.querySelector('#code-input-area .btn-tv');
+ const connectBtn = document.getElementById('connect-btn');
  connectBtn.style.display = 'none';
  const pinArea = document.getElementById('pin-input-area');
  pinArea.style.display = 'block';
@@ -2461,7 +2858,7 @@
  // Verify mosque exists in Firebase first
  // Keys are stored as "MSJ-XXXXXXXX" (matching masjidboard.html line: mosqueID = "MSJ-" + code)
  const mosqueID = "MSJ-" + code;
- const connectBtn = document.querySelector('#code-input-area .btn-tv');
+ const connectBtn = document.getElementById('connect-btn');
  connectBtn.disabled = true;
  connectBtn.textContent = _t('verifying');
 
@@ -2508,7 +2905,7 @@
  if (selectedMode === 'link_tv') {
  // Step 1: verify mosque exists
  const mosqueID = "MSJ-" + code;
- const connectBtn = document.querySelector('#code-input-area .btn-tv');
+ const connectBtn = document.getElementById('connect-btn');
  connectBtn.disabled = true;
  connectBtn.textContent = _t('verifying');
 
@@ -2539,7 +2936,7 @@
  } else if (selectedMode === 'musalli') {
  // Step 1: verify mosque exists in Firebase before asking for a name
  const mosqueID = "MSJ-" + code;
- const connectBtn = document.querySelector('#code-input-area .btn-tv');
+ const connectBtn = document.getElementById('connect-btn');
  connectBtn.disabled = true;
  connectBtn.textContent = _t('verifying');
 
@@ -2802,6 +3199,8 @@
  }
  links.push({ id: code, name: name.trim() || ("Link TV " + code), layout: layout });
  localStorage.setItem('saved_links', JSON.stringify(links));
+ // Set the verified flag (same as the saved-entry path in openSavedEntry)
+ sessionStorage.setItem('link_tv_pin_verified', mosqueID);
  } else {
  // Update existing layout
  links = links.map(m => m.id === code ? { ...m, layout } : m);
@@ -2823,7 +3222,8 @@
  const pinCounter = document.getElementById('pin-counter');
  pinCounter.innerHTML = '0 / 4 &nbsp; — ' + _t('digitsLabel');
  pinCounter.style.color = '';
- const connectBtn = document.querySelector('#code-input-area .btn-tv');
+ // Use the specific #connect-btn ID to avoid ambiguously matching the PIN confirm button
+ const connectBtn = document.getElementById('connect-btn');
  connectBtn.style.display = 'block';
  connectBtn.innerHTML = _t('connectBtn');
  const digitCounter = document.getElementById('digit-counter');
@@ -3081,10 +3481,25 @@
          else { var ab = document.getElementById('add-new-btn'); if (ab) ab.focus(); }
        }
 
+       var _isBackBtn   = _ae && _ae.id === 'back-arrow-btn';
+       var _reorderBtn  = document.getElementById('reorder-btn');
+       var _isReorder   = _ae && _ae.id === 'reorder-btn';
+       // reorder btn is only a valid nav target when it's visible
+       function _reorderVisible() {
+         return _reorderBtn && isVisible(_reorderBtn);
+       }
+
        switch (key) {
          case 'ArrowDown': case 'Down':
            e.preventDefault();
-           if (_tapIdx !== -1) {
+           if (_isBackBtn) {
+             // Down from back btn → reorder btn (if visible) else first tap-row
+             if (_reorderVisible()) { _reorderBtn.focus(); }
+             else if (_tapRows.length) { _tapRows[0].focus(); }
+           } else if (_isReorder) {
+             // Down from reorder btn → first tap-row
+             if (_tapRows.length) { _tapRows[0].focus(); }
+           } else if (_tapIdx !== -1) {
              // Down from tap-row → Delete button of this entry
              var delBtn = _tapRows[_tapIdx].closest('.mosque-item').querySelector('.delete-btn');
              if (delBtn) delBtn.focus();
@@ -3098,13 +3513,17 @@
            break;
          case 'ArrowUp': case 'Up':
            e.preventDefault();
-           if ((_isDelete || _isEdit) && _parentItem) {
+           if (_isReorder) {
+             // Up from reorder btn → back button
+             var bbr = document.getElementById('back-arrow-btn'); if (bbr) bbr.focus();
+           } else if ((_isDelete || _isEdit) && _parentItem) {
              // Up from Delete or Edit → back to this entry's tap-row
              var tr = _parentItem.querySelector('.mosque-tap-row');
              if (tr) tr.focus();
            } else if (_tapIdx !== -1) {
-             // Up from tap-row → previous tap-row or back button
+             // Up from tap-row → reorder btn (if visible), else back button
              if (_tapIdx > 0) { _tapRows[_tapIdx - 1].focus(); }
+             else if (_reorderVisible()) { _reorderBtn.focus(); }
              else { var bb = document.getElementById('back-arrow-btn'); if (bb) bb.focus(); }
            } else if (_isAddNew) {
              // Up from Add New → last tap-row
@@ -3421,7 +3840,6 @@
    langBtn:        'اردو',
    forgotPin:      '🔑 Forgot PIN?',
    waitApproval:   'Waiting for Masjid Board approval…',
-   secRemaining:   'seconds remaining',
    cancelBtn:      'Cancel',
    exitQuestion:   'Do you want to exit the app?',
    exitCancel:     'Cancel',
@@ -3479,6 +3897,7 @@
    autostartPopupTitleLink: 'Auto Starting Linked TV…',
    autostartPopupSub: 'Tap Cancel to stop',
    errNoLinkedTv: 'No Linked TV saved yet. Please add a Link TV first before enabling Auto Start.',
+   warnNoLinkedTv: 'No linked TV — add one via Link TV first.',
    // no saved entries
    noSavedEntries: 'No saved entries yet.',
    // seconds remaining label
@@ -3529,7 +3948,6 @@
    langBtn:        'EN',
    forgotPin:      '🔑 پن بھول گئے؟',
    waitApproval:   'مسجد بورڈ کی منظوری کا انتظار ہے…',
-   secRemaining:   'سیکنڈ باقی',
    cancelBtn:      'منسوخ کریں',
    exitQuestion:   'کیا آپ ایپ سے باہر جانا چاہتے ہیں؟',
    exitCancel:     'نہیں',
@@ -3587,6 +4005,7 @@
    autostartPopupTitleLink: 'لنک ٹی وی خودکار شروع ہو رہا ہے…',
    autostartPopupSub: 'روکنے کے لیے منسوخ کریں',
    errNoLinkedTv: 'ابھی کوئی لنک ٹی وی محفوظ نہیں۔ پہلے لنک ٹی وی شامل کریں۔',
+   warnNoLinkedTv: 'کوئی لنک ٹی وی نہیں — پہلے لنک ٹی وی شامل کریں۔',
    // no saved entries
    noSavedEntries: 'ابھی کوئی اندراج محفوظ نہیں۔',
    // seconds remaining label
@@ -3629,6 +4048,51 @@
    mainH1.style.fontFamily = isUr ? "'Noto Nastaliq Urdu', serif" : "'Inter', sans-serif";
    mainH1.style.fontWeight  = isUr ? '500' : '700';
    mainH1.style.direction   = isUr ? 'rtl' : 'ltr';
+  }
+  // Mirror for horizontal link-tv heading column
+  var ltvH = document.getElementById('ltv-main-heading');
+  if (ltvH) {
+   ltvH.textContent = L.pageTitle;
+   ltvH.style.fontFamily = isUr ? "'Noto Nastaliq Urdu', serif" : "'Inter', sans-serif";
+   ltvH.style.fontWeight  = isUr ? '500' : '700';
+   ltvH.style.direction   = isUr ? 'rtl' : 'ltr';
+   ltvH.style.textAlign   = isUr ? 'right' : 'left';
+  }
+  // Mirror for horizontal musalli heading column
+  var musH = document.getElementById('mus-main-heading');
+  if (musH) {
+   musH.textContent = L.pageTitle;
+   musH.style.fontFamily = isUr ? "'Noto Nastaliq Urdu', serif" : "'Inter', sans-serif";
+   musH.style.fontWeight  = isUr ? '500' : '700';
+   musH.style.direction   = isUr ? 'rtl' : 'ltr';
+   musH.style.textAlign   = isUr ? 'right' : 'left';
+  }
+  var musSub = document.getElementById('mus-sub-heading');
+  if (musSub) {
+   musSub.textContent = (typeof _t === 'function') ? _t('modeMusalli') : 'Musalli (Worshipper) View';
+   musSub.style.fontFamily = isUr ? "'Noto Nastaliq Urdu', serif" : "'Inter', sans-serif";
+   musSub.style.direction  = isUr ? 'rtl' : 'ltr';
+  }
+  // Mirror for horizontal admin heading column
+  var admH = document.getElementById('adm-main-heading');
+  if (admH) {
+   admH.textContent = L.pageTitle;
+   admH.style.fontFamily = isUr ? "'Noto Nastaliq Urdu', serif" : "'Inter', sans-serif";
+   admH.style.fontWeight  = isUr ? '500' : '700';
+   admH.style.direction   = isUr ? 'rtl' : 'ltr';
+   admH.style.textAlign   = isUr ? 'right' : 'left';
+  }
+  var admSub = document.getElementById('adm-sub-heading');
+  if (admSub) {
+   admSub.textContent = (typeof _t === 'function') ? _t('modeAdmin') : 'Admin / Imam Remote';
+   admSub.style.fontFamily = isUr ? "'Noto Nastaliq Urdu', serif" : "'Inter', sans-serif";
+   admSub.style.direction  = isUr ? 'rtl' : 'ltr';
+  }
+  var ltvSub = document.getElementById('ltv-sub-heading');
+  if (ltvSub) {
+   ltvSub.textContent = (typeof _t === 'function') ? _t('modeLinkTV') : 'Link Secondary TV';
+   ltvSub.style.fontFamily = isUr ? "'Noto Nastaliq Urdu', serif" : "'Inter', sans-serif";
+   ltvSub.style.direction  = isUr ? 'rtl' : 'ltr';
   }
 
   // Main subtitle
@@ -3740,6 +4204,8 @@
   if (lbl1) lbl1.textContent = L.autoStartMain;
   var lbl2 = document.querySelector('#autostart-link-row .lbl-en');
   if (lbl2) lbl2.textContent = L.autoStartLink;
+  var warnLbl = document.getElementById('autostart-no-link-warn-text');
+  if (warnLbl) warnLbl.textContent = L.warnNoLinkedTv || 'No linked TV — add one via Link TV first.';
 
   // Add new button
   var addBtn = document.getElementById('add-new-btn');
@@ -3752,12 +4218,6 @@
   if (exitCancel) exitCancel.textContent = L.exitCancel;
   var exitConfirm = document.querySelector('.exit-btn-confirm');
   if (exitConfirm) exitConfirm.textContent = L.exitConfirm;
-
-  // Connect button (if visible and not mid-verification)
-  var connectBtn = document.querySelector('#code-input-area .btn-tv:not([onclick*="submitPin"]):not([onclick*="submitLinkTv"])');
-  if (connectBtn && !connectBtn.disabled) {
-   connectBtn.innerHTML = L.connectBtn;
-  }
 
   // Mode title (if visible)
   var mt = document.getElementById('mode-title');
