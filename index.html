@@ -262,34 +262,85 @@
  <link rel="apple-touch-icon" href="icon-512.png">
  <title>Prayer Time</title>
  <script>
- /* ── ANDROID SYSTEM FONT SIZE IMMUNITY ──────────────────────────────────────
-    Prevents Android/iOS system "Font size" setting from scaling this app.
-    CSS text-size-adjust alone is insufficient for Android WebView — the OS
-    applies a font scale factor at the engine level. We detect it by measuring
-    a known-size element and lock the root font-size to 16px.
-    We deliberately do NOT apply a body transform because position:fixed
-    children (corner buttons) lose viewport attachment when any ancestor has a
-    CSS transform (CSS spec §transforms). The setTextZoom(100) call handles
-    WebViews that expose the API directly.                                    */
+ /* ══════════════════════════════════════════════════════════════════════════
+    NUCLEAR FONT SIZE IMMUNITY — Maximum protection against Android/iOS
+    system "Font Size" setting destroying the layout.
+
+    LAYERS:
+      1. WebView textZoom API  — works in native WebView wrappers
+      2. CSS html{font-size:16px!important} — baseline anchor (in <style> below)
+      3. Scale-correcting lock — measures actual fontScale, counters it on <html>
+      4. Re-runs on: load, focus, visibilitychange, pageshow, resize, orientationchange
+      5. Continuous watchdog (setInterval every 2s for 60s) — catches deferred inflation
+      6. MutationObserver on <html> style — re-locks if our override is stripped
+ ══════════════════════════════════════════════════════════════════════════ */
  (function () {
+   /* LAYER 1: WebView textZoom API */
    try {
-     var test = document.createElement('span');
-     test.style.cssText = 'position:absolute;top:-9999px;left:-9999px;' +
-       'font-size:16px;line-height:1;font-family:monospace;white-space:nowrap;' +
-       'visibility:hidden;';
-     test.textContent = 'M';
-     document.documentElement.appendChild(test);
-     var computed = parseFloat(window.getComputedStyle(test).fontSize);
-     document.documentElement.removeChild(test);
-
-     if (computed && Math.abs(computed - 16) > 0.5) {
-       document.documentElement.style.setProperty('font-size', '16px', 'important');
-     }
-
-     if (window.Android && window.Android.setTextZoom) {
+     if (window.Android && typeof window.Android.setTextZoom === 'function') {
        window.Android.setTextZoom(100);
      }
-   } catch (e) { /* silent — font immunity is non-critical */ }
+   } catch(e) {}
+
+   /* LAYER 2+3: Measure actual font scale and counter it */
+   function _measureFontScale() {
+     try {
+       var el = document.createElement('div');
+       el.style.cssText = [
+         'position:fixed','top:-9999px','left:-9999px',
+         'width:0','height:0','overflow:hidden',
+         'font-size:100px','line-height:1','font-family:monospace',
+         'visibility:hidden','pointer-events:none','contain:strict'
+       ].join(';');
+       el.textContent = 'X';
+       document.documentElement.appendChild(el);
+       var actual = parseFloat(window.getComputedStyle(el).fontSize);
+       document.documentElement.removeChild(el);
+       return (actual && actual > 0) ? (actual / 100) : 1;
+     } catch(e) { return 1; }
+   }
+
+   function lockFontSize() {
+     try {
+       var scale = _measureFontScale();
+       if (Math.abs(scale - 1) > 0.02) {
+         /* Counter: if Android applies 1.3×, we set 16/1.3px so computed = 16px */
+         var corrected = (16 / scale).toFixed(4) + 'px';
+         document.documentElement.style.setProperty('font-size', corrected, 'important');
+       } else {
+         document.documentElement.style.setProperty('font-size', '16px', 'important');
+       }
+     } catch(e) {}
+   }
+
+   /* Run immediately */
+   lockFontSize();
+
+   /* LAYER 4: All lifecycle events */
+   var _evts = [
+     [window,   'load',              lockFontSize],
+     [window,   'focus',             lockFontSize],
+     [window,   'resize',            lockFontSize],
+     [window,   'pageshow',          lockFontSize],
+     [window,   'orientationchange', function(){ setTimeout(lockFontSize, 250); }],
+     [document, 'visibilitychange',  function(){ if (!document.hidden) lockFontSize(); }],
+   ];
+   _evts.forEach(function(e){ e[0].addEventListener(e[1], e[2], { passive: true }); });
+
+   /* LAYER 5: Continuous watchdog for 60 seconds */
+   var _watchdog = setInterval(lockFontSize, 2000);
+   setTimeout(function(){ clearInterval(_watchdog); }, 60000);
+
+   /* LAYER 6: MutationObserver — re-lock if our style is stripped */
+   try {
+     new MutationObserver(function(muts) {
+       muts.forEach(function(m) {
+         if (m.type === 'attributes' && m.attributeName === 'style') lockFontSize();
+       });
+     }).observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
+   } catch(e) {}
+
+   window._lockFontSize = lockFontSize;
  })();
  </script>
  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -304,17 +355,24 @@
  /* ── SYSTEM FONT SIZE IMMUNITY ──────────────────────
  Prevents Android/iOS "Font size" system setting
  from scaling anything in this app.
- The JS block above handles the WebView textZoom API;
- these CSS rules handle the browser/CSS layer. */
+ The JS block above handles detection & correction;
+ these CSS rules are the static defence layer.      */
+ html, html * {
+ -webkit-text-size-adjust: 100% !important;
+    -moz-text-size-adjust: 100% !important;
+         text-size-adjust: 100% !important;
+ -webkit-font-size-adjust: 100% !important;
+ }
  html {
  font-size: 16px !important;
- -webkit-text-size-adjust: 100% !important;
- -moz-text-size-adjust: 100% !important;
- text-size-adjust: 100% !important;
  width: 100%;
  min-width: 100%;
  overflow-x: hidden;
  background: #050a12;
+ }
+ body {
+ /* Second anchor — if html is bypassed, body catches it */
+ font-size: 16px !important;
  }
 
  * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1433,6 +1491,34 @@
      padding-top: 0 !important;
      padding-left: 14px !important;
    }
+   /* Waiting box visible in admin landscape: sit beside code col, compact */
+   body.admin-mode #code-input-area:has(#pin-reset-waiting[style*="block"]) {
+     display: flex !important;
+     flex-direction: row !important;
+     align-items: flex-start !important;
+     gap: 14px !important;
+     padding: 14px !important;
+   }
+   body.admin-mode #code-input-area:has(#pin-reset-waiting[style*="block"]) #code-fields-col {
+     flex: 1 1 0;
+     min-width: 0;
+   }
+   body.admin-mode #pin-reset-waiting[style*="block"] {
+     flex: 1 1 0;
+     min-width: 0;
+     margin-top: 0 !important;
+     border: none !important;
+     border-left: 1px solid rgba(240,192,64,0.3) !important;
+     padding: 0 0 0 14px !important;
+     box-shadow: none !important;
+     border-radius: 0 !important;
+     background: transparent !important;
+   }
+   body.admin-mode #pin-reset-waiting[style*="block"] > div:first-child { display: none !important; }
+   body.admin-mode #pin-reset-waiting[style*="block"] #wait-approval-text { font-size: 11px !important; margin-bottom: 8px !important; }
+   body.admin-mode #pin-reset-waiting[style*="block"] #reset-countdown-num { font-size: 22px !important; }
+   body.admin-mode #pin-reset-waiting[style*="block"] #sec-remaining-label { font-size: 10px !important; margin-top: 1px !important; }
+   body.admin-mode #pin-reset-waiting[style*="block"] button { margin-top: 8px !important; padding: 5px 14px !important; font-size: 12px !important; }
  }
 
  /* ── LINK TV HEADING COLUMN ── */
@@ -2052,26 +2138,26 @@
  <div id="pin-input-area" style="display:none; margin-top: 18px; border-top: 1px solid rgba(86,208,232,0.2); padding-top: 16px;">
  <p id="pin-msg" style="font-size:14px; color:#f0c040; margin-bottom:8px; text-align:center;"></p>
  <input type="password" inputmode="numeric" maxlength="4" id="adminPin" placeholder="• • • •" style="letter-spacing:10px; font-size:26px; text-align:center;">
- <div id="pin-counter" style="font-size:12px; color:#667788; text-align:center; margin-top:-10px; margin-bottom:10px; font-family:'Orbitron',monospace; direction:ltr;">0 / 4 — digits</div>
- <button class="btn btn-tv" style="width:100%; margin:0; background: linear-gradient(135deg, #4be87a 0%, #2ab85a 100%); color:#000; direction:ltr;" onclick="submitPin()" id="confirm-pin-btn">پن تصدیق کریں</button>
- <!-- Forgot PIN — admin only -->
- <div id="forgot-pin-area" style="display:none; margin-top:14px; text-align:center;">
- <button id="forgot-pin-btn" onclick="requestPinReset()" style="background:none; border:none; color:#f0c040; font-family:'Inter',sans-serif; font-size:14px; font-weight:600; cursor:pointer; text-decoration:underline; padding:4px 0; transition:color 0.2s;">
- 🔑 Forgot PIN?
- </button>
+ <div style="display:flex; align-items:center; justify-content:space-between; margin-top:-10px; margin-bottom:10px;">
+  <div id="pin-counter" style="font-size:12px; color:#667788; font-family:'Orbitron',monospace; direction:ltr;">0 / 4 — digits</div>
+  <!-- Forgot PIN — admin only, shown beside digit counter -->
+  <div id="forgot-pin-area" style="display:none;">
+   <button id="forgot-pin-btn" tabindex="0" onclick="requestPinReset()" style="background:none; border:none; color:#f0c040; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; cursor:pointer; text-decoration:underline; padding:2px 0; transition:color 0.2s; white-space:nowrap;">🔑 Forgot PIN?</button>
+  </div>
  </div>
- <!-- PIN Reset waiting box -->
- <div id="pin-reset-waiting" style="display:none; margin-top:14px; background:linear-gradient(160deg,#0d1e35 0%,#060d1a 100%); border:2px solid #f0c040; border-radius:16px; padding:18px 16px; text-align:center; box-shadow:0 0 24px rgba(240,192,64,0.2);">
+ <button class="btn btn-tv" style="width:100%; margin:0; background: linear-gradient(135deg, #4be87a 0%, #2ab85a 100%); color:#000; direction:ltr;" onclick="submitPin()" id="confirm-pin-btn">پن تصدیق کریں</button>
+ </div>
+
+ <!-- PIN Reset waiting box — sibling of pin-input-area; replaces it while waiting -->
+ <div id="pin-reset-waiting" style="display:none; margin-top:18px; border-top:1px solid rgba(86,208,232,0.2); padding-top:16px; background:linear-gradient(160deg,#0d1e35 0%,#060d1a 100%); border:2px solid #f0c040; border-radius:16px; padding:18px 16px; text-align:center; box-shadow:0 0 24px rgba(240,192,64,0.2);">
  <div style="font-size:32px; margin-bottom:8px;">📡</div>
- 
- <div style="font-family:'Inter',sans-serif; font-size:13px; color:#8899aa; direction:ltr; margin-bottom:14px;"id="wait-approval-text">مسجد بورڈ کی منظوری کا انتظار ہے…</div>
+ <div style="font-family:'Inter',sans-serif; font-size:13px; color:#8899aa; direction:ltr; margin-bottom:14px;" id="wait-approval-text">مسجد بورڈ کی منظوری کا انتظار ہے…</div>
  <div style="background:#0a1525; border-radius:8px; height:8px; overflow:hidden; margin-bottom:10px;">
  <div id="reset-countdown-bar" style="height:100%; background:linear-gradient(90deg,#f0c040,#56d0e8); border-radius:8px; width:100%; transition:width 1s linear;"></div>
  </div>
  <div style="font-family:'Orbitron',monospace; font-size:18px; color:#f0c040; font-weight:700;" id="reset-countdown-num">15</div>
  <div id="sec-remaining-label" style="font-family:'Inter',sans-serif; font-size:12px; color:#556677; direction:ltr; margin-top:2px;">seconds remaining</div>
- <button onclick="cancelPinReset()" style="margin-top:14px; background:none; border:1px solid rgba(255,85,85,0.4); border-radius:8px; color:#ff5555; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; padding:6px 18px; cursor:pointer; transition:all 0.2s;">Cancel</button>
- </div>
+ <button tabindex="0" onclick="cancelPinReset()" style="margin-top:14px; background:none; border:1px solid rgba(255,85,85,0.4); border-radius:8px; color:#ff5555; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; padding:6px 18px; cursor:pointer; transition:all 0.2s;">Cancel</button>
  </div>
 
  <!-- Layout selection — appears after PIN verified for link_tv -->
@@ -2198,6 +2284,8 @@
  if (!hasLinks) {
   // No saved linked TVs: grey out row, show warning, force toggle off
   linkRow.classList.add('setting-disabled');
+  // Ensure main row is NOT incorrectly greyed from a previous call
+  document.getElementById('autostart-main-row').classList.remove('setting-disabled');
   if (noLinkWarn) noLinkWarn.style.display = 'block';
   if (linkToggle) linkToggle.checked = false;
   localStorage.setItem('autostart_link_tv', 'false');
@@ -2395,7 +2483,7 @@
   sessionStorage.setItem('link_tv_pin_verified', 'MSJ-' + m.id);
   localStorage.setItem('temp_force_layout', m.layout || 'auto');
   localStorage.setItem('is_linked_tv', 'true');
-  window.location.href = 'masjidboard.html?mode=link_tv&code=' + m.id;
+  window.location.href = 'masjidbord.html?mode=link_tv&code=' + m.id;
  } catch(e) {}
  }
 
@@ -2480,7 +2568,7 @@
  }
  } catch(e) { console.log("Storage error:", e); }
 
- window.location.href = "masjidboard.html?mode=tv&isMobile=" + isMobileDevice;
+ window.location.href = "masjidbord.html?mode=tv&isMobile=" + isMobileDevice;
  }
 
  function showInput(mode) {
@@ -2636,10 +2724,30 @@
  const key = _storageKey[mode];
  let list = JSON.parse(localStorage.getItem(key)) || [];
  if (toIndex < 0 || toIndex >= list.length) return;
+ // Remember which button was focused so we can restore it after re-render
+ const _focusedEl = document.activeElement;
+ const _wasUpArrow   = _focusedEl && _focusedEl.title === 'Move Up';
+ const _wasDownArrow = _focusedEl && _focusedEl.title === 'Move Down';
  const [item] = list.splice(fromIndex, 1);
  list.splice(toIndex, 0, item);
  localStorage.setItem(key, JSON.stringify(list));
  renderSavedEntries(mode);
+ // Restore focus to the same logical arrow button on the item that moved
+ if (_reorderMode && (_wasUpArrow || _wasDownArrow)) {
+   const _cnt = document.getElementById('mosque-list-container');
+   if (_cnt) {
+     const _movedItem = _cnt.querySelectorAll('.mosque-item')[toIndex];
+     if (_movedItem) {
+       const _btnTitle = _wasUpArrow ? 'Move Up' : 'Move Down';
+       const _btn = _movedItem.querySelector('.tv-arrow-btn[title="' + _btnTitle + '"]');
+       if (_btn && !_btn.disabled) { _btn.focus(); }
+       else {
+         const _other = _movedItem.querySelector('.tv-arrow-btn:not([disabled])');
+         if (_other) _other.focus();
+       }
+     }
+   }
+ }
  }
 
  function renderSavedEntries(mode) {
@@ -2655,6 +2763,10 @@
  try {
  let list = JSON.parse(localStorage.getItem(key)) || [];
  container.innerHTML = "";
+
+ // Show/hide Add New button — hidden while reordering
+ const addNewBtn = document.getElementById('add-new-btn');
+ if (addNewBtn) addNewBtn.style.display = _reorderMode ? 'none' : '';
 
  // Show/hide reorder button — only if >1 entry and not in empty state
  if (list.length > 1) {
@@ -2814,14 +2926,14 @@
  let list = JSON.parse(localStorage.getItem(_storageKey[mode])) || [];
  let m = list[index];
  if (mode === 'musalli') {
- window.location.href = "masjidboard.html?mode=musalli&code=" + m.id;
+ window.location.href = "masjidbord.html?mode=musalli&code=" + m.id;
  } else if (mode === 'link_tv') {
  // Saved entry — go directly, no PIN needed (already verified when first linked)
  const mosqueID = "MSJ-" + m.id;
  sessionStorage.setItem('link_tv_pin_verified', mosqueID);
  localStorage.setItem('temp_force_layout', m.layout || 'auto');
  localStorage.setItem('is_linked_tv', 'true');
- window.location.href = "masjidboard.html?mode=link_tv&code=" + m.id;
+ window.location.href = "masjidbord.html?mode=link_tv&code=" + m.id;
  } else if (mode === 'admin') {
  // If PIN is saved, go straight in — no prompt needed
  if (m.pin) {
@@ -2829,7 +2941,7 @@
  localStorage.setItem('mosque_id', mosqueID);
  localStorage.setItem('is_linked_tv', 'false');
  sessionStorage.setItem('admin_pin_verified', mosqueID);
- window.location.href = "masjidboard.html?mode=admin&code=" + m.id;
+ window.location.href = "masjidbord.html?mode=admin&code=" + m.id;
  } else {
  // Fallback: PIN not stored, show PIN entry
  verifiedAdminCode = m.id;
@@ -2850,7 +2962,7 @@
  }
  } catch(e) {}
  }
- function openSavedMosque(code) { window.location.href = "masjidboard.html?mode=musalli&code=" + code; }
+ function openSavedMosque(code) { window.location.href = "masjidbord.html?mode=musalli&code=" + code; }
 
  async function editEntry(mode, index) {
  try {
@@ -2916,9 +3028,49 @@
  showAlert({ icon:"🔢", en:_t("errDigits8"), type:"warning" }); return;
  }
 
+ // ── Early duplicate check — before any Firebase call ──────────────────────
+ {
+  const dupKey = selectedMode === 'musalli' ? 'saved_mosques'
+               : selectedMode === 'link_tv' ? 'saved_links'
+               : 'saved_admins';
+  let dupList = [];
+  try { dupList = JSON.parse(localStorage.getItem(dupKey)) || []; } catch(e) {}
+  if (dupList.find(function(m){ return m.id === code; })) {
+   const dupAlertKey = selectedMode === 'musalli' ? 'alreadySavedMusalli'
+                     : selectedMode === 'link_tv' ? 'alreadySavedLinkTv'
+                     : 'alreadySavedAdmin';
+   const dupIcon = selectedMode === 'musalli' ? '🕌'
+                 : selectedMode === 'link_tv' ? '🔗'
+                 : '📱';
+   await showAlert({ icon: dupIcon, en: _t(dupAlertKey), type: 'info' });
+   resetCodeInput();
+   document.getElementById('code-input-area').style.display = 'none';
+   const accents = { musalli: '#4be87a', link_tv: '#56d0e8', admin: '#f0c040' };
+   const titles  = {
+    musalli: '🕌 <span style="font-weight:500; opacity:0.7; font-size:13px;">Saved Mosques</span>',
+    link_tv: '🔗 <span style="font-weight:500; opacity:0.7; font-size:13px;">Saved Link TVs</span>',
+    admin:   '📱 <span style="font-weight:500; opacity:0.7; font-size:13px;">Saved Admins</span>'
+   };
+   const area = document.getElementById('saved-mosques-area');
+   area.style.borderColor = (accents[selectedMode] || '#56d0e8') + '44';
+   document.getElementById('saved-area-title').style.color = accents[selectedMode] || '#56d0e8';
+   document.getElementById('saved-area-title').innerHTML = titles[selectedMode] || '';
+   area.style.display = 'block';
+   renderSavedEntries(selectedMode);
+   document.getElementById('back-arrow-btn').onclick = handleBack;
+   if (typeof _applyLang === 'function') setTimeout(_applyLang, 0);
+   setTimeout(function() {
+    var first = document.querySelector('#mosque-list-container .mosque-tap-row');
+    if (first) first.focus();
+   }, 80);
+   return;
+  }
+ }
+ // ── End duplicate check ────────────────────────────────────────────────────
+
  if (selectedMode === 'admin') {
  // Verify mosque exists in Firebase first
- // Keys are stored as "MSJ-XXXXXXXX" (matching masjidboard.html line: mosqueID = "MSJ-" + code)
+ // Keys are stored as "MSJ-XXXXXXXX" (matching masjidbord.html line: mosqueID = "MSJ-" + code)
  const mosqueID = "MSJ-" + code;
  const connectBtn = document.getElementById('connect-btn');
  connectBtn.disabled = true;
@@ -3023,7 +3175,7 @@
  } else {
  await showAlert({ icon: "🕌", en: _t("alreadySavedMusalli"), type: "info" });
  }
- window.location.href = "masjidboard.html?mode=musalli&code=" + code;
+ window.location.href = "masjidbord.html?mode=musalli&code=" + code;
 
  }).catch(() => {
  connectBtn.disabled = false;
@@ -3032,10 +3184,10 @@
  });
  return;
  } else {
- window.location.href = "masjidboard.html?mode=" + selectedMode + "&code=" + code;
+ window.location.href = "masjidbord.html?mode=" + selectedMode + "&code=" + code;
  }
  } catch(e) {
- window.location.href = "masjidboard.html?mode=" + selectedMode + "&code=" + code;
+ window.location.href = "masjidbord.html?mode=" + selectedMode + "&code=" + code;
  }
  }
 
@@ -3089,7 +3241,7 @@
  } else {
  await showAlert({ icon: "📱", en: _t("alreadySavedAdmin"), type: "info" });
  }
- window.location.href = "masjidboard.html?mode=admin&code=" + code;
+ window.location.href = "masjidbord.html?mode=admin&code=" + code;
  } else {
  if (pin === masterCode) {
  await showAlert({ icon:"🔓", en:_t("pinReset"), type:"warning" });
@@ -3133,7 +3285,7 @@
  } else {
  await showAlert({ icon: "📱", en: _t("alreadySavedAdmin"), type: "info" });
  }
- window.location.href = "masjidboard.html?mode=admin&code=" + code;
+ window.location.href = "masjidbord.html?mode=admin&code=" + code;
  }
  }
  } catch(e) {
@@ -3159,9 +3311,8 @@
  const reqRef = db.ref('mosques/' + mosqueID + '/pinResetRequest');
  reqRef.set({ status: 'pending', requestedAt: Date.now() }).then(() => {
  document.getElementById('forgot-pin-btn').disabled = true;
+ document.getElementById('pin-input-area').style.display = 'none';
  document.getElementById('pin-reset-waiting').style.display = 'block';
- document.getElementById('adminPin').disabled = true;
- document.getElementById('adminPin').style.opacity = '0.4';
 
  let remaining = 15;
  const bar = document.getElementById('reset-countdown-bar');
@@ -3211,6 +3362,7 @@
  clearInterval(_pinResetInterval); _pinResetInterval = null;
  if (_pinResetListener) { reqRef.off('value', _pinResetListener); _pinResetListener = null; }
  document.getElementById('pin-reset-waiting').style.display = 'none';
+ document.getElementById('pin-input-area').style.display = 'block';
  document.getElementById('adminPin').disabled = false;
  document.getElementById('adminPin').style.opacity = '1';
  const btn = document.getElementById('forgot-pin-btn');
@@ -3267,9 +3419,11 @@
  // Update existing layout
  links = links.map(m => m.id === code ? { ...m, layout } : m);
  localStorage.setItem('saved_links', JSON.stringify(links));
+ // Set the verified flag so masjidbord.html link_tv mode recognises this session
+ sessionStorage.setItem('link_tv_pin_verified', mosqueID);
  await showAlert({ icon: "🔗", en: _t("alreadySavedLinkTv"), type: "info" });
  }
- window.location.href = "masjidboard.html?mode=link_tv&code=" + code;
+ window.location.href = "masjidbord.html?mode=link_tv&code=" + code;
  }
 
  function resetCodeInput() {
@@ -3528,10 +3682,77 @@
      if (layer === 'savedList') {
        var _sl  = document.getElementById('mosque-list-container');
        var _items = _sl ? Array.prototype.slice.call(_sl.querySelectorAll('.mosque-item')) : [];
-       var _tapRows = _items.map(function(it) { return it.querySelector('.mosque-tap-row'); }).filter(Boolean);
        var _ae = document.activeElement;
-       var _tapIdx    = _tapRows.indexOf(_ae);
        var _parentItem = _ae && _ae.closest ? _ae.closest('.mosque-item') : null;
+       var _isBackBtn   = _ae && _ae.id === 'back-arrow-btn';
+       var _reorderBtn  = document.getElementById('reorder-btn');
+       var _isReorder   = _ae && _ae.id === 'reorder-btn';
+       function _reorderVisible() {
+         return _reorderBtn && isVisible(_reorderBtn);
+       }
+
+       // ── REORDER MODE: navigate between tv-arrow-btn up/down buttons ──
+       // In reorder mode the .mosque-tap-row has no tabindex so it is not
+       // focusable. Navigation moves focus across the visible ▲/▼ buttons.
+       if (_reorderMode) {
+         var _arrowBtns = _sl ? Array.prototype.slice.call(
+           _sl.querySelectorAll('.tv-arrow-btn')
+         ).filter(function(b) { return isVisible(b) && !b.disabled; }) : [];
+         var _arrowIdx = _arrowBtns.indexOf(_ae);
+         var _isUpArrow   = _ae && _ae.title === 'Move Up';
+         var _isDownArrow = _ae && _ae.title === 'Move Down';
+
+         switch (key) {
+           case 'ArrowDown': case 'Down':
+             e.preventDefault();
+             if (_isBackBtn) {
+               if (_reorderVisible()) { _reorderBtn.focus(); }
+               else if (_arrowBtns.length) { _arrowBtns[0].focus(); }
+             } else if (_isReorder) {
+               if (_arrowBtns.length) { _arrowBtns[0].focus(); }
+             } else if (_arrowIdx !== -1) {
+               if (_arrowIdx < _arrowBtns.length - 1) { _arrowBtns[_arrowIdx + 1].focus(); }
+             }
+             break;
+           case 'ArrowUp': case 'Up':
+             e.preventDefault();
+             if (_isReorder) {
+               var _bbr = document.getElementById('back-arrow-btn'); if (_bbr) _bbr.focus();
+             } else if (_arrowIdx !== -1) {
+               if (_arrowIdx > 0) { _arrowBtns[_arrowIdx - 1].focus(); }
+               else if (_reorderVisible()) { _reorderBtn.focus(); }
+               else { var _bb0 = document.getElementById('back-arrow-btn'); if (_bb0) _bb0.focus(); }
+             }
+             break;
+           case 'ArrowLeft': case 'Left':
+             e.preventDefault();
+             // Left on a ▼ btn → jump to the ▲ of same item
+             if (_isDownArrow && _parentItem) {
+               var _upBtn = _parentItem.querySelector('.tv-arrow-btn[title="Move Up"]');
+               if (_upBtn && !_upBtn.disabled) { _upBtn.focus(); }
+             }
+             break;
+           case 'ArrowRight': case 'Right':
+             e.preventDefault();
+             // Right on a ▲ btn → jump to the ▼ of same item
+             if (_isUpArrow && _parentItem) {
+               var _dnBtn = _parentItem.querySelector('.tv-arrow-btn[title="Move Down"]');
+               if (_dnBtn && !_dnBtn.disabled) { _dnBtn.focus(); }
+             }
+             break;
+           case 'Enter': case 'Return': case 'OK': case ' ':
+             e.preventDefault(); activateFocused(); break;
+           case 'Escape': case 'Back': case 'GoBack': case 'BrowserBack':
+             e.preventDefault();
+             if (typeof handleBack === 'function') handleBack();
+             break;
+         }
+         return;
+       }
+
+       // ── NORMAL MODE: navigate between tap-rows / Delete / Edit / Add New ──
+       var _tapRows = _items.map(function(it) { return it.querySelector('.mosque-tap-row'); }).filter(Boolean);
+       var _tapIdx    = _tapRows.indexOf(_ae);
        var _isDelete  = _ae && _ae.classList && _ae.classList.contains('delete-btn');
        var _isEdit    = _ae && _ae.classList && _ae.classList.contains('edit-btn');
        var _isAddNew  = _ae && _ae.id === 'add-new-btn';
@@ -3541,14 +3762,6 @@
          var nextItem = _items[fromIdx + 1];
          if (nextItem) { var tr = nextItem.querySelector('.mosque-tap-row'); if (tr) tr.focus(); }
          else { var ab = document.getElementById('add-new-btn'); if (ab) ab.focus(); }
-       }
-
-       var _isBackBtn   = _ae && _ae.id === 'back-arrow-btn';
-       var _reorderBtn  = document.getElementById('reorder-btn');
-       var _isReorder   = _ae && _ae.id === 'reorder-btn';
-       // reorder btn is only a valid nav target when it's visible
-       function _reorderVisible() {
-         return _reorderBtn && isVisible(_reorderBtn);
        }
 
        switch (key) {
@@ -3892,7 +4105,6 @@
    savedMosques:   'Saved Mosques',
    savedLinks:     'Saved Link TVs',
    savedAdmins:    'Saved Admins',
-   noSaved:        'No saved entries yet.',
    tapToOpen:      'tap to open ▶',
    deleteLbl:      '🗑 Delete',
    editLbl:        '✏ Edit',
@@ -4000,7 +4212,6 @@
    savedMosques:   'محفوظ مساجد',
    savedLinks:     'محفوظ لنک ٹی ویز',
    savedAdmins:    'محفوظ ایڈمن',
-   noSaved:        'ابھی کوئی اندراج محفوظ نہیں۔',
    tapToOpen:      'کھولنے کے لیے ٹیپ کریں ▶',
    deleteLbl:      '🗑 حذف کریں',
    editLbl:        '✏ نام بدلیں',

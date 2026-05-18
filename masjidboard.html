@@ -362,34 +362,109 @@
     </script>
 
     <script>
-    /* ── ANDROID SYSTEM FONT SIZE IMMUNITY ──────────────────────────────────────
-       Prevents Android/iOS system "Font size" setting from scaling this app.
-       CSS text-size-adjust alone is insufficient for Android WebView — the OS
-       applies a font scale factor at the engine level. We detect it by measuring
-       a known-size element and lock the root font-size to 16px.
-       We deliberately do NOT apply a body transform because:
-         - position:fixed children lose viewport attachment (CSS §transforms).
-         - body uses height:100vh; overflow:hidden on the board view.
-       The setTextZoom(100) call below handles WebViews that expose the API.    */
+    /* ══════════════════════════════════════════════════════════════════════════
+       NUCLEAR FONT SIZE IMMUNITY — Maximum protection against Android/iOS
+       system "Font Size" setting destroying the board layout.
+
+       WHY IT'S HARD:
+         Android applies a fontScale multiplier at the WebView engine level.
+         It inflates every computed font-size AND window.innerWidth/innerHeight.
+         CSS text-size-adjust is ignored by Chrome Android since ~v54.
+         There is no single silver bullet — we stack EVERY known defence.
+
+       LAYERS APPLIED HERE:
+         1. WebView textZoom API  — works in native WebView wrappers
+         2. CSS html{font-size:16px!important} — baseline anchor (in <style> below)
+         3. Measure-and-correct — detects scale factor, counters it on <html>
+         4. Re-runs on: load, focus, visibilitychange, pageshow, resize, orientationchange
+         5. Continuous watchdog (setInterval every 2s) — catches deferred inflation
+         6. window.innerWidth guard — if inflated vs screen.width, corrects --fs
+         7. MutationObserver on <html> style — re-locks if anything removes our override
+    ══════════════════════════════════════════════════════════════════════════ */
     (function () {
+      /* ── LAYER 1: WebView textZoom API (native wrapper apps) ── */
       try {
-        var test = document.createElement('span');
-        test.style.cssText = 'position:absolute;top:-9999px;left:-9999px;' +
-          'font-size:16px;line-height:1;font-family:monospace;white-space:nowrap;' +
-          'visibility:hidden;';
-        test.textContent = 'M';
-        document.documentElement.appendChild(test);
-        var computed = parseFloat(window.getComputedStyle(test).fontSize);
-        document.documentElement.removeChild(test);
-
-        if (computed && Math.abs(computed - 16) > 0.5) {
-          document.documentElement.style.setProperty('font-size', '16px', 'important');
-        }
-
-        if (window.Android && window.Android.setTextZoom) {
+        if (window.Android && typeof window.Android.setTextZoom === 'function') {
           window.Android.setTextZoom(100);
         }
-      } catch (e) { /* silent */ }
+      } catch(e) {}
+
+      /* ── LAYER 2+3: Measure actual font scale, counter it on <html> ── */
+      function _measureFontScale() {
+        try {
+          var el = document.createElement('div');
+          el.style.cssText = [
+            'position:fixed', 'top:-9999px', 'left:-9999px',
+            'width:0', 'height:0', 'overflow:hidden',
+            'font-size:100px',   /* large value = larger error margin */
+            'line-height:1',
+            'font-family:monospace',
+            'visibility:hidden',
+            'pointer-events:none',
+            'contain:strict'
+          ].join(';');
+          el.textContent = 'X';
+          document.documentElement.appendChild(el);
+          var actual = parseFloat(window.getComputedStyle(el).fontSize);
+          document.documentElement.removeChild(el);
+          /* actual should be 100 — if not, fontScale = actual/100 */
+          return (actual && actual > 0) ? (actual / 100) : 1;
+        } catch(e) { return 1; }
+      }
+
+      function lockFontSize() {
+        try {
+          var scale = _measureFontScale();
+          if (Math.abs(scale - 1) > 0.02) {
+            /* Counter the scale: if Android is applying 1.3×, we set 16/1.3 ≈ 12.3px
+               so that 12.3 × 1.3 = 16px computed — the layout sees 16px as expected. */
+            var corrected = (16 / scale).toFixed(4) + 'px';
+            document.documentElement.style.setProperty('font-size', corrected, 'important');
+          } else {
+            /* Scale is normal — make sure we have the anchor set */
+            document.documentElement.style.setProperty('font-size', '16px', 'important');
+          }
+        } catch(e) {}
+      }
+
+      /* Run immediately (head, before DOM is ready) */
+      lockFontSize();
+
+      /* ── LAYER 4: Re-run on every lifecycle event ── */
+      var _evts = [
+        [window,   'load',              lockFontSize],
+        [window,   'focus',             lockFontSize],
+        [window,   'resize',            lockFontSize],
+        [window,   'pageshow',          lockFontSize],
+        [window,   'orientationchange', function(){ setTimeout(lockFontSize, 250); }],
+        [document, 'visibilitychange',  function(){ if (!document.hidden) lockFontSize(); }],
+      ];
+      _evts.forEach(function(e){ e[0].addEventListener(e[1], e[2], { passive: true }); });
+
+      /* ── LAYER 5: Continuous watchdog — polls every 2 seconds ──
+         Catches cases where Android defers the font inflation until after
+         first paint (observed on MIUI, ColorOS, some Samsung skins). */
+      var _watchdog = setInterval(lockFontSize, 2000);
+      /* Stop after 60 s — app is stable by then, no need to keep polling */
+      setTimeout(function(){ clearInterval(_watchdog); }, 60000);
+
+      /* ── LAYER 7: MutationObserver — re-lock if our style is stripped ──
+         Some WebViews or extensions remove inline styles on <html>. */
+      try {
+        var _mo = new MutationObserver(function(muts) {
+          muts.forEach(function(m) {
+            if (m.type === 'attributes' && m.attributeName === 'style') {
+              /* Something touched <html> style — re-apply our lock */
+              lockFontSize();
+            }
+          });
+        });
+        _mo.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
+      } catch(e) {}
+
+      /* Expose for computeScale to call after locking */
+      window._lockFontSize = lockFontSize;
+
     })();
     </script>
 
@@ -462,13 +537,26 @@
            Prevents Android/iOS "Font size" system setting
            from scaling anything in this app.
            The JS block above handles the WebView textZoom API;
-           these CSS rules handle the browser/CSS layer.        */
+           these CSS rules handle the browser/CSS layer.
+
+           STRATEGY: We set font-size on html AND body as dual
+           anchors. All board text uses calc(Xpx * var(--fs))
+           with absolute px values — they do NOT inherit from
+           html/body, so Android's em/rem scaling cannot reach
+           them even if a CSS layer is bypassed.               */
+        html, html * {
+            -webkit-text-size-adjust: 100% !important;
+               -moz-text-size-adjust: 100% !important;
+                    text-size-adjust: 100% !important;
+            -webkit-font-size-adjust: 100% !important;
+        }
         html {
             font-size: 16px !important;
-            -webkit-text-size-adjust: 100% !important;
-            -moz-text-size-adjust: 100% !important;
-            text-size-adjust: 100% !important;
             background: #050a12;
+        }
+        body {
+            /* Second anchor — if html is bypassed, body catches it */
+            font-size: 16px !important;
         }
 
         * { box-sizing: border-box; }
@@ -1786,37 +1874,139 @@
            proportionally fill the actual screen, maintaining
            the reference 1920×1080 layout at all resolutions.
         ══════════════════════════════════════════════════ */
+        /* ══════════════════════════════════════════════════
+           DYNAMIC FLUID SCALE SYSTEM — Nuclear Edition
+           Computes --fs so all calc(Xpx * var(--fs)) sizes
+           proportionally fill the actual screen, maintaining
+           the reference 1920×1080 layout at all resolutions.
+
+           Extra hardening: before measuring viewport size we
+           re-lock the font size, because Android inflates
+           window.innerWidth/Height proportionally to fontScale.
+           We use screen.width/height (unaffected by fontScale)
+           as the primary dimension source, and cross-check
+           against innerWidth to detect and correct inflation.
+        ══════════════════════════════════════════════════ */
         (function() {
             var REF_W = 1920, REF_H = 1080;
 
-            function computeScale() {
-                var w = window.innerWidth  || document.documentElement.clientWidth;
-                var h = window.innerHeight || document.documentElement.clientHeight;
-                // Scale based on the constraining dimension (letterbox fit)
+            /* Expose so event handlers added later can call it */
+            window._computeScale = function computeScale() {
+                /* Step 0: Re-lock font size before we measure anything —
+                   ensures the font correction is applied before computing scale. */
+                if (typeof window._lockFontSize === 'function') {
+                    window._lockFontSize();
+                }
+
+                /* Step 1: Get the true CSS-pixel viewport size.
+                   Priority order — most reliable to least reliable under
+                   Android system font scaling:
+
+                   A) screen.width / screen.height
+                      These are in CSS px and are NEVER inflated by fontScale.
+                      The only caveat: on some devices screen.width includes
+                      soft-nav-bar pixels, so we also check orientation.
+
+                   B) document.documentElement.getBoundingClientRect()
+                      Stable in Chrome Android >= 66; immune to fontScale.
+
+                   C) window.innerWidth / innerHeight — LAST RESORT ONLY.
+                      On some Android WebViews these ARE inflated by fontScale.
+                      If we must use them, we correct using the detected fontScale.
+                */
+                var w = 0, h = 0;
+
+                /* A: screen dimensions */
+                try {
+                    if (screen.width > 0 && screen.height > 0) {
+                        /* Respect orientation: screen.width is the physical short/long
+                           axis regardless of current rotation on some Android versions */
+                        var sw = screen.width, sh = screen.height;
+                        /* Match to actual orientation */
+                        var landscape = (window.innerWidth || 1) > (window.innerHeight || 1);
+                        w = landscape ? Math.max(sw, sh) : Math.min(sw, sh);
+                        h = landscape ? Math.min(sw, sh) : Math.max(sw, sh);
+                    }
+                } catch(e) {}
+
+                /* B: getBoundingClientRect as cross-check / fallback */
+                try {
+                    var r = document.documentElement.getBoundingClientRect();
+                    if (r.width > 0 && r.height > 0) {
+                        if (!w || !h) { w = r.width; h = r.height; }
+                        else {
+                            /* If screen and BCR disagree by more than 5%, trust BCR
+                               (screen may include nav-bar on some devices) */
+                            if (Math.abs(r.width - w) / w > 0.05) { w = r.width; }
+                            if (Math.abs(r.height - h) / h > 0.05) { h = r.height; }
+                        }
+                    }
+                } catch(e) {}
+
+                /* C: innerWidth/Height fallback — correct for fontScale inflation */
+                if (!w || !h) {
+                    try {
+                        var iw = window.innerWidth  || 0;
+                        var ih = window.innerHeight || 0;
+                        if (iw > 0 && ih > 0) {
+                            /* Detect inflation: if innerWidth >> screen.width, fontScale is applied */
+                            var scr_w = (screen.width  || iw);
+                            var scr_h = (screen.height || ih);
+                            var inflation = (scr_w > 0) ? (iw / scr_w) : 1;
+                            if (inflation > 1.05) {
+                                /* Deflate back to true CSS pixels */
+                                iw = iw / inflation;
+                                ih = ih / inflation;
+                            }
+                            w = iw; h = ih;
+                        }
+                    } catch(e) {}
+                }
+
+                /* Hard fallback */
+                if (!w || w < 100) w = 1920;
+                if (!h || h < 100) h = 1080;
+
+                /* Step 2: Compute scale */
                 var scaleW = w / REF_W;
                 var scaleH = h / REF_H;
-                // Use the smaller scale so content never overflows
-                var scale = Math.min(scaleW, scaleH);
-                // Clamp: never go below 0.2 (tiny phones) or above 2 (huge displays)
+                var scale  = Math.min(scaleW, scaleH);
                 scale = Math.max(0.2, Math.min(2.0, scale));
                 document.documentElement.style.setProperty('--fs', scale.toFixed(4));
-            }
+            };
 
-            // Run immediately
+            var computeScale = window._computeScale;
+
+            /* Run immediately */
             computeScale();
 
-            // Re-run on any resize or orientation change
+            /* Re-run on any resize or orientation change */
             window.addEventListener('resize', computeScale, { passive: true });
             window.addEventListener('orientationchange', function() {
-                // Delay slightly for browser to finish rotating
-                setTimeout(computeScale, 200);
+                setTimeout(computeScale, 100);
+                setTimeout(computeScale, 350); /* second pass after browser fully rotates */
+            }, { passive: true });
+            window.addEventListener('focus',    computeScale, { passive: true });
+            window.addEventListener('pageshow', computeScale, { passive: true });
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) { computeScale(); setTimeout(computeScale, 300); }
             }, { passive: true });
 
-            // Also use ResizeObserver on body for maximum responsiveness
+            /* ResizeObserver on <html> for maximum responsiveness */
             if (window.ResizeObserver) {
                 var ro = new ResizeObserver(function() { computeScale(); });
                 ro.observe(document.documentElement);
             }
+
+            /* Periodic safety re-check for first 30 s after load
+               (catches deferred WebView font inflation on MIUI / ColorOS) */
+            var _scaleChecks = 0;
+            var _scaleTimer = setInterval(function() {
+                computeScale();
+                _scaleChecks++;
+                if (_scaleChecks >= 15) clearInterval(_scaleTimer); /* 15 × 2s = 30s */
+            }, 2000);
+
         })();
     </script>
 
@@ -1832,7 +2022,15 @@
 </div>
 <script>
 
-    document.getElementById('back-btn').style.display = 'flex';
+    var _bb = document.getElementById('back-btn');
+    _bb.style.display = 'flex';
+    /* Space key doesn't trigger click on div[role=button] — handle it explicitly */
+    _bb.addEventListener('keydown', function(e) {
+        if (e.key === ' ' || e.key === 'Enter' || e.key === 'Return') {
+            e.preventDefault();
+            window.location.href = 'index.html';
+        }
+    });
 </script>
 <script>
 
@@ -1909,17 +2107,23 @@
         if (!container) return [];
         return Array.from(container.querySelectorAll(FOCUSABLE)).filter(function(el) {
             if (el.disabled) return false;
-            if (el.offsetParent === null) return false;
-            var cs = getComputedStyle(el);
-            if (cs.visibility === 'hidden') return false;
-            if (cs.display    === 'none')   return false;
+            // NOTE: Do NOT use offsetParent===null — position:fixed elements always
+            // return null even when fully visible (e.g. #back-btn, .settings-btn).
+            var r = el.getBoundingClientRect();
+            if (r.width === 0 && r.height === 0) return false;
+            var node = el;
+            while (node && node !== document.body.parentElement) {
+                var cs = getComputedStyle(node);
+                if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+                node = node.parentElement;
+            }
             // Skip CDD trigger buttons whose underlying <select> is disabled
             var cddWrap = el.closest('.cdd-wrap');
             if (cddWrap && cddWrap.classList.contains('cdd-disabled')) return false;
             // Skip any element that has been visually disabled via inline opacity
             // (e.g. fixed/auto mode inputs set opacity:'0.3' alongside disabled=true,
             //  but guard against the rare case where only opacity was set without disabled)
-            if (parseFloat(cs.opacity) < 0.5) return false;
+            if (parseFloat(getComputedStyle(el).opacity) < 0.5) return false;
             return true;
         });
     }
@@ -2045,8 +2249,9 @@
             var settBtn = document.querySelector('.settings-btn');
             var backBtn = document.getElementById('back-btn');
             var ae0 = document.activeElement;
-            if (key === 'Enter' || key === 'Return' || key === 'OK') {
+            if (key === 'Enter' || key === 'Return' || key === 'OK' || key === ' ') {
                 // If back-btn or settings-btn already focused, activate it
+                // Space must be handled manually — #back-btn is a div, not a <button>
                 if (ae0 === backBtn || ae0 === settBtn) {
                     e.preventDefault(); ae0.click();
                 } else if (settBtn) {
@@ -2150,6 +2355,14 @@
 
         // ── Settings modal ────────────────────────────────────────
         if (layer === 'settings') {
+            // If a CDD portal dropdown is open, its own keydown handler owns
+            // all arrow-key navigation.  Letting moveFocusSpatial run here
+            // causes it to find no focused element inside settModal (because
+            // focus is inside the fixed body-level portal) and jump to the
+            // last focusable item in the panel — the visible scroll-to-bottom
+            // bug.  Return early so the CDD handler takes over.
+            if (document.querySelector('.cdd-portal.cdd-open')) return;
+
             var settModal = getSettingsModal();
             switch (key) {
                 case 'ArrowDown': case 'Down': {
@@ -2798,8 +3011,6 @@
 </div><!-- #db-wrap -->
 
 
-
-</div>
 
 <div id="settingsModal" class="modal">
     <div class="modal-content" id="modalScrollArea">
@@ -5039,19 +5250,19 @@ const rangeEnd = document.getElementById('rangeEnd');
           var cur = opts.indexOf(e.target);
           if (e.key === 'ArrowDown' || e.key === 'Down') {
             e.preventDefault();
-            if (cur < opts.length - 1) opts[cur + 1].focus();
+            if (cur < opts.length - 1) opts[cur + 1].focus({ preventScroll: true });
           } else if (e.key === 'ArrowUp' || e.key === 'Up') {
             e.preventDefault();
-            if (cur > 0) opts[cur - 1].focus();
-            else self.trigger.focus();
+            if (cur > 0) opts[cur - 1].focus({ preventScroll: true });
+            else self._focusTriggerSafely();
           } else if (e.key === 'Enter' || e.key === ' ' || e.key === 'OK') {
             e.preventDefault();
             self._select(idx);
-            self.trigger.focus();
+            self._focusTriggerSafely();
           } else if (e.key === 'Escape') {
             e.preventDefault();
             self._close();
-            self.trigger.focus();
+            self._focusTriggerSafely();
           }
         });
       })(i);
@@ -5134,32 +5345,51 @@ const rangeEnd = document.getElementById('rangeEnd');
         e.preventDefault();
         if (isOpen) {
           var firstOpt = _portal.querySelector('.cdd-opt');
-          if (firstOpt) firstOpt.focus();
+          if (firstOpt) firstOpt.focus({ preventScroll: true });
         } else {
           self._sync(); self._open();
           setTimeout(function() {
             var selOpt = _portal.querySelector('.cdd-sel') || _portal.querySelector('.cdd-opt');
-            if (selOpt) selOpt.focus();
+            if (selOpt) selOpt.focus({ preventScroll: true });
           }, 30);
         }
       } else if (e.key === 'ArrowDown') {
         if (isOpen) {
           e.preventDefault();
           var firstOpt = _portal.querySelector('.cdd-opt');
-          if (firstOpt) firstOpt.focus();
+          if (firstOpt) firstOpt.focus({ preventScroll: true });
         }
         // closed — no preventDefault, browser moves focus naturally
       } else if (e.key === 'Escape') {
-        self._close(); self.trigger.focus();
+        self._close(); self._focusTriggerSafely();
       } else if (e.key === 'ArrowUp') {
         if (isOpen) {
           e.preventDefault();
-          var c = self.sel.selectedIndex;
-          if (c > 0) { self._select(c - 1); self.trigger.focus(); }
+          // Move focus into the list at the last option (mirror of ArrowDown → first opt)
+          var opts = Array.from(_portal.querySelectorAll('.cdd-opt'));
+          if (opts.length) opts[opts.length - 1].focus({ preventScroll: true });
         }
         // closed — no preventDefault, browser moves focus naturally
       }
     });
+  };
+
+  // Focus the trigger without letting the browser auto-scroll the settings modal.
+  // When the portal (position:fixed on <body>) closes and we return focus to the
+  // trigger inside #modalScrollBody, the browser's native focus-scroll miscalculates
+  // and jumps the modal to the bottom. Using preventScroll:true + a manual
+  // scrollIntoView on the scroll container prevents this.
+  CDD.prototype._focusTriggerSafely = function () {
+    this.trigger.focus({ preventScroll: true });
+    var scrollBody = document.getElementById('modalScrollBody');
+    if (scrollBody && scrollBody.contains(this.trigger)) {
+      var tr = this.trigger.getBoundingClientRect();
+      var sb = scrollBody.getBoundingClientRect();
+      // Only scroll if the trigger is not already fully visible
+      if (tr.top < sb.top || tr.bottom > sb.bottom) {
+        this.trigger.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
   };
 
   CDD.prototype._observe = function () {
@@ -5424,6 +5654,19 @@ const rangeEnd = document.getElementById('rangeEnd');
             if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
             const db = firebase.database();
 
+            /**
+             * dbOnce(ref) — wraps db.ref(...).once('value') with a 10-second timeout.
+             * If Firebase stalls (not drops), rejects so UI buttons re-enable.
+             */
+            function dbOnce(ref) {
+                return Promise.race([
+                    ref.once('value'),
+                    new Promise(function(_, reject) {
+                        setTimeout(function() { reject(new Error('timeout')); }, 10000);
+                    })
+                ]);
+            }
+
             let heartbeatInterval;
 
             function startHeartbeat() {
@@ -5463,9 +5706,9 @@ const rangeEnd = document.getElementById('rangeEnd');
                     if (mode === 'tv' && !isLinked && !isMobile) {
                         if (mosqueID.startsWith('MSJ-')) {
                             const statusRef = db.ref('mosques/' + mosqueID + '/status');
-                            statusRef.once('value').then((snap) => {
+                            dbOnce(statusRef).then((snap) => {
                                 if (snap.val() !== 'active') { statusRef.set('active'); }
-                            });
+                            }).catch(() => {});
                             startHeartbeat();
                         }
 
@@ -5503,7 +5746,7 @@ const rangeEnd = document.getElementById('rangeEnd');
 
             if (mode === 'admin') {
                 document.body.style.display = 'none';
-                db.ref('mosques/' + mosqueID).once('value').then(async (snapshot) => {
+                dbOnce(db.ref('mosques/' + mosqueID)).then(async (snapshot) => {
                     document.body.style.display = 'flex';
                     if (!snapshot.exists()) {
                         window.location.href = "index.html";
@@ -5518,7 +5761,7 @@ const rangeEnd = document.getElementById('rangeEnd');
                         startFirebaseListener(mosqueID);
                         return;
                     }
-                    db.ref('mosques/' + mosqueID + '/settings/adminPassword').once('value').then(async (snap) => {
+                    dbOnce(db.ref('mosques/' + mosqueID + '/settings/adminPassword')).then(async (snap) => {
                         let savedPin = snap.val();
                         let masterCode = "7860";
                         let enteredPin = "";
@@ -5593,7 +5836,7 @@ const rangeEnd = document.getElementById('rangeEnd');
             }
             else if (mode === 'musalli') {
                 document.body.style.display = 'none';
-                db.ref('mosques/' + mosqueID).once('value').then(async (snapshot) => {
+                dbOnce(db.ref('mosques/' + mosqueID)).then(async (snapshot) => {
                     document.body.style.display = 'flex';
                     if (!snapshot.exists()) {
                         await showAlert({ icon:"⚠️", ur:"یہ مسجد موجود نہیں ہے! آپ نے جو 8 ہندسوں کا کوڈ ڈالا ہے وہ غلط ہے۔", en:"This mosque does not exist! The 8-digit code you entered is incorrect.", type:"danger" });
@@ -5624,10 +5867,36 @@ const rangeEnd = document.getElementById('rangeEnd');
                 window._fbSettingsRef  = db.ref('mosques/' + id + '/settings');
 
                 // ── PIN Reset Request listener ──────────────────────
+                // BUG FIX: When this listener first attaches (or re-attaches after a
+                // reconnect/visibility-restore), Firebase fires the callback immediately
+                // with the current snapshot. If the DB still holds status='pending' from
+                // a prior request, showPinResetApproval() is called before the overlay
+                // element is guaranteed to be in the DOM, so it silently does nothing —
+                // and since the data hasn't *changed*, the callback never fires again
+                // until a refresh. Fix: wrap the pending branch in a short defer so the
+                // DOM is fully painted before we try to show the overlay.
+                let _pinListenerJustAttached = true;
+                setTimeout(() => { _pinListenerJustAttached = false; }, 500);
+
                 window._fbPinResetRef.on('value', (snap) => {
                     const data = snap.val();
                     if (data && data.status === 'pending') {
-                        showPinResetApproval(id, snap.ref);
+                        // If the listener just attached and sees a stale pending request,
+                        // defer so the overlay DOM is ready. Real-time new requests
+                        // (listenerJustAttached already false) fire immediately.
+                        if (_pinListenerJustAttached) {
+                            setTimeout(() => {
+                                // Re-check status is still pending before showing
+                                dbOnce(snap.ref).then(freshSnap => {
+                                    const fresh = freshSnap.val();
+                                    if (fresh && fresh.status === 'pending') {
+                                        showPinResetApproval(id, freshSnap.ref);
+                                    }
+                                });
+                            }, 600);
+                        } else {
+                            showPinResetApproval(id, snap.ref);
+                        }
                     } else if (data && data.status === 'cancelled') {
                         // Admin cancelled the reset request — close the approval overlay if open
                         const approvalOverlay = document.getElementById('pin-reset-approval-overlay');
@@ -6412,8 +6681,8 @@ const rangeEnd = document.getElementById('rangeEnd');
           </div>
         </div>
         <div id="ccp-btns">
-          <button id="ccp-btn-cancel" tabindex="0" class="lang-text" data-ur="منسوخ" data-en="CANCEL">CANCEL</button>
           <button id="ccp-btn-set"    tabindex="0" class="lang-text" data-ur="سیٹ کریں" data-en="SET">SET</button>
+          <button id="ccp-btn-cancel" tabindex="0" class="lang-text" data-ur="منسوخ" data-en="CANCEL">CANCEL</button>
         </div>
       </div>
       <!-- Right: spectrum + hue slider -->
@@ -6818,6 +7087,15 @@ const rangeEnd = document.getElementById('rangeEnd');
         const overlay = document.getElementById('pin-reset-approval-overlay');
         const bar     = document.getElementById('pra-bar');
         const numEl   = document.getElementById('pra-num');
+
+        // BUG FIX: If the overlay DOM element isn't in the page yet (e.g. the listener
+        // fired before the HTML was parsed), retry after a short delay rather than
+        // crashing or silently doing nothing.
+        if (!overlay || !bar || !numEl) {
+            setTimeout(() => showPinResetApproval(mosqueId, reqRef), 300);
+            return;
+        }
+
         overlay.style.display = 'flex';
         // Auto-focus Accept button for TV remote navigation
         setTimeout(function() {
