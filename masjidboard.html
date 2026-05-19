@@ -307,30 +307,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Prayer Time">
-    <meta name="theme-color" content="#050a12">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-512.png">
-    <script>
-      if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock("landscape").catch(function(){});
-      }
-      function goFullscreen() {
-        var el = document.documentElement;
-        if (el.requestFullscreen) el.requestFullscreen();
-        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-        else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
-      }
-      window.addEventListener('load', function() {
-        setTimeout(goFullscreen, 1000);
-      });
-      document.addEventListener('click', goFullscreen);
-      document.addEventListener('touchstart', goFullscreen);
-    </script>
-    <title>Prayer Time</title>
+    <title>Masjid Board</title>
 
     <!-- ============================================================
          EARLY CORRUPTION GUARD — must run before ANY other script
@@ -3401,7 +3378,10 @@
         }
     };
 
-    let currentConfig = JSON.parse(localStorage.getItem("masjidConfig_tv40"));
+    // Admin mode: never seed currentConfig from localStorage — always use Firebase as source of truth.
+    // This prevents stale settings from a previously opened mosque bleeding into admin remote.
+    const _earlyMode = new URLSearchParams(window.location.search).get('mode') || 'tv';
+    let currentConfig = (_earlyMode !== 'admin') ? JSON.parse(localStorage.getItem("masjidConfig_tv40")) : null;
     if (!currentConfig) { currentConfig = JSON.parse(JSON.stringify(defaultConfig)); }
     currentConfig.general = { ...defaultConfig.general, ...(currentConfig.general || {}) };
     currentConfig.location = { ...defaultConfig.location, ...(currentConfig.location || {}) };
@@ -5808,6 +5788,8 @@ const rangeEnd = document.getElementById('rangeEnd');
     });
 
     window.addEventListener('offline', function() {
+        // Admin mode always reads from Firebase — never fall back to localStorage
+        if (mode === 'admin') return;
         let savedData = localStorage.getItem("masjidConfig_tv40");
         if (savedData) {
             currentConfig = JSON.parse(savedData);
@@ -6062,7 +6044,7 @@ const rangeEnd = document.getElementById('rangeEnd');
                 { key: 'db_pr_hdr',         label: 'Prayer List Header Azan/Jamaat',labelUr: 'نماز لسٹ ہیڈر',                   css: '#db-prayer-col .db-col-hdr span' },
                 { key: 'db_pr_names',       label: 'Prayer List Namaaz Names',      labelUr: 'نماز کے نام',                     css: '#db-prayer-col .db-row-name .db-en, #db-prayer-col .db-row-name .db-ur' },
                 { key: 'db_pr_aj',          label: 'Prayer List Digits',            labelUr: 'نماز لسٹ اوقات',                  css: '#db-prayer-col .db-row-times .dbt' },
-                { key: 'db_rbox_text',      label: 'Right Boxes Text',              labelUr: 'دائیں بکسوں کی تحریر',            css: '.db-rbox-title-sm, .db-rbox-tmrw-name, .db-rbox-title, .db-rbox-lbl, .db-slide-en, .db-slide-ur, .db-rbox-timeleft-ur' },
+                { key: 'db_rbox_text',      label: 'Right Boxes Text',              labelUr: 'دائیں بکسوں کی تحریر',            css: '.db-rbox-title-sm, .db-rbox-tmrw-name, .db-rbox-title, .db-slide-en, .db-slide-ur, .db-rbox-timeleft-ur', startEndOffset: true },
                 { key: 'db_rbox_digits',    label: 'Right Boxes Digits',            labelUr: 'دائیں بکسوں کے اوقات',            css: '.db-rbox-timeleft, .db-rbox-tmrw-time, .db-rbox-time, .db-slide-time' }
             ],
             dashboard2: [
@@ -6080,7 +6062,7 @@ const rangeEnd = document.getElementById('rangeEnd');
                 { key: 'db_pr_hdr',         label: 'Prayer List Header Azan/Jamaat',labelUr: 'نماز لسٹ ہیڈر',                   css: '#db-prayer-col .db-col-hdr span' },
                 { key: 'db_pr_names',       label: 'Prayer List Namaaz Names',      labelUr: 'نماز کے نام',                     css: '#db-prayer-col .db-row-name .db-en, #db-prayer-col .db-row-name .db-ur' },
                 { key: 'db_pr_aj',          label: 'Prayer List Digits',            labelUr: 'نماز لسٹ اوقات',                  css: '#db-prayer-col .db-row-times .dbt' },
-                { key: 'db_rbox_text',      label: 'Left Boxes Text',              labelUr: 'بائیں بکسوں کی تحریر',            css: '.db-rbox-title-sm, .db-rbox-tmrw-name, .db-rbox-title, .db-rbox-lbl, .db-slide-en, .db-slide-ur, .db-rbox-timeleft-ur' },
+                { key: 'db_rbox_text',      label: 'Left Boxes Text',              labelUr: 'بائیں بکسوں کی تحریر',            css: '.db-rbox-title-sm, .db-rbox-tmrw-name, .db-rbox-title, .db-slide-en, .db-slide-ur, .db-rbox-timeleft-ur', startEndOffset: true },
                 { key: 'db_rbox_digits',    label: 'Left Boxes Digits',            labelUr: 'بائیں بکسوں کے اوقات',            css: '.db-rbox-timeleft, .db-rbox-tmrw-time, .db-rbox-time, .db-slide-time' }
             ],
             all: [
@@ -6213,6 +6195,14 @@ const rangeEnd = document.getElementById('rangeEnd');
                     });
                 } catch(e) {}
             });
+            // START/END labels (.db-rbox-lbl) always 5px smaller than the box text size
+            if (entry.startEndOffset) {
+                try {
+                    document.querySelectorAll('.db-rbox-lbl').forEach(function(el) {
+                        el.style.fontSize = Math.max(1, px - 5) + 'px';
+                    });
+                } catch(e) {}
+            }
         }
 
         function hsSaveElementSize() {
@@ -6283,6 +6273,14 @@ const rangeEnd = document.getElementById('rangeEnd');
                         });
                     } catch(e) {}
                 });
+                // START/END labels (.db-rbox-lbl) always 5px smaller than the box text size
+                if (entry.startEndOffset) {
+                    try {
+                        document.querySelectorAll('.db-rbox-lbl').forEach(function(el) {
+                            el.style.fontSize = Math.max(1, px - 10) + 'px';
+                        });
+                    } catch(e) {}
+                }
             });
         }
 
