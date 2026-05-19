@@ -361,112 +361,6 @@
         })();
     </script>
 
-    <script>
-    /* ══════════════════════════════════════════════════════════════════════════
-       NUCLEAR FONT SIZE IMMUNITY — Maximum protection against Android/iOS
-       system "Font Size" setting destroying the board layout.
-
-       WHY IT'S HARD:
-         Android applies a fontScale multiplier at the WebView engine level.
-         It inflates every computed font-size AND window.innerWidth/innerHeight.
-         CSS text-size-adjust is ignored by Chrome Android since ~v54.
-         There is no single silver bullet — we stack EVERY known defence.
-
-       LAYERS APPLIED HERE:
-         1. WebView textZoom API  — works in native WebView wrappers
-         2. CSS html{font-size:16px!important} — baseline anchor (in <style> below)
-         3. Measure-and-correct — detects scale factor, counters it on <html>
-         4. Re-runs on: load, focus, visibilitychange, pageshow, resize, orientationchange
-         5. Continuous watchdog (setInterval every 2s) — catches deferred inflation
-         6. window.innerWidth guard — if inflated vs screen.width, corrects --fs
-         7. MutationObserver on <html> style — re-locks if anything removes our override
-    ══════════════════════════════════════════════════════════════════════════ */
-    (function () {
-      /* ── LAYER 1: WebView textZoom API (native wrapper apps) ── */
-      try {
-        if (window.Android && typeof window.Android.setTextZoom === 'function') {
-          window.Android.setTextZoom(100);
-        }
-      } catch(e) {}
-
-      /* ── LAYER 2+3: Measure actual font scale, counter it on <html> ── */
-      function _measureFontScale() {
-        try {
-          var el = document.createElement('div');
-          el.style.cssText = [
-            'position:fixed', 'top:-9999px', 'left:-9999px',
-            'width:0', 'height:0', 'overflow:hidden',
-            'font-size:100px',   /* large value = larger error margin */
-            'line-height:1',
-            'font-family:monospace',
-            'visibility:hidden',
-            'pointer-events:none',
-            'contain:strict'
-          ].join(';');
-          el.textContent = 'X';
-          document.documentElement.appendChild(el);
-          var actual = parseFloat(window.getComputedStyle(el).fontSize);
-          document.documentElement.removeChild(el);
-          /* actual should be 100 — if not, fontScale = actual/100 */
-          return (actual && actual > 0) ? (actual / 100) : 1;
-        } catch(e) { return 1; }
-      }
-
-      function lockFontSize() {
-        try {
-          var scale = _measureFontScale();
-          if (Math.abs(scale - 1) > 0.02) {
-            /* Counter the scale: if Android is applying 1.3×, we set 16/1.3 ≈ 12.3px
-               so that 12.3 × 1.3 = 16px computed — the layout sees 16px as expected. */
-            var corrected = (16 / scale).toFixed(4) + 'px';
-            document.documentElement.style.setProperty('font-size', corrected, 'important');
-          } else {
-            /* Scale is normal — make sure we have the anchor set */
-            document.documentElement.style.setProperty('font-size', '16px', 'important');
-          }
-        } catch(e) {}
-      }
-
-      /* Run immediately (head, before DOM is ready) */
-      lockFontSize();
-
-      /* ── LAYER 4: Re-run on every lifecycle event ── */
-      var _evts = [
-        [window,   'load',              lockFontSize],
-        [window,   'focus',             lockFontSize],
-        [window,   'resize',            lockFontSize],
-        [window,   'pageshow',          lockFontSize],
-        [window,   'orientationchange', function(){ setTimeout(lockFontSize, 250); }],
-        [document, 'visibilitychange',  function(){ if (!document.hidden) lockFontSize(); }],
-      ];
-      _evts.forEach(function(e){ e[0].addEventListener(e[1], e[2], { passive: true }); });
-
-      /* ── LAYER 5: Continuous watchdog — polls every 2 seconds ──
-         Catches cases where Android defers the font inflation until after
-         first paint (observed on MIUI, ColorOS, some Samsung skins). */
-      var _watchdog = setInterval(lockFontSize, 2000);
-      /* Stop after 60 s — app is stable by then, no need to keep polling */
-      setTimeout(function(){ clearInterval(_watchdog); }, 60000);
-
-      /* ── LAYER 7: MutationObserver — re-lock if our style is stripped ──
-         Some WebViews or extensions remove inline styles on <html>. */
-      try {
-        var _mo = new MutationObserver(function(muts) {
-          muts.forEach(function(m) {
-            if (m.type === 'attributes' && m.attributeName === 'style') {
-              /* Something touched <html> style — re-apply our lock */
-              lockFontSize();
-            }
-          });
-        });
-        _mo.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
-      } catch(e) {}
-
-      /* Expose for computeScale to call after locking */
-      window._lockFontSize = lockFontSize;
-
-    })();
-    </script>
 
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Amiri:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <script>
@@ -611,16 +505,6 @@
             position: relative;
         }
 
-        .led-board::before, .led-board::after {
-            content: '';
-            position: absolute;
-            width: 30px; height: 30px;
-            border-color: var(--c-panel-line);
-            border-style: solid;
-            pointer-events: none;
-        }
-        .led-board::before { top: 6px; left: 6px; border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
-        .led-board::after  { top: 6px; right: 6px; border-width: 2px 2px 0 0; border-radius: 0 4px 0 0; }
 
         body[data-mode="all"] .led-board {
             display: grid;
@@ -918,19 +802,12 @@
             font-size: 0; line-height: 1;
             cursor: pointer; z-index: 9999;
             box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-            transition: opacity 0.6s ease, visibility 0.6s ease, background 0.2s, border-color 0.2s;
+            transition: opacity 0.6s ease !important, visibility 0.6s ease !important, background 0.2s, border-color 0.2s;
         }
         #back-btn:hover, #back-btn:active { background: rgba(86,208,232,0.14); background: color-mix(in srgb, var(--c-panel-line) 30%, transparent); border-color: var(--c-headers); }
         #back-btn:focus-visible { outline: 2px solid var(--c-headers) !important; outline-offset: 4px !important; box-shadow: 0 0 0 5px rgba(86,208,232,0.3) !important; }
         #back-btn svg { stroke: var(--c-headers); display: block !important; }
 
-        #back-btn { transition: opacity 0.6s ease, visibility 0.6s ease !important; }
-        .ui-hidden #back-btn,
-        .ui-hidden .top-buttons {
-            opacity: 0 !important;
-            visibility: hidden !important;
-            pointer-events: none !important;
-        }
         /* Must come after the @media block to override it without needing !important on opacity */
         body.ui-hidden .top-buttons,
         body.ui-hidden #back-btn {
@@ -1298,14 +1175,6 @@
         body[data-mode="center"] #dayName { font-size: calc(37.8px * var(--fs)); margin-bottom: 1.5vh; }
         body[data-mode="center"] .jamaat-countdown { font-size: calc(43.2px * var(--fs)); }
 
-        .sahr-iftar-top {
-            font-size: calc(21.6px * var(--fs)) !important;
-            font-family: 'Rajdhani', sans-serif !important;
-            border-top: 1px solid var(--border-dim); padding-top: 0.7vh;
-            display: flex; justify-content: center; align-items: center;
-            width: 100%; color: var(--c-headers); letter-spacing: 1px;
-        }
-
 
         /* ════════════════════════════════════════════════════════
            MOBILE RESPONSIVE — vh-only sizing for all board elements
@@ -1413,9 +1282,6 @@
             .tomorrow-box .color-tomorrow { font-size: 3.2vh !important; }
 
 
-            /* ── Sahr/iftar top strip ── */
-            .sahr-iftar-top { font-size: 1.5vh !important; }
-
             /* ── CSS vars for en/ur name sizes ── */
             :root {
                 --ur-size: 2.2vh;
@@ -1481,12 +1347,14 @@
             body[data-mode="dashboard2"] #db-prayer-col .db-row-name .db-en  { font-size: 4.2vh !important; }
             body[data-mode="dashboard2"] #db-prayer-col .db-row-name .db-ur  { font-size: 4.2vh !important; }
 
-            /* ── Dashboard2 mobile: fix intermittent clock cutoff ──────────────────────
-               The TV admin may save a clockScale > 100 (e.g. 130%). On mobile that
-               inflates db-main-clock via --clock-scale and causes overflow/cutoff.
-               Cap to a safe vh ceiling that ignores --clock-scale entirely.         ── */
+            /* ── Dashboard / Dashboard2 mobile: reduce main clock size ─────────────────
+               Caps the clock to a smaller vh ceiling so it doesn't dominate the
+               narrow mobile layout. Ignores --clock-scale to prevent overflow.     ── */
+            body[data-mode="dashboard"] #db-clock-col .db-main-clock {
+                font-size: min(calc(170px * 0.45), 10vh) !important;
+            }
             body[data-mode="dashboard2"] #db-clock-col .db-main-clock {
-                font-size: min(calc(170px * 0.55), 13vh) !important;
+                font-size: min(calc(170px * 0.45), 10vh) !important;
             }
         }
         /* ════ End mobile overrides ════ */
@@ -1798,15 +1666,18 @@
         #db-box-tmrw .db-rbox-title-sm {
             font-family: 'Rajdhani', sans-serif; font-weight: 700;
             font-size: calc(20px * var(--fs)); letter-spacing: 2px; text-transform: uppercase; opacity: 0.65;
+            color: var(--c-tomorrow);
         }
         #db-box-tmrw .db-rbox-tmrw-name {
             font-family: 'Rajdhani', sans-serif; font-weight: 700;
             font-size: calc(28px * var(--fs)); letter-spacing: 1px; margin: 0.2vh 0;
+            color: var(--c-tomorrow);
         }
         #db-box-tmrw .db-rbox-tmrw-time {
             font-family: 'Orbitron', sans-serif; font-weight: 700;
             font-size: calc(68px * var(--fs)); font-variant-numeric: tabular-nums;
             letter-spacing: 2px;
+            color: var(--c-tomorrow);
         }
 
         /* Tomorrow section */
@@ -1829,6 +1700,10 @@
             box-shadow: 0 0 40px rgba(86,208,232,0.15), 0 16px 48px rgba(0,0,0,0.8);
             animation: cmModalIn 0.22s cubic-bezier(0.34,1.56,0.64,1) both;
             margin: auto;
+        }
+        @keyframes exitModalIn {
+            from { transform: scale(0.82); opacity: 0; }
+            to   { transform: scale(1);    opacity: 1; }
         }
         @keyframes cmModalIn {
             from { transform: scale(0.82); opacity: 0; }
@@ -2233,7 +2108,7 @@
         var tag  = el.tagName.toLowerCase();
         var type = (el.type || '').toLowerCase();
         if (tag === 'select' || type === 'text' || type === 'number' ||
-            type === 'date'  || type === 'time' || type === 'color') return;
+            type === 'date'  || type === 'time') return;
         el.click();
     }
 
@@ -2993,15 +2868,17 @@
         <!-- Box 7b: Time left until next prayer/jamaat — hidden when nothing to show -->
         <div class="db-rbox" id="db-box-timeleft" style="display:none;">
             <div class="db-rbox-title-sm" id="db-tl-label" style="color:var(--c-curr-pr);">TIME LEFT</div>
-            <div class="db-rbox-timeleft" id="db-tl-time" style="color:var(--c-clock);">--h --m</div>
             <div class="db-rbox-timeleft-ur nastaleeq-text" id="db-tl-ur" style="color:var(--c-curr-pr);">--</div>
+            <div class="db-rbox-timeleft" id="db-tl-time" style="color:var(--c-clock);">--h --m</div>
         </div>
 
         <!-- Box 8: Tomorrow's prayer -->
         <div class="db-rbox" id="db-box-tmrw">
-            <div class="db-rbox-title-sm" id="db-tmrw-lbl" style="color:var(--c-tomorrow); opacity:0.65; letter-spacing:2px; font-size:calc(13px * var(--fs));">TOMORROW / کل</div>
-            <div class="db-rbox-tmrw-name">
-                <span style="color:var(--c-tomorrow);" id="db-tmrwN">-- | --</span>
+            <div class="db-rbox-title-sm" style="color:var(--c-tomorrow); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:'Rajdhani',sans-serif; font-weight:700; letter-spacing:2px; text-transform:uppercase;">
+                <span id="db-tmrw-word-en" style="color:var(--c-tomorrow);">TOMORROW</span> &nbsp;<span id="db-tmrwN-en" style="color:var(--c-tomorrow);">--</span>
+            </div>
+            <div class="db-rbox-tmrw-name" style="font-family:'Amiri',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; direction:rtl;">
+                <span id="db-tmrw-word-ur" style="color:var(--c-tomorrow);">کل</span>&nbsp;<span id="db-tmrwN-ur" style="color:var(--c-tomorrow);">--</span>
             </div>
             <div class="db-rbox-tmrw-time" id="db-tmrwT" style="color:var(--c-tomorrow);">--:--</div>
         </div>
@@ -3293,55 +3170,55 @@
                 </div>
 
                 <div class="adv-color-grid">
-                    <div class="color-item"><span class="lang-text" data-ur="بیک گراؤنڈ (Main)" data-en="Background (Main)">بیک گراؤنڈ (Main)</span><input tabindex="0" type="color" id="c_bg"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="پینل کا رنگ (Panels)" data-en="Panel Color">پینل کا رنگ (Panels)</span><input tabindex="0" type="color" id="c_panel"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="بڑی گھڑی کا رنگ" data-en="Main Clock Color">بڑی گھڑی کا رنگ</span><input tabindex="0" type="color" id="c_clock"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="گھڑی کی چمک (Glow)" data-en="Clock Glow Color">گھڑی کی چمک (Glow)</span><input tabindex="0" type="color" id="c_clock_glow"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="سیکنڈز (Seconds)" data-en="Seconds Color">سیکنڈز (Seconds)</span><input tabindex="0" type="color" id="c_seconds"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="ہیڈنگز (PRAYER)" data-en="Headers (PRAYER)">ہیڈنگز (PRAYER)</span><input tabindex="0" type="color" id="c_headers"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="لیبلز (AZAN)" data-en="Labels (AZAN)">لیبلز (AZAN)</span><input tabindex="0" type="color" id="c_lbl_azan"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="لیبلز (JAMAAT)" data-en="Labels (JAMAAT)">لیبلز (JAMAAT)</span><input tabindex="0" type="color" id="c_lbl_jamaat"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="انگریزی نام (FAJR..)" data-en="English Names">انگریزی نام (FAJR..)</span><input tabindex="0" type="color" id="c_pr_en"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="اردو نام (فجر..)" data-en="Urdu Names">اردو نام (فجر..)</span><input tabindex="0" type="color" id="c_pr_ur"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="اذان کا وقت (Default)" data-en="Azan Time (Default)">اذان کا وقت (Default)</span><input tabindex="0" type="color" id="c_azan"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="جماعت کا وقت (Default)" data-en="Jamaat Time (Default)">جماعت کا وقت (Default)</span><input tabindex="0" type="color" id="c_jamaat"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="فجر: اذان" data-en="Fajr Azan">فجر: اذان</span><input tabindex="0" type="color" id="c_azan_fajr"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="فجر: جماعت" data-en="Fajr Jamaat">فجر: جماعت</span><input tabindex="0" type="color" id="c_jamaat_fajr"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="ظہر/جمعہ: اذان" data-en="Dhuhr/Jumuah Azan">ظہر/جمعہ: اذان</span><input tabindex="0" type="color" id="c_azan_dhuhr"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="ظہر/جمعہ: جماعت" data-en="Dhuhr/Jumuah Jamaat">ظہر/جمعہ: جماعت</span><input tabindex="0" type="color" id="c_jamaat_dhuhr"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="عصر: اذان" data-en="Asr Azan">عصر: اذان</span><input tabindex="0" type="color" id="c_azan_asr"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="عصر: جماعت" data-en="Asr Jamaat">عصر: جماعت</span><input tabindex="0" type="color" id="c_jamaat_asr"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="مغرب: اذان" data-en="Maghrib Azan">مغرب: اذان</span><input tabindex="0" type="color" id="c_azan_maghrib"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="مغرب: جماعت" data-en="Maghrib Jamaat">مغرب: جماعت</span><input tabindex="0" type="color" id="c_jamaat_maghrib"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="عشاء: اذان" data-en="Isha Azan">عشاء: اذان</span><input tabindex="0" type="color" id="c_azan_isha"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="عشاء: جماعت" data-en="Isha Jamaat">عشاء: جماعت</span><input tabindex="0" type="color" id="c_jamaat_isha"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="جمعہ: اذان (JUM row)" data-en="Jumuah Azan (List)">جمعہ: اذان (JUM row)</span><input tabindex="0" type="color" id="c_azan_jumuah"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="جمعہ: جماعت (JUM row)" data-en="Jumuah Jamaat (List)">جمعہ: جماعت (JUM row)</span><input tabindex="0" type="color" id="c_jamaat_jumuah"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="بیک گراؤنڈ (Main)" data-en="Background (Main)">بیک گراؤنڈ (Main)</span><input tabindex="-1" type="color" id="c_bg"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="پینل کا رنگ (Panels)" data-en="Panel Color">پینل کا رنگ (Panels)</span><input tabindex="-1" type="color" id="c_panel"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="بڑی گھڑی کا رنگ" data-en="Main Clock Color">بڑی گھڑی کا رنگ</span><input tabindex="-1" type="color" id="c_clock"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="گھڑی کی چمک (Glow)" data-en="Clock Glow Color">گھڑی کی چمک (Glow)</span><input tabindex="-1" type="color" id="c_clock_glow"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="سیکنڈز (Seconds)" data-en="Seconds Color">سیکنڈز (Seconds)</span><input tabindex="-1" type="color" id="c_seconds"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="ہیڈنگز (PRAYER)" data-en="Headers (PRAYER)">ہیڈنگز (PRAYER)</span><input tabindex="-1" type="color" id="c_headers"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="لیبلز (AZAN)" data-en="Labels (AZAN)">لیبلز (AZAN)</span><input tabindex="-1" type="color" id="c_lbl_azan"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="لیبلز (JAMAAT)" data-en="Labels (JAMAAT)">لیبلز (JAMAAT)</span><input tabindex="-1" type="color" id="c_lbl_jamaat"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="انگریزی نام (FAJR..)" data-en="English Names">انگریزی نام (FAJR..)</span><input tabindex="-1" type="color" id="c_pr_en"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="اردو نام (فجر..)" data-en="Urdu Names">اردو نام (فجر..)</span><input tabindex="-1" type="color" id="c_pr_ur"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="اذان کا وقت (Default)" data-en="Azan Time (Default)">اذان کا وقت (Default)</span><input tabindex="-1" type="color" id="c_azan"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="جماعت کا وقت (Default)" data-en="Jamaat Time (Default)">جماعت کا وقت (Default)</span><input tabindex="-1" type="color" id="c_jamaat"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="فجر: اذان" data-en="Fajr Azan">فجر: اذان</span><input tabindex="-1" type="color" id="c_azan_fajr"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="فجر: جماعت" data-en="Fajr Jamaat">فجر: جماعت</span><input tabindex="-1" type="color" id="c_jamaat_fajr"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="ظہر/جمعہ: اذان" data-en="Dhuhr/Jumuah Azan">ظہر/جمعہ: اذان</span><input tabindex="-1" type="color" id="c_azan_dhuhr"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="ظہر/جمعہ: جماعت" data-en="Dhuhr/Jumuah Jamaat">ظہر/جمعہ: جماعت</span><input tabindex="-1" type="color" id="c_jamaat_dhuhr"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="عصر: اذان" data-en="Asr Azan">عصر: اذان</span><input tabindex="-1" type="color" id="c_azan_asr"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="عصر: جماعت" data-en="Asr Jamaat">عصر: جماعت</span><input tabindex="-1" type="color" id="c_jamaat_asr"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="مغرب: اذان" data-en="Maghrib Azan">مغرب: اذان</span><input tabindex="-1" type="color" id="c_azan_maghrib"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="مغرب: جماعت" data-en="Maghrib Jamaat">مغرب: جماعت</span><input tabindex="-1" type="color" id="c_jamaat_maghrib"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="عشاء: اذان" data-en="Isha Azan">عشاء: اذان</span><input tabindex="-1" type="color" id="c_azan_isha"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="عشاء: جماعت" data-en="Isha Jamaat">عشاء: جماعت</span><input tabindex="-1" type="color" id="c_jamaat_isha"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="جمعہ: اذان (JUM row)" data-en="Jumuah Azan (List)">جمعہ: اذان (JUM row)</span><input tabindex="-1" type="color" id="c_azan_jumuah"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="جمعہ: جماعت (JUM row)" data-en="Jumuah Jamaat (List)">جمعہ: جماعت (JUM row)</span><input tabindex="-1" type="color" id="c_jamaat_jumuah"></div>
 
-                    <div class="color-item"><span class="lang-text" data-ur="لفظِ اللہ" data-en="Allah">لفظِ اللہ</span><input tabindex="0" type="color" id="c_cal_allah"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="لفظِ محمد" data-en="Muhammad">لفظِ محمد</span><input tabindex="0" type="color" id="c_cal_muhammad"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="بسم اللہ" data-en="Bismillah">بسم اللہ</span><input tabindex="0" type="color" id="c_cal_bismillah"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="لفظِ اللہ" data-en="Allah">لفظِ اللہ</span><input tabindex="-1" type="color" id="c_cal_allah"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="لفظِ محمد" data-en="Muhammad">لفظِ محمد</span><input tabindex="-1" type="color" id="c_cal_muhammad"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="بسم اللہ" data-en="Bismillah">بسم اللہ</span><input tabindex="-1" type="color" id="c_cal_bismillah"></div>
 
-                    <div class="color-item"><span class="lang-text" data-ur="سحر (اوپر والا)" data-en="Sahr (Top)">سحر (اوپر والا)</span><input tabindex="0" type="color" id="c_sahr_top"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="افطار (اوپر والا)" data-en="Iftar (Top)">افطار (اوپر والا)</span><input tabindex="0" type="color" id="c_iftar_top"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="سحر کا نام (لسٹ)" data-en="Sahr Name (List)">سحر کا نام (لسٹ)</span><input tabindex="0" type="color" id="c_sahr_name"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="سحر کا وقت (لسٹ)" data-en="Sahr Time (List)">سحر کا وقت (لسٹ)</span><input tabindex="0" type="color" id="c_sahr_time"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="افطار کا نام (لسٹ)" data-en="Iftar Name (List)">افطار کا نام (لسٹ)</span><input tabindex="0" type="color" id="c_iftar_name"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="افطار کا وقت (لسٹ)" data-en="Iftar Time (List)">افطار کا وقت (لسٹ)</span><input tabindex="0" type="color" id="c_iftar_time"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="رائٹ ہیڈر (نماز کا نام)" data-en="Right Header (Name)">رائٹ ہیڈر (نماز کا نام)</span><input tabindex="0" type="color" id="c_range_name"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="رائٹ ہیڈر (Start/End)" data-en="Right Header (Start/End)">رائٹ ہیڈر (Start/End)</span><input tabindex="0" type="color" id="c_range_times"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="طلوع/زوال/غروب نام" data-en="Tulu/Zawal/Gurub Name">طلوع/زوال/غروب نام</span><input tabindex="0" type="color" id="c_tzg_name"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="طلوع/زوال/غروب وقت" data-en="Tulu/Zawal/Gurub Time">طلوع/زوال/غروب وقت</span><input tabindex="0" type="color" id="c_tzg_time"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="عید/اشراق/چاشت نام" data-en="Eid/Ishraq/Chasht Name">عید/اشراق/چاشت نام</span><input tabindex="0" type="color" id="c_ec_name"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="عید/اشراق/چاشت وقت" data-en="Eid/Ishraq/Chasht Time">عید/اشراق/چاشت وقت</span><input tabindex="0" type="color" id="c_ec_time"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="کل کی نماز (Tomorrow)" data-en="Tomorrow's Prayer">کل کی نماز (Tomorrow)</span><input tabindex="0" type="color" id="c_tomorrow"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="ہجری تاریخ" data-en="Hijri Date">ہجری تاریخ</span><input tabindex="0" type="color" id="c_date_h"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="انگریزی تاریخ" data-en="Gregorian Date">انگریزی تاریخ</span><input tabindex="0" type="color" id="c_date_g"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="موجودہ نماز کا نام" data-en="Current Prayer Name">موجودہ نماز کا نام</span><input tabindex="0" type="color" id="c_curr_pr"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="سحر (اوپر والا)" data-en="Sahr (Top)">سحر (اوپر والا)</span><input tabindex="-1" type="color" id="c_sahr_top"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="افطار (اوپر والا)" data-en="Iftar (Top)">افطار (اوپر والا)</span><input tabindex="-1" type="color" id="c_iftar_top"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="سحر کا نام (لسٹ)" data-en="Sahr Name (List)">سحر کا نام (لسٹ)</span><input tabindex="-1" type="color" id="c_sahr_name"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="سحر کا وقت (لسٹ)" data-en="Sahr Time (List)">سحر کا وقت (لسٹ)</span><input tabindex="-1" type="color" id="c_sahr_time"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="افطار کا نام (لسٹ)" data-en="Iftar Name (List)">افطار کا نام (لسٹ)</span><input tabindex="-1" type="color" id="c_iftar_name"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="افطار کا وقت (لسٹ)" data-en="Iftar Time (List)">افطار کا وقت (لسٹ)</span><input tabindex="-1" type="color" id="c_iftar_time"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="رائٹ ہیڈر (نماز کا نام)" data-en="Right Header (Name)">رائٹ ہیڈر (نماز کا نام)</span><input tabindex="-1" type="color" id="c_range_name"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="رائٹ ہیڈر (Start/End)" data-en="Right Header (Start/End)">رائٹ ہیڈر (Start/End)</span><input tabindex="-1" type="color" id="c_range_times"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="طلوع/زوال/غروب نام" data-en="Tulu/Zawal/Gurub Name">طلوع/زوال/غروب نام</span><input tabindex="-1" type="color" id="c_tzg_name"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="طلوع/زوال/غروب وقت" data-en="Tulu/Zawal/Gurub Time">طلوع/زوال/غروب وقت</span><input tabindex="-1" type="color" id="c_tzg_time"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="عید/اشراق/چاشت نام" data-en="Eid/Ishraq/Chasht Name">عید/اشراق/چاشت نام</span><input tabindex="-1" type="color" id="c_ec_name"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="عید/اشراق/چاشت وقت" data-en="Eid/Ishraq/Chasht Time">عید/اشراق/چاشت وقت</span><input tabindex="-1" type="color" id="c_ec_time"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="کل کی نماز (Tomorrow)" data-en="Tomorrow's Prayer">کل کی نماز (Tomorrow)</span><input tabindex="-1" type="color" id="c_tomorrow" value="#ffdd00"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="ہجری تاریخ" data-en="Hijri Date">ہجری تاریخ</span><input tabindex="-1" type="color" id="c_date_h"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="انگریزی تاریخ" data-en="Gregorian Date">انگریزی تاریخ</span><input tabindex="-1" type="color" id="c_date_g"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="موجودہ نماز کا نام" data-en="Current Prayer Name">موجودہ نماز کا نام</span><input tabindex="-1" type="color" id="c_curr_pr"></div>
 
-                    <div class="color-item"><span class="lang-text" data-ur="پینل کی لکیریں" data-en="Panel Lines">پینل کی لکیریں</span><input tabindex="0" type="color" id="c_panel_line"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="جماعت بیل آئیکن رنگ" data-en="Jamaat Bell Icon Color">جماعت بیل آئیکن رنگ</span><input tabindex="0" type="color" id="c_jamaat_notify_icon"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="جماعت کاؤنٹ ڈاؤن رنگ" data-en="Jamaat Countdown Text Color">جماعت کاؤنٹ ڈاؤن رنگ</span><input tabindex="0" type="color" id="c_jamaat_notify_text"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="پینل کی لکیریں" data-en="Panel Lines">پینل کی لکیریں</span><input tabindex="-1" type="color" id="c_panel_line"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="جماعت بیل آئیکن رنگ" data-en="Jamaat Bell Icon Color">جماعت بیل آئیکن رنگ</span><input tabindex="-1" type="color" id="c_jamaat_notify_icon"></div>
+                    <div class="color-item"><span class="lang-text" data-ur="جماعت کاؤنٹ ڈاؤن رنگ" data-en="Jamaat Countdown Text Color">جماعت کاؤنٹ ڈاؤن رنگ</span><input tabindex="-1" type="color" id="c_jamaat_notify_text"></div>
                 </div>
             </div>
 
@@ -3350,16 +3227,12 @@
 </div>
 
 <script>
-    window.prayerSchedule = [];
-    window.tomorrowSchedule = [];
     window.wakeLock = null;
     let audioCtx = null;
     let lastBeepTime = "";
-    let noSleepVideoCreated = false;
 
     window.todayData = null;
     window.tomorrowData = null;
-    window.lastIsTomorrow = null;
     window.lastNetworkState = navigator.onLine;
 
     window.globalLat = 19.0330;
@@ -3429,27 +3302,6 @@
             e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }, true);
-
-    function createNoSleepVideo() {
-        if (noSleepVideoCreated) return;
-        noSleepVideoCreated = true;
-        try {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1; canvas.height = 1;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = 'black'; ctx.fillRect(0, 0, 1, 1);
-            const stream = canvas.captureStream(1);
-            const video = document.createElement('video');
-            video.setAttribute('playsinline', '');
-            video.setAttribute('muted', '');
-            video.setAttribute('loop', '');
-            video.style.display = 'none';
-            video.srcObject = stream;
-            document.body.appendChild(video);
-            const playVideo = () => { video.play().catch(e => console.log(e)); document.removeEventListener('click', playVideo); document.removeEventListener('touchstart', playVideo); };
-            document.addEventListener('click', playVideo); document.addEventListener('touchstart', playVideo);
-        } catch(e) {}
-    }
 
     async function requestWakeLock() {
         try {
@@ -3543,6 +3395,7 @@
             azanMaghrib: "#ff3333", jamaatMaghrib: "#00ff00", azanIsha: "#ff3333", jamaatIsha: "#00ff00", azanJumuah: "#ff3333", jamaatJumuah: "#00ff00",
             calAllah: "#ffdd00", calMuhammad: "#ffdd00", calBismillah: "#22ff44", sahrName: "#ff5555", sahrTime: "#ff5555", iftarName: "#ff5555", iftarTime: "#ff5555",
             tzgName: "#ffdd00", tzgTime: "#ffdd00", ecName: "#00ddff", ecTime: "#00ddff", tomorrow: "#ffdd00",
+            board: "#040810",
             sahrTop: "#ff5555", iftarTop: "#ff5555", rangeName: "#00ddff", rangeTimes: "#00ddff", lblAzan: "#aaaaaa", lblJamaat: "#aaaaaa", panelLine: "rgba(86,208,232,0.4)", jamaatNotifyIcon: "#f0c040", jamaatNotifyText: "#f0c040",
             globalColor: "#f0c040"
         }
@@ -3557,27 +3410,6 @@
     // Merge hs_sizes_v1 into currentConfig.hsSizes so they stay in sync
     try { var _hsSizesOnLoad = JSON.parse(localStorage.getItem('hs_sizes_v1') || '{}'); currentConfig.hsSizes = Object.assign(_hsSizesOnLoad, currentConfig.hsSizes || {}); } catch(e) { currentConfig.hsSizes = {}; }
 
-    function updateUrduSize(val) {
-        document.getElementById('urduSizeVal').innerText = val + 'px';
-        if (!document.documentElement.hasAttribute('data-no-hs') && !document.body.hasAttribute('data-no-hs')) {
-            document.documentElement.style.setProperty('--ur-size', val + 'px');
-        }
-    }
-
-    function updateEnSize(val) {
-        document.getElementById('enSizeVal').innerText = val + 'px';
-        if (!document.documentElement.hasAttribute('data-no-hs') && !document.body.hasAttribute('data-no-hs')) {
-            document.documentElement.style.setProperty('--en-size', val + 'px');
-        }
-    }
-
-    function updateClockScale(val) {
-        document.getElementById('clockScaleVal').innerText = val + '%';
-        if (!document.documentElement.hasAttribute('data-no-hs') && !document.body.hasAttribute('data-no-hs')) {
-            document.documentElement.style.setProperty('--clock-scale', val / 100);
-        }
-    }
-
     function toggleLocationMode() { let mode = document.getElementById("configLocMode").value; document.getElementById("rowManualSearch").style.display = (mode === 'manual_search') ? 'table-row' : 'none'; document.getElementById("rowManualCoords").style.display = (mode === 'manual_coords') ? 'table-row' : 'none'; }
 
     function updateModeConditionalRows() {
@@ -3587,7 +3419,6 @@
         // Portrait Rotation: only relevant when a single panel is rotated (center/left/right)
         var rotRow = document.getElementById('rowRotation');
         if (rotRow) rotRow.style.display = (mode === 'center' || mode === 'left' || mode === 'right') ? 'table-row' : 'none';
-        var isAll = (mode === 'all');
     }
     window.updateModeConditionalRows = updateModeConditionalRows;
 
@@ -3612,15 +3443,14 @@
         for(let h=6; h<=8; h++){ for(let m=0; m<60; m+=5){ if(h===6 && m<30) continue; if(h===8 && m>30) break; let t = (h<10?'0'+h:h) + ':' + (m<10?'0'+m:m); eidSelect.innerHTML += `<option value="${t}">${t}</option>`; } }
 
         document.getElementById("configManualDate").value = currentConfig.general.manualDate || "";
-        if(document.getElementById("configUrduSize")) { document.getElementById("configUrduSize").value = currentConfig.general.urduFontSize || "14"; updateUrduSize(currentConfig.general.urduFontSize || "14"); }
-        if(document.getElementById("configEnSize")) { document.getElementById("configEnSize").value = currentConfig.general.enFontSize || "14"; updateEnSize(currentConfig.general.enFontSize || "14"); }
-        if(document.getElementById("configClockScale")) { document.getElementById("configClockScale").value = currentConfig.general.clockScale || 100; updateClockScale(currentConfig.general.clockScale || 100); }
         document.getElementById("configDisplayMode").value = currentConfig.general.displayMode || "all"; document.body.setAttribute('data-mode', currentConfig.general.displayMode || "all");
         if (typeof window.hsSyncModeFromDisplay === 'function') window.hsSyncModeFromDisplay();
         if (typeof window.updateModeConditionalRows === 'function') window.updateModeConditionalRows();
         document.getElementById("configRotation").value = currentConfig.general.rotation || "90deg"; document.documentElement.style.setProperty('--rot', currentConfig.general.rotation || "90deg");
         document.getElementById("configLocMode").value = currentConfig.location.mode || "auto"; document.getElementById("configLat").value = currentConfig.location.lat || ""; document.getElementById("configLon").value = currentConfig.location.lon || ""; toggleLocationMode();
         document.getElementById("configFiqh").value = currentConfig.general.fiqh; document.getElementById("configEid").value = currentConfig.general.eidTime;
+        // Sync CDD label now that the correct eidTime value is set
+        if (eidSelect._cdd) eidSelect._cdd._sync();
         // Restore Eid 1 show/hide state
         toggleEid1(currentConfig.general.showEid1 !== false);
         document.getElementById("configIshraq").value = currentConfig.general.ishraqOffset || "15";
@@ -3631,11 +3461,6 @@
 
 
         document.getElementById("configShowJumuah").value = currentConfig.general.showJumuah || "yes";
-
-        document.getElementById("cfg_jum2_a") && (document.getElementById("cfg_jum2_a").value = ""); // legacy compat
-        document.getElementById("cfg_jum2_j") && (document.getElementById("cfg_jum2_j").value = "");
-        document.getElementById("cfg_jum3_a") && (document.getElementById("cfg_jum3_a").value = "");
-        document.getElementById("cfg_jum3_j") && (document.getElementById("cfg_jum3_j").value = "");
 
         // Build dynamic Eid rows
         var extraEids = currentConfig.timings.extraEids || [];
@@ -3707,7 +3532,7 @@
 
         document.getElementById("c_date_g").value = ac.dateG; document.getElementById("c_date_h").value = ac.dateH; document.getElementById("c_curr_pr").value = ac.currPr;
         document.getElementById("c_sahr_name").value = ac.sahrName || "#ff5555"; document.getElementById("c_sahr_time").value = ac.sahrTime || ac.sahrName || "#ff5555"; document.getElementById("c_iftar_name").value = ac.iftarName || "#ff5555"; document.getElementById("c_iftar_time").value = ac.iftarTime || ac.iftarName || "#ff5555";
-        document.getElementById("c_tzg_name").value = ac.tzgName || "#ffdd00"; document.getElementById("c_tzg_time").value = ac.tzgTime || ac.tzgName || "#ffdd00"; document.getElementById("c_ec_name").value = ac.ecName || "#00ddff"; document.getElementById("c_ec_time").value = ac.ecTime || ac.ecName || "#00ddff"; document.getElementById("c_tomorrow").value = ac.tomorrow || "#ffdd00";
+        document.getElementById("c_tzg_name").value = ac.tzgName || "#ffdd00"; document.getElementById("c_tzg_time").value = ac.tzgTime || ac.tzgName || "#ffdd00"; document.getElementById("c_ec_name").value = ac.ecName || "#00ddff"; document.getElementById("c_ec_time").value = ac.ecTime || ac.ecName || "#00ddff"; document.getElementById("c_tomorrow").value = (ac.tomorrow && ac.tomorrow !== '#000000' && ac.tomorrow !== '#000') ? ac.tomorrow : "#ffdd00";
 
         document.getElementById("c_sahr_top").value = ac.sahrTop || ac.sahrName || "#ff5555"; document.getElementById("c_iftar_top").value = ac.iftarTop || ac.iftarName || "#ff5555";
         document.getElementById("c_range_name").value = ac.rangeName || ac.headers || "#00ddff"; document.getElementById("c_range_times").value = ac.rangeTimes || ac.headers || "#00ddff";
@@ -3796,7 +3621,7 @@
         root.setProperty('--c-cal-muhammad', ac.calMuhammad || ac.calligraphy || "#ffdd00");
         root.setProperty('--c-cal-bismillah', ac.calBismillah || ac.calligraphy || "#22ff44");
 
-        root.setProperty('--c-tomorrow', ac.tomorrow || "#ffdd00");
+        root.setProperty('--c-tomorrow', (ac.tomorrow && ac.tomorrow !== '#000000' && ac.tomorrow !== '#000') ? ac.tomorrow : "#ffdd00");
         root.setProperty('--c-sahr-name', ac.sahrName || "#ff5555"); root.setProperty('--c-sahr-time', ac.sahrTime || ac.sahrName || "#ff5555");
         root.setProperty('--c-iftar-name', ac.iftarName || "#ff5555"); root.setProperty('--c-iftar-time', ac.iftarTime || ac.iftarName || "#ff5555");
         root.setProperty('--c-tzg-name', ac.tzgName || "#ffdd00"); root.setProperty('--c-tzg-time', ac.tzgTime || ac.tzgName || "#ffdd00");
@@ -3967,7 +3792,7 @@
 
         let hasMultiEid = extraEids.length > 0;
         let e1En = hasMultiEid ? "EID 1" : "EID";
-        let e1Ur = hasMultiEid ? "عید" : "عید";
+        let e1Ur = "عید";
 
         window.eidList = [];
         if (currentConfig.general.showEid1 !== false) {
@@ -4164,7 +3989,6 @@
         window.tomorrowData = { timings: resultTomorrow.data.timings, calc: calculateSchedule(resultTomorrow.data.timings, tomorrowIsFriday) };
 
         window.hijriAfterMaghrib = resultToday.data.date.hijri; document.getElementById('gregorianDate').innerText = resultToday.data.date.gregorian.day + '-' + String(resultToday.data.date.gregorian.month.number).padStart(2,'0') + '-' + resultToday.data.date.gregorian.year + ' ' + resultToday.data.date.gregorian.month.en.toUpperCase(); window.maghribMins = timeToMins(window.todayData.timings.Sunset);
-        window.lastIsTomorrow = null;
 
         updateExtraPrayersList();
         let now = new Date(); let nowTotalMins = (now.getHours() * 60) + now.getMinutes();
@@ -4333,7 +4157,7 @@
         var _azDiv = document.getElementById('azanDivider');
         var _dbAzGrp = document.getElementById('db-azanGroup');
         var _dbAzDiv = document.getElementById('db-azanDivider');
-        var _hideAzan = isShowingEidOnMain;
+        var _hideAzan = isShowingEidOnMain || isShowingJumuahOnMain;
         if (_azGrp) _azGrp.style.display = _hideAzan ? 'none' : '';
         if (_azDiv) _azDiv.style.display = _hideAzan ? 'none' : '';
         if (_dbAzGrp) _dbAzGrp.style.display = _hideAzan ? 'none' : '';
@@ -4422,7 +4246,7 @@ const rangeEnd = document.getElementById('rangeEnd');
                 }
             }
         }
-        if (inAzanJamaatWindow && minsLeft > 0 && notifyPrayer) { notifyRow.style.display = 'flex'; document.getElementById('jamaatCountdown').innerText = minsLeft === 1 ? 'Jamaat in 1 min' : `Jamaat in ${minsLeft} min`; } else { notifyRow.style.display = 'none'; }
+        if (inAzanJamaatWindow && minsLeft > 0 && notifyPrayer) { notifyRow.style.display = 'flex'; document.getElementById('jamaatCountdown').innerText = minsLeft === 1 ? 'Jamaat in ' + (60 - now.getSeconds()) + ' sec' : 'Jamaat in ' + minsLeft + ' min'; } else { notifyRow.style.display = 'none'; }
 
         if (window.tomorrowData && !isShowingEidOnMain) {
             let tmrwPrayer = window.tomorrowData.calc.s[activeIndex]; document.getElementById('tmrwPrayerNameEn').innerText = tmrwPrayer.en; document.getElementById('tmrwPrayerNameUr').innerText = tmrwPrayer.ur; document.getElementById('tmrwPrayerTime').innerText = tmrwPrayer.jamaat12;
@@ -4437,9 +4261,7 @@ const rangeEnd = document.getElementById('rangeEnd');
                 if (tmrwLabelEl) tmrwLabelEl.classList.remove('tomorrow-blink');
             }
 
-            if (tmrwPrayer.jamaat12 !== activePrayerCenter.jamaat12 || tmrwPrayer.en !== activePrayerCenter.en) {
-                let alertMsg = `<span class="col-pr-en" style="font-family: 'Share Tech Mono', monospace;">TOMORROW ${tmrwPrayer.en} JAMAAT: ${tmrwPrayer.jamaat12}</span> &nbsp;&nbsp; | &nbsp;&nbsp; <span class="nastaleeq-text" style="color: var(--c-pr-en);">آئندہ کل ${tmrwPrayer.ur} کی جماعت ${tmrwPrayer.jamaat12} پر ہوگی</span>`;
-            }
+
         }
     }
 
@@ -4725,7 +4547,7 @@ const rangeEnd = document.getElementById('rangeEnd');
             copy('rangePrayerName','db-rangeName');
             var ls=g('lblStart'), le=g('lblEnd');
             if(ls){var d=g('db-lblStart');if(d)d.innerText=ls.innerText;}
-            if(le){var d=g('db-lblEnd');if(d)d.innerText=le.innerText;}
+            if(le){var d2=g('db-lblEnd');if(d2)d2.innerText=le.innerText;}
 
             // Prayer rows
             copy('fajrAzan','db-fA'); copy('fajrJamaat','db-fJ');
@@ -4832,19 +4654,29 @@ const rangeEnd = document.getElementById('rangeEnd');
 
             // Box 8: Tomorrow
             var tEn=g('tmrwPrayerNameEn'), tUr=g('tmrwPrayerNameUr'), tT=g('tmrwPrayerTime');
-            var dN=g('db-tmrwN'), dT=g('db-tmrwT');
-            if(dN) dN.innerText = (tEn?tEn.innerText:'--') + ' | ' + (tUr?tUr.innerText:'--');
+            var dNen=g('db-tmrwN-en'), dNur=g('db-tmrwN-ur'), dT=g('db-tmrwT');
+            var dWen=g('db-tmrw-word-en'), dWur=g('db-tmrw-word-ur');
+            if(dNen) dNen.textContent = (tEn?tEn.textContent:'--');
+            if(dNur) dNur.textContent = (tUr?tUr.textContent:'--');
             if(dT&&tT) {
-                dT.innerText = tT.innerText;
-                // Mirror blink state from all-mode tomorrow element
-                var dL = g('db-tmrw-lbl');
-                if(tT.classList.contains('tomorrow-blink')) {
+                dT.textContent = tT.textContent;
+                // Blink when tomorrow's jamaat differs from today's active jamaat
+                var curJEl = g('currentJamaatTime');
+                var shouldBlink = curJEl && tT.textContent && tT.textContent !== '--:--' && tT.textContent !== curJEl.textContent;
+                var dL = g('db-box-tmrw') ? g('db-box-tmrw').querySelector('.db-rbox-title-sm') : null;
+                if(shouldBlink) {
                     dT.classList.add('tomorrow-blink');
-                    if(dN) dN.classList.add('tomorrow-blink');
+                    if(dNen) dNen.classList.add('tomorrow-blink');
+                    if(dNur) dNur.classList.add('tomorrow-blink');
+                    if(dWen) dWen.classList.add('tomorrow-blink');
+                    if(dWur) dWur.classList.add('tomorrow-blink');
                     if(dL) dL.classList.add('tomorrow-blink');
                 } else {
                     dT.classList.remove('tomorrow-blink');
-                    if(dN) dN.classList.remove('tomorrow-blink');
+                    if(dNen) dNen.classList.remove('tomorrow-blink');
+                    if(dNur) dNur.classList.remove('tomorrow-blink');
+                    if(dWen) dWen.classList.remove('tomorrow-blink');
+                    if(dWur) dWur.classList.remove('tomorrow-blink');
                     if(dL) dL.classList.remove('tomorrow-blink');
                 }
             }
@@ -6103,10 +5935,10 @@ const rangeEnd = document.getElementById('rangeEnd');
     function saveSettings() {
         window._isSaving = true;
         currentConfig.general.manualDate = document.getElementById("configManualDate").value;
-        // Sliders removed — read from hidden fallback inputs (kept for backward compat)
-        var _urduEl = document.getElementById("configUrduSize"); currentConfig.general.urduFontSize = _urduEl ? _urduEl.value : (currentConfig.general.urduFontSize || "14");
-        var _enEl = document.getElementById("configEnSize"); currentConfig.general.enFontSize = _enEl ? _enEl.value : (currentConfig.general.enFontSize || "14");
-        var _csEl = document.getElementById("configClockScale"); currentConfig.general.clockScale = _csEl ? _csEl.value : (currentConfig.general.clockScale || 100);
+        // Font size / clock scale are controlled by the Heading Size system; preserve existing values
+        currentConfig.general.urduFontSize = currentConfig.general.urduFontSize || "14";
+        currentConfig.general.enFontSize   = currentConfig.general.enFontSize   || "14";
+        currentConfig.general.clockScale   = currentConfig.general.clockScale   || 100;
         currentConfig.general.displayMode = document.getElementById("configDisplayMode").value;
         setDisplayMode(currentConfig.general.displayMode, true);
         // Apply heading sizes for the newly selected mode
@@ -6121,7 +5953,7 @@ const rangeEnd = document.getElementById('rangeEnd');
         //  by coincidence — the real risk was a future refactor breaking the identity.
         //  Leave the value exactly as toggleEid1 set it.)
         // currentConfig.general.showEid1 already correct — no assignment needed.
-        currentConfig.general.ishraqOffset = parseInt(document.getElementById("configIshraq").value);
+        currentConfig.general.ishraqOffset = parseInt(document.getElementById("configIshraq").value) || 15;
         currentConfig.general.chashtMode = document.getElementById("configChasht").value;
         currentConfig.general.hijriOffset = document.getElementById("configHijriOffset").value;
 
@@ -6164,10 +5996,10 @@ const rangeEnd = document.getElementById('rangeEnd');
 
         ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', 'jumuah'].forEach(key => {
             currentConfig.timings[key].mode = document.getElementById(`cfg_${key}_mode`).value;
-            currentConfig.timings[key].offset = parseInt(document.getElementById(`cfg_${key}_offset`).value);
-            currentConfig.timings[key].aRound = parseInt(document.getElementById(`cfg_${key}_aRound`).value);
-            currentConfig.timings[key].jGap = parseInt(document.getElementById(`cfg_${key}_jGap`).value);
-            currentConfig.timings[key].jRound = parseInt(document.getElementById(`cfg_${key}_jRound`).value);
+            currentConfig.timings[key].offset = parseInt(document.getElementById(`cfg_${key}_offset`).value) || 0;
+            currentConfig.timings[key].aRound = parseInt(document.getElementById(`cfg_${key}_aRound`).value) || 1;
+            currentConfig.timings[key].jGap = parseInt(document.getElementById(`cfg_${key}_jGap`).value) || 20;
+            currentConfig.timings[key].jRound = parseInt(document.getElementById(`cfg_${key}_jRound`).value) || 5;
 
             if (key === 'fajr') {
                 currentConfig.timings.fajr.fajrJamaatBeforeSunrise = parseInt(document.getElementById('cfg_fajr_jBefore').value);
@@ -6192,7 +6024,7 @@ const rangeEnd = document.getElementById('rangeEnd');
         localStorage.setItem("masjidConfig_tv40", JSON.stringify(currentConfig));
 
         let mID = localStorage.getItem('mosque_id');
-        if (typeof mID !== 'undefined' && mID && mID.startsWith('MSJ-')) {
+        if (mID && mID.startsWith('MSJ-')) {
             try {
                 firebase.database().ref('mosques/' + mID + '/settings').update({
                     general: currentConfig.general || {},
@@ -6230,7 +6062,7 @@ const rangeEnd = document.getElementById('rangeEnd');
                 { key: 'db_pr_hdr',         label: 'Prayer List Header Azan/Jamaat',labelUr: 'نماز لسٹ ہیڈر',                   css: '#db-prayer-col .db-col-hdr span' },
                 { key: 'db_pr_names',       label: 'Prayer List Namaaz Names',      labelUr: 'نماز کے نام',                     css: '#db-prayer-col .db-row-name .db-en, #db-prayer-col .db-row-name .db-ur' },
                 { key: 'db_pr_aj',          label: 'Prayer List Digits',            labelUr: 'نماز لسٹ اوقات',                  css: '#db-prayer-col .db-row-times .dbt' },
-                { key: 'db_rbox_text',      label: 'Right Boxes Text',              labelUr: 'دائیں بکسوں کی تحریر',            css: '.db-rbox-title-sm, .db-rbox-tmrw-name, .db-rbox-title, .db-rbox-lbl, .db-slide-en, .db-slide-ur' },
+                { key: 'db_rbox_text',      label: 'Right Boxes Text',              labelUr: 'دائیں بکسوں کی تحریر',            css: '.db-rbox-title-sm, .db-rbox-tmrw-name, .db-rbox-title, .db-rbox-lbl, .db-slide-en, .db-slide-ur, .db-rbox-timeleft-ur' },
                 { key: 'db_rbox_digits',    label: 'Right Boxes Digits',            labelUr: 'دائیں بکسوں کے اوقات',            css: '.db-rbox-timeleft, .db-rbox-tmrw-time, .db-rbox-time, .db-slide-time' }
             ],
             dashboard2: [
@@ -6248,7 +6080,7 @@ const rangeEnd = document.getElementById('rangeEnd');
                 { key: 'db_pr_hdr',         label: 'Prayer List Header Azan/Jamaat',labelUr: 'نماز لسٹ ہیڈر',                   css: '#db-prayer-col .db-col-hdr span' },
                 { key: 'db_pr_names',       label: 'Prayer List Namaaz Names',      labelUr: 'نماز کے نام',                     css: '#db-prayer-col .db-row-name .db-en, #db-prayer-col .db-row-name .db-ur' },
                 { key: 'db_pr_aj',          label: 'Prayer List Digits',            labelUr: 'نماز لسٹ اوقات',                  css: '#db-prayer-col .db-row-times .dbt' },
-                { key: 'db_rbox_text',      label: 'Left Boxes Text',              labelUr: 'بائیں بکسوں کی تحریر',            css: '.db-rbox-title-sm, .db-rbox-tmrw-name, .db-rbox-title, .db-rbox-lbl, .db-slide-en, .db-slide-ur' },
+                { key: 'db_rbox_text',      label: 'Left Boxes Text',              labelUr: 'بائیں بکسوں کی تحریر',            css: '.db-rbox-title-sm, .db-rbox-tmrw-name, .db-rbox-title, .db-rbox-lbl, .db-slide-en, .db-slide-ur, .db-rbox-timeleft-ur' },
                 { key: 'db_rbox_digits',    label: 'Left Boxes Digits',            labelUr: 'بائیں بکسوں کے اوقات',            css: '.db-rbox-timeleft, .db-rbox-tmrw-time, .db-rbox-time, .db-slide-time' }
             ],
             all: [
@@ -6670,7 +6502,7 @@ const rangeEnd = document.getElementById('rangeEnd');
   <div id="ccp-box">
     <div id="ccp-title" class="lang-text" data-ur="رنگ منتخب کریں" data-en="Select Colour">Select Colour</div>
     <div id="ccp-body">
-      <!-- Left: swatches + hex + buttons -->
+      <!-- Right: swatches + hex + buttons -->
       <div id="ccp-right">
         <div id="ccp-swatches"></div>
         <div id="ccp-hex-row">
@@ -6685,7 +6517,7 @@ const rangeEnd = document.getElementById('rangeEnd');
           <button id="ccp-btn-cancel" tabindex="0" class="lang-text" data-ur="منسوخ" data-en="CANCEL">CANCEL</button>
         </div>
       </div>
-      <!-- Right: spectrum + hue slider -->
+      <!-- Left: spectrum + hue slider -->
       <div id="ccp-left">
         <div id="ccp-spectrum-wrap">
           <canvas id="ccp-spectrum"></canvas>
