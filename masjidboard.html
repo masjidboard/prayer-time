@@ -307,7 +307,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Masjid Board</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Prayer Time">
+    <meta name="theme-color" content="#050a12">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-512.png">
+    <script>
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock("landscape").catch(function(){});
+      }
+      function goFullscreen() {
+        var el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+      }
+      window.addEventListener('load', function() {
+        setTimeout(goFullscreen, 1000);
+      });
+      document.addEventListener('click', goFullscreen);
+      document.addEventListener('touchstart', goFullscreen);
+    </script>
+    <title>Prayer Time</title>
 
     <!-- ============================================================
          EARLY CORRUPTION GUARD — must run before ANY other script
