@@ -307,7 +307,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Masjid Board</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Prayer Time">
+    <meta name="theme-color" content="#050a12">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-512.png">
+    <script>
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock("landscape").catch(function(){});
+      }
+      function goFullscreen() {
+        var el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+      }
+      window.addEventListener('load', function() {
+        setTimeout(goFullscreen, 1000);
+      });
+      document.addEventListener('click', goFullscreen);
+      document.addEventListener('touchstart', goFullscreen);
+    </script>
+    <title>Prayer Time</title>
 
     <!-- ============================================================
          EARLY CORRUPTION GUARD — must run before ANY other script
@@ -572,7 +595,11 @@
             border: 1.5px solid var(--c-cal-allah); border-radius: 50%;
             color: var(--c-cal-allah); font-size: 0.4em;
             box-shadow: 0 0 12px rgba(240,192,64,0.35), inset 0 0 6px rgba(240,192,64,0.08);
+        }
+        @supports (color: color-mix(in srgb, red 50%, blue)) {
+        .calligraphy .badge-allah {
             box-shadow: 0 0 12px color-mix(in srgb, var(--c-cal-allah) 35%, transparent), inset 0 0 6px color-mix(in srgb, var(--c-cal-allah) 8%, transparent);
+        }
         }
         .calligraphy .badge-muhammad {
             width: calc(64.8px * var(--fs)); height: calc(64.8px * var(--fs));
@@ -580,7 +607,11 @@
             border: 1.5px solid var(--c-cal-muhammad); border-radius: 50%;
             color: var(--c-cal-muhammad); font-size: 0.4em;
             box-shadow: 0 0 12px rgba(240,192,64,0.35), inset 0 0 6px rgba(240,192,64,0.08);
+        }
+        @supports (color: color-mix(in srgb, red 50%, blue)) {
+        .calligraphy .badge-muhammad {
             box-shadow: 0 0 12px color-mix(in srgb, var(--c-cal-muhammad) 35%, transparent), inset 0 0 6px color-mix(in srgb, var(--c-cal-muhammad) 8%, transparent);
+        }
         }
 
         .main-clock {
@@ -590,7 +621,11 @@
             line-height: 1; font-weight: 900; letter-spacing: 3px;
             margin-top: 0.5vh;
             text-shadow: 0 0 30px rgba(240,192,64,0.25), 0 0 60px rgba(240,192,64,0.10);
+        }
+        @supports (color: color-mix(in srgb, red 50%, blue)) {
+        .main-clock {
             text-shadow: 0 0 30px color-mix(in srgb, var(--c-clock-glow) 25%, transparent), 0 0 60px color-mix(in srgb, var(--c-clock-glow) 10%, transparent);
+        }
         }
         #hoursMins { display: inline-block; text-align: center; font-variant-numeric: tabular-nums; }
 
@@ -657,7 +692,7 @@
             background: transparent; border-radius: 6px;
         }
         .prayer-header-side { display: flex; flex-direction: column; align-items: center; gap: 1px; }
-        .prayer-header-side span:first-child { font-size: calc(20px * var(--fs)); letter-spacing: 1px; opacity: 0.6; font-family: 'Rajdhani', sans-serif; }
+        .prayer-header-side span:first-child { font-size: calc(20px * var(--fs)); letter-spacing: 1px; opacity: 0.6; font-family: 'Rajdhani', sans-serif; font-weight: 700; }
         .prayer-header-side span:last-child { font-size: calc(38px * var(--fs)); font-family: 'Orbitron', sans-serif; }
         .prayer-header h2 { margin: 0; font-size: calc(58px * var(--fs)); letter-spacing: 2px; font-family: 'Rajdhani', sans-serif; font-weight: 700; }
 
@@ -1436,9 +1471,13 @@
             border: 1.5px solid var(--c-cal-allah); border-radius: 50%;
             color: var(--c-cal-allah); font-size: calc(14px * var(--fs));
             box-shadow: 0 0 12px rgba(240,192,64,0.35), inset 0 0 6px rgba(240,192,64,0.08);
+            flex-shrink: 0; text-align: center;
+        }
+        @supports (color: color-mix(in srgb, red 50%, blue)) {
+        #db-clock-col .db-allah-badge {
             box-shadow: 0 0 12px color-mix(in srgb, var(--c-cal-allah) 35%, transparent),
                         inset 0 0 6px color-mix(in srgb, var(--c-cal-allah) 8%, transparent);
-            flex-shrink: 0; text-align: center;
+        }
         }
         #db-clock-col .db-moh-badge {
             font-family: 'Amiri', serif;
@@ -1447,9 +1486,13 @@
             border: 1.5px solid var(--c-cal-muhammad); border-radius: 50%;
             color: var(--c-cal-muhammad); font-size: calc(14px * var(--fs));
             box-shadow: 0 0 12px rgba(240,192,64,0.35), inset 0 0 6px rgba(240,192,64,0.08);
+            flex-shrink: 0; text-align: center;
+        }
+        @supports (color: color-mix(in srgb, red 50%, blue)) {
+        #db-clock-col .db-moh-badge {
             box-shadow: 0 0 12px color-mix(in srgb, var(--c-cal-muhammad) 35%, transparent),
                         inset 0 0 6px color-mix(in srgb, var(--c-cal-muhammad) 8%, transparent);
-            flex-shrink: 0; text-align: center;
+        }
         }
         /* Main clock — mirrors .main-clock in All mode */
         #db-clock-col .db-main-clock {
@@ -1458,8 +1501,12 @@
             color: var(--c-clock); line-height: 1;
             letter-spacing: 3px; font-variant-numeric: tabular-nums;
             text-shadow: 0 0 30px rgba(240,192,64,0.25), 0 0 60px rgba(240,192,64,0.10);
+        }
+        @supports (color: color-mix(in srgb, red 50%, blue)) {
+        #db-clock-col .db-main-clock {
             text-shadow: 0 0 30px color-mix(in srgb, var(--c-clock-glow) 25%, transparent),
                          0 0 60px color-mix(in srgb, var(--c-clock-glow) 10%, transparent);
+        }
         }
         /* Seconds — tight below clock */
         #db-clock-col .db-sec {
@@ -1590,7 +1637,7 @@
         }
         #db-box-range .db-rbox-lbl {
             font-family: 'Rajdhani', sans-serif; font-size: calc(18px * var(--fs));
-            letter-spacing: 2px; opacity: 0.6; text-transform: uppercase;
+            font-weight: 700; letter-spacing: 2px; opacity: 0.6; text-transform: uppercase;
         }
         #db-box-range .db-rbox-time {
             font-family: 'Orbitron', sans-serif; font-size: calc(48px * var(--fs));
@@ -2886,8 +2933,8 @@
                         <td>
                             <span class="lang-text" data-ur="دستی تاریخ" data-en="Manual Date">دستی تاریخ (Manual Date)</span><br>
                             <div style="display: flex; gap: 5px;">
-                                <input tabindex="0" type="date" id="configManualDate" title="مخصوص دن کا ٹائم دیکھنے کے لیے">
-                                <button type="button" tabindex="0" class="clear-btn" onclick="document.getElementById('configManualDate').value=''; fetchDailyTimes();" title="آج کی لائیو تاریخ پر واپس لائیں">❌</button>
+                                <input type="hidden" id="configManualDate"><button type="button" tabindex="0" class="tv-date-btn lang-text" id="configManualDateBtn" onclick="tvPickerOpen('date', document.getElementById('configManualDate').value, 'Manual Date', function(v){document.getElementById('configManualDate').value=v;document.getElementById('configManualDateBtn').textContent=v;fetchDailyTimes();}, function(){document.getElementById('configManualDate').value='';var _btn=document.getElementById('configManualDateBtn');_btn.textContent=window.currentSettingsLang==='ur'?'📅 تاریخ چنیں':'📅 Pick Date';fetchDailyTimes();})" data-en="📅 Pick Date" data-ur="📅 تاریخ چنیں">📅 Pick Date</button>
+                                <button type="button" tabindex="0" class="clear-btn" onclick="document.getElementById('configManualDate').value=''; var _btn=document.getElementById('configManualDateBtn'); _btn.textContent=window.currentSettingsLang==='ur'?'📅 تاریخ چنیں':'📅 Pick Date'; fetchDailyTimes();" title="آج کی لائیو تاریخ پر واپس لائیں">❌</button>
                             </div>
                             <div style="font-size: 11px; color: #aaa; margin-top: 4px;" class="lang-text" data-ur="لائیو ٹائم دیکھنے کے لیے اسے خالی (Clear) رکھیں" data-en="Leave empty to show live today's time">لائیو ٹائم دیکھنے کے لیے اسے خالی (Clear) رکھیں</div>
                         </td>
@@ -3004,6 +3051,17 @@
                                 <option value="no" class="lang-text" data-ur="نہیں — جمعہ کا وقت چھپائیں" data-en="No — Hide Jumuah Row">نہیں — جمعہ کا وقت چھپائیں</option>
                             </select>
                             <div style="font-size: 11px; color: #aaa; margin-top: 4px;" class="lang-text" data-ur="جمعہ کی صف کو نماز کی فہرست سے چھپانے یا ظاہر کرنے کے لیے" data-en="Toggle visibility of Jumuah row in the prayer list">Toggle visibility of Jumuah row in the prayer list</div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <span class="lang-text" data-ur="A Choice — مغرب وقت ایک دن بعد" data-en="A Choice — Maghrib Time One Day Later">A Choice — مغرب وقت ایک دن بعد</span><br>
+                            <select tabindex="0" id="configMaghribDelayChoice">
+                                <option value="no" class="lang-text" data-ur="نہیں — معمول کے مطابق" data-en="No — Update normally">نہیں — معمول کے مطابق</option>
+                                <option value="yes" class="lang-text" data-ur="ہاں — مغرب کا وقت ایک دن بعد بدلے" data-en="Yes — Maghrib time updates one day later">ہاں — مغرب کا وقت ایک دن بعد بدلے</option>
+                            </select>
+                            <div style="font-size: 11px; color: #aaa; margin-top: 4px;" class="lang-text" data-ur="جب فعال ہو تو مغرب کا وقت ایک دن تاخیر سے تبدیل ہوگا — کل کا وقت آج کے طور پر دکھایا جائے گا" data-en="When active, Maghrib time updates one day later — tomorrow's time shows as today's">When active, Maghrib time updates one day later — tomorrow's time shows as today's</div>
                         </td>
                     </tr>
                 </table>
@@ -3353,7 +3411,7 @@
     const defaultScrollText = "<span class='led-text'>Please keep your mobile phones turned off</span> &nbsp;&nbsp; | &nbsp;&nbsp; براہِ کرم اپنے موبائل فون بند رکھیں";
 
     const defaultConfig = {
-        general: { manualDate: "", fiqh: "1", eidTime: "07:00", showEid1: true, ishraqOffset: 15, chashtMode: "quarter", hijriOffset: "0", displayMode: "all", rotation: "90deg", urduFontSize: "18", enFontSize: "18", eid2: "", eid3: "", clockScale: 100, showJumuah: "yes" },
+        general: { manualDate: "", fiqh: "1", eidTime: "07:00", showEid1: true, ishraqOffset: 15, chashtMode: "quarter", hijriOffset: "0", displayMode: "all", rotation: "90deg", urduFontSize: "18", enFontSize: "18", eid2: "", eid3: "", clockScale: 100, showJumuah: "yes", maghribDelayChoice: "no" },
         location: { mode: "auto", lat: "", lon: "", city: "" },
         timings: {
             fajr:   { mode: "auto", fajrJamaatBeforeSunrise: 30, fajrAzanBeforeJamaat: 20, offset: 0, aRound: 5, jGap: 20, jRound: 5, name: "فجر" },
@@ -3378,17 +3436,22 @@
         }
     };
 
-    // Admin mode: never seed currentConfig from localStorage — always use Firebase as source of truth.
-    // This prevents stale settings from a previously opened mosque bleeding into admin remote.
-    const _earlyMode = new URLSearchParams(window.location.search).get('mode') || 'tv';
-    let currentConfig = (_earlyMode !== 'admin') ? JSON.parse(localStorage.getItem("masjidConfig_tv40")) : null;
+    // musalli and admin must never seed from localStorage — Firebase is their only source of truth.
+    // Loading stale local data here would cause the settings panel (admin) or prayer display
+    // (musalli) to show wrong values until Firebase fires, and admin would save those wrong
+    // values back if the user opens settings before Firebase responds.
+    var _initMode = new URLSearchParams(window.location.search).get('mode') || 'tv';
+    var _fbOnlyMode = (_initMode === 'musalli' || _initMode === 'admin');
+    let currentConfig = _fbOnlyMode ? null : JSON.parse(localStorage.getItem("masjidConfig_tv40"));
     if (!currentConfig) { currentConfig = JSON.parse(JSON.stringify(defaultConfig)); }
     currentConfig.general = { ...defaultConfig.general, ...(currentConfig.general || {}) };
     currentConfig.location = { ...defaultConfig.location, ...(currentConfig.location || {}) };
     currentConfig.timings = { ...defaultConfig.timings, ...(currentConfig.timings || {}) };
     currentConfig.advColors = { ...defaultConfig.advColors, ...(currentConfig.advColors || {}) };
-    // Merge hs_sizes_v1 into currentConfig.hsSizes so they stay in sync
-    try { var _hsSizesOnLoad = JSON.parse(localStorage.getItem('hs_sizes_v1') || '{}'); currentConfig.hsSizes = Object.assign(_hsSizesOnLoad, currentConfig.hsSizes || {}); } catch(e) { currentConfig.hsSizes = {}; }
+    // Merge hs_sizes_v1 into currentConfig.hsSizes so they stay in sync (TV/linked only)
+    if (!_fbOnlyMode) {
+        try { var _hsSizesOnLoad = JSON.parse(localStorage.getItem('hs_sizes_v1') || '{}'); currentConfig.hsSizes = Object.assign(_hsSizesOnLoad, currentConfig.hsSizes || {}); } catch(e) { currentConfig.hsSizes = {}; }
+    } else { currentConfig.hsSizes = {}; }
 
     function toggleLocationMode() { let mode = document.getElementById("configLocMode").value; document.getElementById("rowManualSearch").style.display = (mode === 'manual_search') ? 'table-row' : 'none'; document.getElementById("rowManualCoords").style.display = (mode === 'manual_coords') ? 'table-row' : 'none'; }
 
@@ -3441,6 +3504,7 @@
 
 
         document.getElementById("configShowJumuah").value = currentConfig.general.showJumuah || "yes";
+        document.getElementById("configMaghribDelayChoice").value = currentConfig.general.maghribDelayChoice || "no";
 
         // Build dynamic Eid rows
         var extraEids = currentConfig.timings.extraEids || [];
@@ -3488,7 +3552,7 @@
                 let faOpts = [15, 20, 25, 30].map(v => `<option value="${v}" class="lang-text" data-ur="${v} منٹ قبل" data-en="${v} mins before">${v} منٹ قبل</option>`).join("");
                 fixedColHtml = `<td data-label="طلوع سے پہلے"><div style="font-size:11px; margin-bottom:2px; color:#aaa;" class="lang-text" data-ur="جماعت (طلوع سے):" data-en="Jamaat (from Sunrise):">جماعت (طلوع سے):</div><select tabindex="0" id="cfg_fajr_jBefore" class="fixed-input-fajr" style="margin-bottom:5px;">${fjOpts.replace(`value="${conf.fajrJamaatBeforeSunrise || 30}"`, `value="${conf.fajrJamaatBeforeSunrise || 30}" selected`)}</select><div style="font-size:11px; margin-bottom:2px; color:#aaa;" class="lang-text" data-ur="اذان (جماعت سے):" data-en="Azan (from Jamaat):">اذان (جماعت سے):</div><select tabindex="0" id="cfg_fajr_aBefore" class="fixed-input-fajr">${faOpts.replace(`value="${conf.fajrAzanBeforeJamaat || 20}"`, `value="${conf.fajrAzanBeforeJamaat || 20}" selected`)}</select></td>`;
             } else {
-                fixedColHtml = `<td data-label="فکس وقت"><input tabindex="0" type="time" id="cfg_${key}_fixedTime" class="fixed-input-${key}" value="${conf.fixedTime || '13:30'}" style="margin-bottom:5px;"><select tabindex="0" id="cfg_${key}_fixedAzanGap" class="fixed-input-${key}">${gapOpts.replace(`value="${conf.fixedAzanGap || 15}"`, `value="${conf.fixedAzanGap || 15}" selected`)}</select></td>`;
+                fixedColHtml = `<td data-label="فکس وقت">` + '<input type="hidden" id="cfg_'+key+'_fixedTime" class="fixed-input-'+key+'" value="'+( conf.fixedTime||'13:30')+'">' + '<button type="button" tabindex="0" class="tv-time-btn" style="margin-bottom:5px;" ' + 'id="cfg_'+key+'_fixedTimeBtn" ' + 'onclick="tvPickerOpen(\'time\', document.getElementById(\'cfg_'+key+'_fixedTime\').value, \'Fixed Time\', ' + 'function(v){var inp=document.getElementById(\'cfg_'+key+'_fixedTime\');inp.value=v;document.getElementById(\'cfg_'+key+'_fixedTimeBtn\').textContent=v;}, null)">' + (conf.fixedTime||'13:30') + '</button>' + `<select tabindex="0" id="cfg_${key}_fixedAzanGap" class="fixed-input-${key}">${gapOpts.replace(`value="${conf.fixedAzanGap || 15}"`, `value="${conf.fixedAzanGap || 15}" selected`)}</select></td>`;
             }
 
             let tr = document.createElement("tr");
@@ -3807,7 +3871,20 @@
         let cToday = window.todayData.calc; let cTmrw = window.tomorrowData.calc;
         const updateRow = (idAzan, idJamaat, todayObj, tmrwObj) => { if (nowTotalMins >= todayObj.jamaatMins) { document.getElementById(idAzan).innerText = formatMinsTo12(tmrwObj.azanMins); document.getElementById(idJamaat).innerText = formatMinsTo12(tmrwObj.jamaatMins); } else { document.getElementById(idAzan).innerText = formatMinsTo12(todayObj.azanMins); document.getElementById(idJamaat).innerText = formatMinsTo12(todayObj.jamaatMins); } };
 
-        updateRow('fajrAzan', 'fajrJamaat', cToday.f, cTmrw.f); updateRow('zuharAzan', 'zuharJamaat', cToday.z, cTmrw.z); updateRow('asrAzan', 'asrJamaat', cToday.a, cTmrw.a); updateRow('magribAzan', 'magribJamaat', cToday.m, cTmrw.m); updateRow('ishaAzan', 'ishaJamaat', cToday.i, cTmrw.i);
+        updateRow('fajrAzan', 'fajrJamaat', cToday.f, cTmrw.f); updateRow('zuharAzan', 'zuharJamaat', cToday.z, cTmrw.z); updateRow('asrAzan', 'asrJamaat', cToday.a, cTmrw.a);
+
+        // A Choice: when enabled, Maghrib time only updates one day later.
+        // After today's Maghrib jamaat has passed, keep showing today's Maghrib time
+        // (not tomorrow's). It will show tomorrow's only once tomorrow's data becomes today's.
+        if (currentConfig.general.maghribDelayChoice === 'yes') {
+            // Always show today's Maghrib time regardless of whether jamaat has passed
+            document.getElementById('magribAzan').innerText  = formatMinsTo12(cToday.m.azanMins);
+            document.getElementById('magribJamaat').innerText = formatMinsTo12(cToday.m.jamaatMins);
+        } else {
+            updateRow('magribAzan', 'magribJamaat', cToday.m, cTmrw.m);
+        }
+
+        updateRow('ishaAzan', 'ishaJamaat', cToday.i, cTmrw.i);
 
         // Stash jumuah-1 calc object — the slider reads from this, NOT from
         // the DOM elements (jumuahAzan / jumuahJamaat) which the slider itself owns.
@@ -4687,7 +4764,13 @@ const rangeEnd = document.getElementById('rangeEnd');
         document.addEventListener('DOMContentLoaded', tick);
     })();
 
-    window.onload = function() { initSettingsForm(); fetchDailyTimes(); setInterval(updateLiveClock, 1000); requestWakeLock(); };
+    window.onload = function() {
+        var _onloadMode = new URLSearchParams(window.location.search).get('mode') || 'tv';
+        // Admin: defer initSettingsForm until Firebase has loaded the mosque's real config.
+        // Calling it here would populate the panel with defaultConfig/localStorage values.
+        if (_onloadMode !== 'admin') initSettingsForm();
+        fetchDailyTimes(); setInterval(updateLiveClock, 1000); requestWakeLock();
+    };
 </script>
 
 <script>
@@ -5069,10 +5152,12 @@ const rangeEnd = document.getElementById('rangeEnd');
             else self._focusTriggerSafely();
           } else if (e.key === 'Enter' || e.key === ' ' || e.key === 'OK') {
             e.preventDefault();
+            e.stopPropagation(); // prevent key event from bubbling to trigger and re-opening
             self._select(idx);
             self._focusTriggerSafely();
           } else if (e.key === 'Escape') {
             e.preventDefault();
+            e.stopPropagation(); // prevent key event from bubbling to trigger
             self._close();
             self._focusTriggerSafely();
           }
@@ -5133,9 +5218,13 @@ const rangeEnd = document.getElementById('rangeEnd');
     this.sel.selectedIndex = idx;
     this._updateLabel();
     this._close();
-    var ev = document.createEvent('Event');
-    ev.initEvent('change', true, true);
-    this.sel.dispatchEvent(ev);
+    // Guard: prevent the trigger's keydown handler from immediately
+    // reopening the dropdown when Space/Enter fires _select then returns
+    // focus to the trigger (the same key event may bubble back to trigger).
+    this._justSelected = true;
+    var self = this;
+    setTimeout(function () { self._justSelected = false; }, 0);
+    this.sel.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
   };
 
   CDD.prototype._bindEvents = function () {
@@ -5143,6 +5232,7 @@ const rangeEnd = document.getElementById('rangeEnd');
 
     this.trigger.addEventListener('click', function (e) {
       e.stopPropagation();
+      if (self._justSelected) return; // swallow click that follows selection
       if (_active === self && _portal && _portal.classList.contains('cdd-open')) {
         self._close();
       } else {
@@ -5155,15 +5245,19 @@ const rangeEnd = document.getElementById('rangeEnd');
       var isOpen = _active === self && _portal && _portal.classList.contains('cdd-open');
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
+        // Guard: swallow if focus just returned here after selection —
+        // the same key event bubbled back before _justSelected cleared.
+        if (self._justSelected) return;
         if (isOpen) {
           var firstOpt = _portal.querySelector('.cdd-opt');
           if (firstOpt) firstOpt.focus({ preventScroll: true });
         } else {
           self._sync(); self._open();
-          setTimeout(function() {
-            var selOpt = _portal.querySelector('.cdd-sel') || _portal.querySelector('.cdd-opt');
-            if (selOpt) selOpt.focus({ preventScroll: true });
-          }, 30);
+          // Focus synchronously — no setTimeout race (same fix as index.html Bug 1).
+          // A setTimeout here allowed ArrowDown/Up to move focus to a different item
+          // before the timeout fired, then the timeout snapped it back to the wrong item.
+          var selOpt = _portal.querySelector('.cdd-sel') || _portal.querySelector('.cdd-opt');
+          if (selOpt) selOpt.focus({ preventScroll: true });
         }
       } else if (e.key === 'ArrowDown') {
         if (isOpen) {
@@ -5433,7 +5527,7 @@ const rangeEnd = document.getElementById('rangeEnd');
         }
 
         let savedData = localStorage.getItem("masjidConfig_tv40");
-        if (savedData && mode !== 'admin' && mode !== 'link_tv') {
+        if (savedData && mode !== 'admin' && mode !== 'link_tv' && mode !== 'musalli') {
             try {
                 if (typeof currentConfig === 'undefined') { window.currentConfig = {}; }
                 currentConfig = JSON.parse(savedData);
@@ -5753,13 +5847,22 @@ const rangeEnd = document.getElementById('rangeEnd');
                         if(typeof applyColorsToBoard === 'function') applyColorsToBoard();
                         if(typeof fetchDailyTimes === 'function') fetchDailyTimes();
 
+                        // Admin: initSettingsForm was intentionally skipped at window.onload so
+                        // the settings panel never shows stale localStorage/defaultConfig values.
+                        // Now that Firebase has delivered the real mosque config, populate it once.
+                        var _currentMode = new URLSearchParams(window.location.search).get('mode') || 'tv';
+                        if (_currentMode === 'admin' && !window._adminSettingsFormReady) {
+                            window._adminSettingsFormReady = true;
+                            if (typeof initSettingsForm === 'function') initSettingsForm();
+                        }
+
                         // Apply font sizes and clock scale to the TV board.
                         // These are CSS variables so they must always be applied when received
                         // from Firebase — regardless of data-no-hs (which only blocks hsSaveAll).
                         // musalli and admin modes are the only views where we skip these:
                         // musalli has no clock/sizes UI, and admin remote should never apply
                         // sizes to its own phone DOM — it only pushes them to the TV.
-                        var _currentMode = new URLSearchParams(window.location.search).get('mode') || 'tv';
+
                         if (_currentMode !== 'musalli' && _currentMode !== 'admin') {
                             if (currentConfig.general.urduFontSize) {
                                 document.documentElement.style.setProperty('--ur-size', currentConfig.general.urduFontSize + 'px');
@@ -5769,6 +5872,12 @@ const rangeEnd = document.getElementById('rangeEnd');
                             }
                             if (currentConfig.general.clockScale) {
                                 document.documentElement.style.setProperty('--clock-scale', currentConfig.general.clockScale / 100);
+                            }
+                            // Apply rotation — without this, a rotation change pushed from the
+                            // admin remote is stored in currentConfig but --rot never updates,
+                            // so linked TVs keep the old rotation until a page reload.
+                            if (currentConfig.general.rotation) {
+                                document.documentElement.style.setProperty('--rot', currentConfig.general.rotation);
                             }
                         }
 
@@ -5788,8 +5897,6 @@ const rangeEnd = document.getElementById('rangeEnd');
     });
 
     window.addEventListener('offline', function() {
-        // Admin mode always reads from Firebase — never fall back to localStorage
-        if (mode === 'admin') return;
         let savedData = localStorage.getItem("masjidConfig_tv40");
         if (savedData) {
             currentConfig = JSON.parse(savedData);
@@ -5832,7 +5939,7 @@ const rangeEnd = document.getElementById('rangeEnd');
         tr.className = "extra-eid-row";
         tr.innerHTML =
             '<td style="width:44px; padding:6px 8px;"><button type="button" tabindex="0" class="clear-btn" style="margin-left:0; width:100%; min-height:32px; padding:0;" onclick="this.closest(\'.extra-eid-row\').remove(); reindexEidRows();" title="Remove">✕</button></td>'
-            + '<td><input type="time" class="extra-eid-input" tabindex="0" value="' + (timeVal || "") + '"></td>'
+            + '<td>' + '<input type="hidden" class="extra-eid-input" value="' + (timeVal || '') + '">' + '<button type="button" tabindex="0" class="tv-time-btn" onclick="(function(btn){var inp=btn.previousElementSibling; tvPickerOpen(\'time\', inp.value, \'Eid Time\', function(v){inp.value=v;btn.textContent=v;}, null);})(this)">' + (timeVal || '⏰ Pick') + '</button>' + '</td>'
             + '<td class="extra-eid-lbl" style="color:rgba(86,208,232,0.7); font-size:11px; letter-spacing:1px; text-transform:uppercase; width:90px; text-align:left;">' + lbl + '</td>';
         container.appendChild(tr);
         var eid1lbl = document.getElementById("eid1Label");
@@ -5860,8 +5967,8 @@ const rangeEnd = document.getElementById('rangeEnd');
         tr.className = "extra-jum-row";
         tr.innerHTML =
             '<td style="width:44px; padding:6px 8px;"><button type="button" tabindex="0" class="clear-btn" style="margin-left:0; width:100%; min-height:32px; padding:0;" onclick="this.closest(\'.extra-jum-row\').remove(); reindexJumuahRows();" title="Remove">✕</button></td>'
-            + '<td><input type="time" class="extra-jum-azan" tabindex="0" value="' + (azanVal || "") + '"></td>'
-            + '<td><input type="time" class="extra-jum-jamaat" tabindex="0" value="' + (jamaatVal || "") + '"></td>'
+            + '<td>' + '<input type="hidden" class="extra-jum-azan" value="' + (azanVal || '') + '">' + '<button type="button" tabindex="0" class="tv-time-btn" onclick="(function(btn){var inp=btn.previousElementSibling; tvPickerOpen(\'time\', inp.value, \'Jumuah Azan\', function(v){inp.value=v;btn.textContent=v;}, null);})(this)">' + (azanVal || '⏰ Azan') + '</button>' + '</td>'
+            + '<td>' + '<input type="hidden" class="extra-jum-jamaat" value="' + (jamaatVal || '') + '">' + '<button type="button" tabindex="0" class="tv-time-btn" onclick="(function(btn){var inp=btn.previousElementSibling; tvPickerOpen(\'time\', inp.value, \'Jumuah Jamaat\', function(v){inp.value=v;btn.textContent=v;}, null);})(this)">' + (jamaatVal || '⏰ Jamaat') + '</button>' + '</td>'
             + '<td class="extra-jum-lbl" style="color:rgba(86,208,232,0.7); font-size:11px; letter-spacing:1px; text-transform:uppercase; width:90px; text-align:left;">' + lbl + '</td>';
         container.appendChild(tr);
         var thead = document.getElementById("jumuahTableHead");
@@ -5942,6 +6049,7 @@ const rangeEnd = document.getElementById('rangeEnd');
 
 
         currentConfig.general.showJumuah = document.getElementById("configShowJumuah").value;
+        currentConfig.general.maghribDelayChoice = document.getElementById("configMaghribDelayChoice").value;
 
         // Collect dynamic extra Eid rows
         var eidRows = document.querySelectorAll('#extraEidRows .extra-eid-input');
@@ -6008,8 +6116,15 @@ const rangeEnd = document.getElementById('rangeEnd');
         let mID = localStorage.getItem('mosque_id');
         if (mID && mID.startsWith('MSJ-')) {
             try {
+                // Strip manualDate before pushing to Firebase — it is a per-device
+                // debug override (lets the admin preview a specific date's prayer times)
+                // and must NOT propagate to linked TVs or musalli views, which should
+                // always show live times. We push a copy of general without manualDate.
+                const generalForFirebase = Object.assign({}, currentConfig.general);
+                delete generalForFirebase.manualDate;
+
                 firebase.database().ref('mosques/' + mID + '/settings').update({
-                    general: currentConfig.general || {},
+                    general: generalForFirebase,
                     location: currentConfig.location || {},
                     timings: currentConfig.timings || {},
                     advColors: currentConfig.advColors || {},
@@ -6044,7 +6159,7 @@ const rangeEnd = document.getElementById('rangeEnd');
                 { key: 'db_pr_hdr',         label: 'Prayer List Header Azan/Jamaat',labelUr: 'نماز لسٹ ہیڈر',                   css: '#db-prayer-col .db-col-hdr span' },
                 { key: 'db_pr_names',       label: 'Prayer List Namaaz Names',      labelUr: 'نماز کے نام',                     css: '#db-prayer-col .db-row-name .db-en, #db-prayer-col .db-row-name .db-ur' },
                 { key: 'db_pr_aj',          label: 'Prayer List Digits',            labelUr: 'نماز لسٹ اوقات',                  css: '#db-prayer-col .db-row-times .dbt' },
-                { key: 'db_rbox_text',      label: 'Right Boxes Text',              labelUr: 'دائیں بکسوں کی تحریر',            css: '.db-rbox-title-sm, .db-rbox-tmrw-name, .db-rbox-title, .db-slide-en, .db-slide-ur, .db-rbox-timeleft-ur', startEndOffset: true },
+                { key: 'db_rbox_text',      label: 'Right Boxes Text',              labelUr: 'دائیں بکسوں کی تحریر',            css: '.db-rbox-title-sm, .db-rbox-tmrw-name, .db-rbox-title, .db-rbox-lbl, .db-slide-en, .db-slide-ur, .db-rbox-timeleft-ur', startEndLabelOffset: true },
                 { key: 'db_rbox_digits',    label: 'Right Boxes Digits',            labelUr: 'دائیں بکسوں کے اوقات',            css: '.db-rbox-timeleft, .db-rbox-tmrw-time, .db-rbox-time, .db-slide-time' }
             ],
             dashboard2: [
@@ -6062,7 +6177,7 @@ const rangeEnd = document.getElementById('rangeEnd');
                 { key: 'db_pr_hdr',         label: 'Prayer List Header Azan/Jamaat',labelUr: 'نماز لسٹ ہیڈر',                   css: '#db-prayer-col .db-col-hdr span' },
                 { key: 'db_pr_names',       label: 'Prayer List Namaaz Names',      labelUr: 'نماز کے نام',                     css: '#db-prayer-col .db-row-name .db-en, #db-prayer-col .db-row-name .db-ur' },
                 { key: 'db_pr_aj',          label: 'Prayer List Digits',            labelUr: 'نماز لسٹ اوقات',                  css: '#db-prayer-col .db-row-times .dbt' },
-                { key: 'db_rbox_text',      label: 'Left Boxes Text',              labelUr: 'بائیں بکسوں کی تحریر',            css: '.db-rbox-title-sm, .db-rbox-tmrw-name, .db-rbox-title, .db-slide-en, .db-slide-ur, .db-rbox-timeleft-ur', startEndOffset: true },
+                { key: 'db_rbox_text',      label: 'Left Boxes Text',              labelUr: 'بائیں بکسوں کی تحریر',            css: '.db-rbox-title-sm, .db-rbox-tmrw-name, .db-rbox-title, .db-rbox-lbl, .db-slide-en, .db-slide-ur, .db-rbox-timeleft-ur', startEndLabelOffset: true },
                 { key: 'db_rbox_digits',    label: 'Left Boxes Digits',            labelUr: 'بائیں بکسوں کے اوقات',            css: '.db-rbox-timeleft, .db-rbox-tmrw-time, .db-rbox-time, .db-slide-time' }
             ],
             all: [
@@ -6079,7 +6194,7 @@ const rangeEnd = document.getElementById('rangeEnd');
                 { key: 'al_timeleft',       label: 'Jamaat Time Left',              labelUr: 'جماعت تک وقت',                    css: '.jamaat-countdown' },
                 { key: 'al_day',            label: 'Main Clock Day',                labelUr: 'دن کا نام',                       css: '#dayName' },
                 { key: 'al_loctemp',        label: 'Main Clock Temp/Place',         labelUr: 'درجہ حرارت / جگہ',                css: '.location-temp-row' },
-                { key: 'al_start_end_text', label: 'Start/End Text',                labelUr: 'شروع/ختم تحریر',                  css: '#lblStart, #lblEnd, #rangePrayerName' },
+                { key: 'al_start_end_text', label: 'Start/End Text',                labelUr: 'شروع/ختم تحریر',                  css: '#lblStart, #lblEnd, #rangePrayerName', startEndLabelOffset: true },
                 { key: 'al_start_end_digit',label: 'Start/End Digit',               labelUr: 'شروع/ختم اوقات',                  css: '#rangeStart, #rangeEnd' },
                 { key: 'al_start_end_pr',   label: 'Start/End Namaaz Name',         labelUr: 'شروع/ختم نماز نام',               css: '#rangePrayerName' },
                 { key: 'al_pr_hdr',         label: 'Prayer List Header Azan/Jamaat',labelUr: 'نماز لسٹ ہیڈر',                   css: '.prayer-list-header .lbl-col' },
@@ -6105,7 +6220,7 @@ const rangeEnd = document.getElementById('rangeEnd');
                 { key: 'lf_left_digits',    label: 'Left Side Digits',              labelUr: 'بائیں جانب اوقات',                css: '.shared-time' }
             ],
             right: [
-                { key: 'rt_start_end_text', label: 'Start/End Text',                labelUr: 'شروع/ختم تحریر',                  css: '#lblStart, #lblEnd, #rangePrayerName' },
+                { key: 'rt_start_end_text', label: 'Start/End Text',                labelUr: 'شروع/ختم تحریر',                  css: '#lblStart, #lblEnd, #rangePrayerName', startEndLabelOffset: true },
                 { key: 'rt_start_end_digit',label: 'Start/End Digit',               labelUr: 'شروع/ختم اوقات',                  css: '#rangeStart, #rangeEnd' },
                 { key: 'rt_start_end_pr',   label: 'Start/End Namaaz Name',         labelUr: 'شروع/ختم نماز نام',               css: '#rangePrayerName' },
                 { key: 'al_pr_hdr',         label: 'Prayer List Header Azan/Jamaat',labelUr: 'نماز لسٹ ہیڈر',                   css: '.prayer-list-header .lbl-col' },
@@ -6191,18 +6306,12 @@ const rangeEnd = document.getElementById('rangeEnd');
                 selector = selector.trim();
                 try {
                     document.querySelectorAll(selector).forEach(function(el) {
-                        el.style.fontSize = px + 'px';
+                        // #lblStart and #lblEnd are 10px smaller than the shared size
+                        var isLabel = (el.id === 'lblStart' || el.id === 'lblEnd' || el.id === 'db-lblStart' || el.id === 'db-lblEnd');
+                        el.style.fontSize = (entry.startEndLabelOffset && isLabel ? Math.max(1, px - 10) : px) + 'px';
                     });
                 } catch(e) {}
             });
-            // START/END labels (.db-rbox-lbl) always 5px smaller than the box text size
-            if (entry.startEndOffset) {
-                try {
-                    document.querySelectorAll('.db-rbox-lbl').forEach(function(el) {
-                        el.style.fontSize = Math.max(1, px - 5) + 'px';
-                    });
-                } catch(e) {}
-            }
         }
 
         function hsSaveElementSize() {
@@ -6269,18 +6378,12 @@ const rangeEnd = document.getElementById('rangeEnd');
                     selector = selector.trim();
                     try {
                         document.querySelectorAll(selector).forEach(function(el) {
-                            el.style.fontSize = px + 'px';
+                            // #lblStart and #lblEnd are 10px smaller than the shared size
+                            var isLabel = (el.id === 'lblStart' || el.id === 'lblEnd' || el.id === 'db-lblStart' || el.id === 'db-lblEnd');
+                            el.style.fontSize = (entry.startEndLabelOffset && isLabel ? Math.max(1, px - 10) : px) + 'px';
                         });
                     } catch(e) {}
                 });
-                // START/END labels (.db-rbox-lbl) always 5px smaller than the box text size
-                if (entry.startEndOffset) {
-                    try {
-                        document.querySelectorAll('.db-rbox-lbl').forEach(function(el) {
-                            el.style.fontSize = Math.max(1, px - 10) + 'px';
-                        });
-                    } catch(e) {}
-                }
             });
         }
 
@@ -7051,6 +7154,464 @@ const rangeEnd = document.getElementById('rangeEnd');
         <div id="prr-en" style="font-family:'Rajdhani',sans-serif; font-size:14px; color:#8899aa; direction:ltr;"></div>
     </div>
 </div>
+
+
+<!-- ══════════  TV-REMOTE PICKER  ══════════ -->
+<style>
+/* ── Overlay ── */
+#tvPickerOverlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.88);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  z-index:99999; align-items:center; justify-content:center;
+  direction:rtl;
+}
+#tvPickerOverlay.active { display:flex; }
+
+/* ── Box – matches .modal-content ── */
+#tvPickerBox {
+  background:linear-gradient(160deg,#07101f 0%,#04090f 100%);
+  border:1px solid rgba(86,208,232,0.18);
+  border-radius:16px;
+  width:92vw; max-width:400px;
+  color:#fff;
+  box-shadow:0 32px 80px rgba(0,0,0,0.9),0 0 0 1px rgba(86,208,232,0.06),inset 0 1px 0 rgba(86,208,232,0.1);
+  overflow:hidden;
+  font-family:'Rajdhani',sans-serif;
+  direction:ltr; /* inner content stays LTR for numbers */
+}
+
+/* ── Header – gold like .modal-header ── */
+#tvPickerHeader {
+  padding:14px 20px 12px;
+  border-bottom:1px solid rgba(240,192,64,0.25);
+  background:linear-gradient(90deg,rgba(240,192,64,0.1),rgba(240,192,64,0.04) 60%,transparent);
+}
+#tvPickerHeader .tvph-label {
+  font-size:11px; letter-spacing:2px; text-transform:uppercase;
+  color:rgba(240,192,64,0.65); margin-bottom:4px;
+}
+#tvPickerHeader .tvph-value {
+  font-size:36px; font-weight:700; letter-spacing:3px;
+  color:#f0c040; text-shadow:0 0 20px rgba(240,192,64,0.4); line-height:1;
+}
+
+/* ── Body ── */
+#tvPickerBody { padding:18px 20px 14px; }
+
+/* ── Segment row ── */
+.tvp-segments {
+  display:flex; align-items:center; justify-content:center;
+  gap:6px; margin-bottom:14px;
+}
+.tvp-seg { display:flex; flex-direction:column; align-items:center; gap:3px; }
+
+.tvp-seg .tvp-arrow {
+  background:rgba(86,208,232,0.07);
+  border:1px solid rgba(86,208,232,0.2);
+  border-radius:7px;
+  color:rgba(86,208,232,0.7);
+  font-size:16px; width:52px; height:30px;
+  cursor:pointer; transition:all .15s;
+  display:flex; align-items:center; justify-content:center;
+}
+.tvp-seg .tvp-arrow:focus,
+.tvp-seg .tvp-arrow:hover {
+  background:rgba(86,208,232,0.18);
+  border-color:rgba(86,208,232,0.6);
+  color:#56d0e8;
+  outline:none;
+}
+
+.tvp-seg .tvp-val {
+  font-size:30px; font-weight:700; color:#ddeeff;
+  background:rgba(255,255,255,0.05);
+  border:2px solid rgba(86,208,232,0.15);
+  border-radius:8px;
+  width:64px; height:48px;
+  display:flex; align-items:center; justify-content:center;
+  transition:border-color .15s, background .15s;
+  letter-spacing:1px;
+}
+.tvp-seg .tvp-val.focused {
+  border-color:rgba(86,208,232,0.7);
+  background:rgba(86,208,232,0.1);
+  color:#56d0e8;
+  box-shadow:0 0 0 3px rgba(86,208,232,0.12);
+}
+
+.tvp-sep { font-size:26px; color:rgba(86,208,232,0.4); padding-bottom:14px; }
+
+/* ── AM/PM ── */
+.tvp-ampm { display:flex; gap:8px; justify-content:center; margin-bottom:14px; }
+.tvp-ampm button {
+  padding:7px 20px; border-radius:7px;
+  border:1px solid rgba(86,208,232,0.2);
+  background:rgba(255,255,255,0.03); color:rgba(170,200,220,0.6);
+  font-size:14px; font-weight:700; letter-spacing:1px;
+  cursor:pointer; transition:all .15s;
+  font-family:'Rajdhani',sans-serif;
+}
+.tvp-ampm button.selected {
+  background:rgba(86,208,232,0.15);
+  border-color:rgba(86,208,232,0.6);
+  color:#56d0e8;
+  box-shadow:0 0 0 2px rgba(86,208,232,0.1);
+}
+.tvp-ampm button:focus {
+  outline:none;
+  border-color:rgba(86,208,232,0.8);
+  box-shadow:0 0 0 3px rgba(86,208,232,0.15);
+}
+
+/* ── Nav hint ── */
+.tvp-hint {
+  text-align:center; font-size:10px; letter-spacing:1px;
+  color:rgba(86,208,232,0.3); margin-bottom:12px; text-transform:uppercase;
+}
+
+/* ── Footer ── */
+.tvp-footer {
+  display:flex; justify-content:flex-end; gap:8px;
+  padding-top:12px;
+  border-top:1px solid rgba(255,255,255,0.07);
+}
+.tvp-footer button {
+  padding:8px 18px; border-radius:7px;
+  font-size:13px; font-weight:700; letter-spacing:.8px;
+  cursor:pointer; border:1px solid transparent;
+  transition:all .15s; font-family:'Rajdhani',sans-serif;
+}
+.tvp-footer .tvp-clear {
+  background:transparent;
+  border-color:rgba(240,85,85,0.35); color:rgba(240,85,85,0.7);
+  margin-right:auto;
+}
+.tvp-footer .tvp-clear:focus,
+.tvp-footer .tvp-clear:hover {
+  background:rgba(240,85,85,0.12); border-color:rgba(240,85,85,0.7); color:#f05555;
+  outline:none; box-shadow:0 0 0 3px rgba(240,85,85,0.12);
+}
+.tvp-footer .tvp-cancel {
+  background:rgba(255,255,255,0.04);
+  border-color:rgba(255,255,255,0.12); color:rgba(200,220,240,0.6);
+}
+.tvp-footer .tvp-cancel:focus,
+.tvp-footer .tvp-cancel:hover {
+  background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.3); color:#fff;
+  outline:none; box-shadow:0 0 0 3px rgba(255,255,255,0.07);
+}
+.tvp-footer .tvp-set {
+  background:rgba(86,208,232,0.15);
+  border-color:rgba(86,208,232,0.5); color:#56d0e8;
+}
+.tvp-footer .tvp-set:focus,
+.tvp-footer .tvp-set:hover {
+  background:rgba(86,208,232,0.28); border-color:#56d0e8; color:#fff;
+  outline:none; box-shadow:0 0 0 3px rgba(86,208,232,0.15);
+}
+
+/* ── Trigger buttons (inline replacements) ── */
+button.tv-time-btn, button.tv-date-btn {
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(86,208,232,0.2);
+  border-radius:7px;
+  color:#ddeeff;
+  padding:7px 12px;
+  font-size:13px;
+  font-family:'Rajdhani',sans-serif;
+  min-height:32px; min-width:88px;
+  cursor:pointer; letter-spacing:.5px;
+  text-align:center; transition:all .15s;
+  width:calc(100% - 24px);
+  margin-left:12px; margin-right:12px;
+}
+button.tv-time-btn:focus, button.tv-date-btn:focus,
+button.tv-time-btn:hover, button.tv-date-btn:hover {
+  border-color:rgba(86,208,232,0.6);
+  background:rgba(86,208,232,0.1);
+  color:#56d0e8; outline:none;
+  box-shadow:0 0 0 3px rgba(86,208,232,0.1);
+}
+</style>
+
+<div id="tvPickerOverlay" role="dialog" aria-modal="true" aria-labelledby="tvPickerLabel">
+  <div id="tvPickerBox">
+    <div id="tvPickerHeader">
+      <div class="tvph-label" id="tvPickerLabel">Set Time</div>
+      <div class="tvph-value" id="tvPickerDisplay">--:--</div>
+    </div>
+    <div id="tvPickerBody">
+      <div class="tvp-segments" id="tvpSegments"></div>
+      <div class="tvp-ampm" id="tvpAmPm" style="display:none">
+        <button id="tvpAmBtn" tabindex="0" onclick="tvSetAmPm('AM')">AM</button>
+        <button id="tvpPmBtn" tabindex="0" onclick="tvSetAmPm('PM')">PM</button>
+      </div>
+      <div class="tvp-hint">↑↓ change &nbsp;·&nbsp; ←→ move</div>
+      <div class="tvp-footer">
+        <button class="tvp-clear"  tabindex="0" id="tvpClearBtn"  onclick="tvPickerClear()">CLEAR</button>
+        <button class="tvp-cancel" tabindex="0" id="tvpCancelBtn" onclick="tvPickerClose()">CANCEL</button>
+        <button class="tvp-set"    tabindex="0" id="tvpSetBtn"    onclick="tvPickerSet()">SET</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var _mode='time', _segs=[], _focusIdx=0, _focusDir='up', _ampm='AM', _cb=null, _clearCb=null, _opener=null;
+  /* focusZone: 'segs'|'ampm'|'footer' */
+  var _zone='segs';
+
+  function pad(n){return String(n).padStart(2,'0');}
+  function clamp(v,mn,mx){return Math.max(mn,Math.min(mx,v));}
+
+  function segLimits(i){
+    if(_mode==='time') return i===0?[1,12]:[0,59];
+    if(i===0) return [1,31];
+    if(i===1) return [1,12];
+    return [2000,2099];
+  }
+
+  function renderDisplay(){
+    var s;
+    if(_mode==='time'){
+      s=pad(_segs[0])+':'+pad(_segs[1])+' '+_ampm;
+    } else {
+      var mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      s=pad(_segs[0])+' '+mo[_segs[1]-1]+' '+_segs[2];
+    }
+    document.getElementById('tvPickerDisplay').textContent=s;
+  }
+
+  function renderSegments(){
+    var box=document.getElementById('tvpSegments');
+    box.innerHTML='';
+    _segs.forEach(function(val,i){
+      var seg=document.createElement('div'); seg.className='tvp-seg';
+
+      var up=document.createElement('button');
+      up.className='tvp-arrow'; up.textContent='▲'; up.tabIndex=0;
+      up.dataset.seg=i; up.dataset.dir='up';
+
+      var vd=document.createElement('div');
+      vd.className='tvp-val'+(_focusIdx===i&&_zone==='segs'?' focused':'');
+      vd.textContent=(_mode==='time'||i<2)?pad(val):val;
+
+      var dn=document.createElement('button');
+      dn.className='tvp-arrow'; dn.textContent='▼'; dn.tabIndex=0;
+      dn.dataset.seg=i; dn.dataset.dir='dn';
+
+      seg.appendChild(up); seg.appendChild(vd); seg.appendChild(dn);
+      box.appendChild(seg);
+
+      if((_mode==='time'&&i===0)||(_mode==='date'&&i<2)){
+        var sp=document.createElement('div'); sp.className='tvp-sep';
+        sp.textContent='/';
+        if(_mode==='time') sp.textContent=':';
+        box.appendChild(sp);
+      }
+    });
+  }
+
+  function focusSegBtn(){
+    var btns=document.querySelectorAll(
+      '#tvpSegments .tvp-arrow[data-dir="'+_focusDir+'"]');
+    if(btns[_focusIdx]) _tvFocus(btns[_focusIdx]);
+  }
+
+  /* Lightweight update: only touch text + focused class, no DOM rebuild */
+  function patchSegments(){
+    var vals = document.querySelectorAll('#tvpSegments .tvp-val');
+    _segs.forEach(function(v,i){
+      if(vals[i])   vals[i].textContent = (_mode==='time'||i<2) ? pad(v) : v;
+      if(vals[i])   vals[i].classList.toggle('focused', i===_focusIdx && _zone==='segs');
+    });
+  }
+
+  function focusSeg(i){
+    _focusIdx=clamp(i,0,_segs.length-1);
+    _focusDir='up';
+    _zone='segs';
+    patchSegments(); renderDisplay();
+    focusSegBtn();
+  }
+
+  function changeSeg(i,delta){
+    var lim=segLimits(i);
+    _segs[i]+=delta;
+    if(_segs[i]>lim[1]) _segs[i]=lim[0];
+    if(_segs[i]<lim[0]) _segs[i]=lim[1];
+    _focusDir = delta>0 ? 'up' : 'dn';
+    patchSegments(); renderDisplay();
+    focusSegBtn();
+  }
+
+  /* ── click on ▲▼ buttons ── */
+  document.getElementById('tvpSegments').addEventListener('click',function(e){
+    var btn=e.target.closest('.tvp-arrow');
+    if(!btn) return;
+    var i=+btn.dataset.seg, dir=btn.dataset.dir;
+    _focusIdx=i; _zone='segs';
+    changeSeg(i,dir==='up'?1:-1);
+  });
+
+  /* ── keyboard handler – capture at document level so nothing else gets keys ── */
+  function _tvKeyHandler(e){
+    if(!document.getElementById('tvPickerOverlay').classList.contains('active')) return;
+    e.stopPropagation(); /* always block background panel */
+
+    var k=e.key;
+    var hasAmPm=document.getElementById('tvpAmPm').style.display!=='none';
+
+    if(_zone==='segs'){
+      if(k==='ArrowUp'){        e.preventDefault(); changeSeg(_focusIdx, 1); }
+      else if(k==='ArrowDown'){ e.preventDefault(); changeSeg(_focusIdx,-1); }
+      /* RIGHT = move to next segment (DD→MM→YYYY or H→M) */
+      else if(k==='ArrowRight'){ e.preventDefault();
+        if(_focusIdx < _segs.length-1) focusSeg(_focusIdx+1);
+        else { _zone = hasAmPm ? 'ampm' : 'footer'; enterZone(); }
+      }
+      /* LEFT = move to previous segment */
+      else if(k==='ArrowLeft'){ e.preventDefault();
+        if(_focusIdx > 0) focusSeg(_focusIdx-1);
+      }
+      else if(k==='Tab'){  e.preventDefault(); _zone = hasAmPm ? 'ampm' : 'footer'; enterZone(); }
+      /* Enter = confirm/SET; Space = increment segment only (does NOT close) */
+      else if(k==='Enter'){  e.preventDefault(); tvPickerSet(); }
+      else if(k===' '){      e.preventDefault(); var _fb=document.activeElement; if(_fb&&_fb.dataset&&_fb.dataset.dir) _fb.click(); }
+      else if(k==='Escape'){ e.preventDefault(); tvPickerClose(); }
+    }
+    else if(_zone==='ampm'){
+      if(k==='ArrowLeft'||k==='ArrowRight'){ e.preventDefault(); tvSetAmPm(_ampm==='AM'?'PM':'AM'); }
+      else if(k==='ArrowUp'){   e.preventDefault(); _zone='segs';   enterZone(); }
+      else if(k==='ArrowDown'){ e.preventDefault(); _zone='footer'; enterZone(); }
+      else if(k==='Tab'){       e.preventDefault(); _zone='footer'; enterZone(); }
+      else if(k==='Enter'||k===' '){ e.preventDefault(); tvSetAmPm(_ampm==='AM'?'PM':'AM'); }
+      else if(k==='Escape'){    e.preventDefault(); tvPickerClose(); }
+    }
+    else if(_zone==='footer'){
+      if(k==='ArrowUp'){ e.preventDefault(); _zone = hasAmPm ? 'ampm' : 'segs'; enterZone(); }
+      /* RIGHT moves focus right: CLEAR → CANCEL → SET */
+      else if(k==='ArrowRight'){ e.preventDefault();
+        var ord=['tvpClearBtn','tvpCancelBtn','tvpSetBtn'], ci=ord.indexOf(document.activeElement&&document.activeElement.id);
+        _tvFocus(document.getElementById(ord[Math.min(ci+1, ord.length-1)]));
+      }
+      /* LEFT moves focus left: SET → CANCEL → CLEAR */
+      else if(k==='ArrowLeft'){ e.preventDefault();
+        var ord=['tvpClearBtn','tvpCancelBtn','tvpSetBtn'], ci=ord.indexOf(document.activeElement&&document.activeElement.id);
+        _tvFocus(document.getElementById(ord[Math.max(ci-1, 0)]));
+      }
+      else if(k==='Enter'||k===' '){ e.preventDefault(); var el=document.activeElement; if(el) el.click(); }
+      else if(k==='Escape'){ e.preventDefault(); tvPickerClose(); }
+    }
+  }
+  document.addEventListener('keydown', _tvKeyHandler, true);
+
+  function _tvFocus(el){
+    if(el) el.focus({preventScroll:true});
+  }
+
+  function enterZone(){
+    if(_zone==='ampm'){
+      patchSegments(); /* clear any segment highlight when leaving segs zone */
+      var btn=_ampm==='AM'?document.getElementById('tvpAmBtn'):document.getElementById('tvpPmBtn');
+      _tvFocus(btn);
+    } else if(_zone==='footer'){
+      patchSegments(); /* clear any segment highlight when leaving segs zone */
+      _tvFocus(document.getElementById('tvpSetBtn'));
+    } else {
+      patchSegments(); focusSegBtn();
+    }
+  }
+
+  /* ── AM/PM ── */
+  window.tvSetAmPm=function(v){
+    _ampm=v;
+    document.getElementById('tvpAmBtn').classList.toggle('selected',v==='AM');
+    document.getElementById('tvpPmBtn').classList.toggle('selected',v==='PM');
+    renderDisplay();
+  };
+
+  /* ── open ── */
+  window.tvPickerOpen=function(mode,currentVal,label,setCb,clearCb){
+    _mode=mode; _cb=setCb; _clearCb=clearCb||null; _focusIdx=0; _zone='segs'; _focusDir='up'; _opener=document.activeElement||null;
+    document.getElementById('tvPickerLabel').textContent=label||'Set';
+    var apRow=document.getElementById('tvpAmPm');
+    apRow.style.display=mode==='time'?'flex':'none';
+
+    if(mode==='time'){
+      var h=12,m=0;
+      if(currentVal&&currentVal.length>=4){
+        var p=currentVal.split(':'); h=+p[0]||12; m=+p[1]||0;
+      }
+      _ampm=h>=12?'PM':'AM';
+      _segs=[h%12||12, m];
+      tvSetAmPm(_ampm);
+    } else {
+      var now=new Date();
+      var dd=now.getDate(),mm=now.getMonth()+1,yy=now.getFullYear();
+      if(currentVal&&currentVal.length===10){
+        var p=currentVal.split('-'); yy=+p[0]; mm=+p[1]; dd=+p[2];
+      }
+      _segs=[dd,mm,yy];
+    }
+    renderSegments(); renderDisplay();
+    document.getElementById('tvPickerOverlay').classList.add('active');
+    /* Freeze the settings scroll container so no focus event can move it */
+    var _sb = document.getElementById('modalScrollBody');
+    if(_sb){
+      _sb._tvSavedScroll = _sb.scrollTop;
+      _sb._tvSavedOverflow = _sb.style.overflow;
+      _sb.style.overflow = 'hidden';
+    }
+    var bg=document.getElementById('settingsModal');
+    if(bg) bg.setAttribute('inert','');
+    setTimeout(function(){ focusSegBtn(); }, 60);
+  };
+
+  /* ── set ── */
+  window.tvPickerSet=function(){
+    var val;
+    if(_mode==='time'){
+      var h24=_segs[0]%12+(_ampm==='PM'?12:0);
+      val=pad(h24)+':'+pad(_segs[1]);
+    } else {
+      val=_segs[2]+'-'+pad(_segs[1])+'-'+pad(_segs[0]);
+    }
+    if(_cb) _cb(val);
+    tvPickerClose();
+  };
+
+  /* ── clear ── */
+  window.tvPickerClear=function(){
+    if(_clearCb) _clearCb();
+    tvPickerClose();
+  };
+
+  /* ── close ── */
+  window.tvPickerClose=function(){
+    document.getElementById('tvPickerOverlay').classList.remove('active');
+    var bg=document.getElementById('settingsModal');
+    if(bg) bg.removeAttribute('inert');
+    /* Unfreeze scroll and restore exact position */
+    var _sb = document.getElementById('modalScrollBody');
+    if(_sb){
+      var saved = _sb._tvSavedScroll || 0;
+      _sb.style.overflow = _sb._tvSavedOverflow || '';
+      _sb.scrollTop = saved;
+    }
+    if(_opener) _opener.focus({preventScroll:true});
+    _cb=null; _clearCb=null; _opener=null;
+  };
+
+  /* click outside closes */
+  document.getElementById('tvPickerOverlay').addEventListener('click',function(e){
+    if(e.target===this) tvPickerClose();
+  });
+})();
+</script>
+<!-- ══════════  END TV PICKER  ══════════ -->
 
 </body>
 </html>
