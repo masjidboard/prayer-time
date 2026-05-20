@@ -7232,6 +7232,26 @@ const rangeEnd = document.getElementById('rangeEnd');
   display:flex; align-items:center; justify-content:center;
   transition:border-color .15s, background .15s;
   letter-spacing:1px;
+  overflow:hidden;
+}
+@keyframes tvpDigitUp {
+  0%   { opacity:0; transform:translateY(40%); }
+  100% { opacity:1; transform:translateY(0); }
+}
+@keyframes tvpDigitDown {
+  0%   { opacity:0; transform:translateY(-40%); }
+  100% { opacity:1; transform:translateY(0); }
+}
+.tvp-seg .tvp-val.anim-up   { animation: tvpDigitUp   0.12s cubic-bezier(0.22,1,0.36,1) both; }
+.tvp-seg .tvp-val.anim-down { animation: tvpDigitDown 0.12s cubic-bezier(0.22,1,0.36,1) both; }
+/* Year segment needs room for 4 digits */
+.tvp-seg.tvp-seg-year .tvp-val {
+  width:84px;
+  font-size:26px;
+  letter-spacing:0;
+}
+.tvp-seg.tvp-seg-year .tvp-arrow {
+  width:84px;
 }
 .tvp-seg .tvp-val.focused {
   border-color:rgba(86,208,232,0.7);
@@ -7388,7 +7408,9 @@ button.tv-time-btn:hover, button.tv-date-btn:hover {
     var box=document.getElementById('tvpSegments');
     box.innerHTML='';
     _segs.forEach(function(val,i){
-      var seg=document.createElement('div'); seg.className='tvp-seg';
+      var isYear = (_mode==='date' && i===2);
+      var seg=document.createElement('div');
+      seg.className='tvp-seg' + (isYear ? ' tvp-seg-year' : '');
 
       var up=document.createElement('button');
       up.className='tvp-arrow'; up.textContent='▲'; up.tabIndex=0;
@@ -7424,8 +7446,16 @@ button.tv-time-btn:hover, button.tv-date-btn:hover {
   function patchSegments(){
     var vals = document.querySelectorAll('#tvpSegments .tvp-val');
     _segs.forEach(function(v,i){
-      if(vals[i])   vals[i].textContent = (_mode==='time'||i<2) ? pad(v) : v;
-      if(vals[i])   vals[i].classList.toggle('focused', i===_focusIdx && _zone==='segs');
+      if(!vals[i]) return;
+      var newText = (_mode==='time'||i<2) ? pad(v) : String(v);
+      if(vals[i].textContent !== newText){
+        /* restart animation by removing both classes, forcing reflow, re-adding */
+        vals[i].classList.remove('anim-up','anim-down');
+        void vals[i].offsetWidth; /* reflow */
+        vals[i].textContent = newText;
+        vals[i].classList.add(_focusDir === 'up' ? 'anim-up' : 'anim-down');
+      }
+      vals[i].classList.toggle('focused', i===_focusIdx && _zone==='segs');
     });
   }
 
@@ -7447,16 +7477,80 @@ button.tv-time-btn:hover, button.tv-date-btn:hover {
     focusSegBtn();
   }
 
-  /* ── click on ▲▼ buttons ── */
+  /* ── Continuous repeat while holding ▲▼ buttons (touch & mouse) ── */
+  var _holdTimer = null;
+  var _holdInterval = null;
+  var _HOLD_DELAY = 350;   /* ms before repeat starts */
+  var _HOLD_RATE  = 150;   /* ms between repeats once started */
+
+  function _startHold(segIdx, delta) {
+    _stopHold();
+    changeSeg(segIdx, delta);                 /* immediate first step */
+    _holdTimer = setTimeout(function() {
+      _holdInterval = setInterval(function() {
+        changeSeg(segIdx, delta);
+      }, _HOLD_RATE);
+    }, _HOLD_DELAY);
+  }
+
+  function _stopHold() {
+    clearTimeout(_holdTimer);  _holdTimer = null;
+    clearInterval(_holdInterval); _holdInterval = null;
+  }
+
+  document.getElementById('tvpSegments').addEventListener('pointerdown', function(e) {
+    var btn = e.target.closest('.tvp-arrow');
+    if (!btn) return;
+    e.preventDefault();           /* stop touch from also firing click */
+    var i = +btn.dataset.seg, dir = btn.dataset.dir;
+    _focusIdx = i; _zone = 'segs';
+    _startHold(i, dir === 'up' ? 1 : -1);
+  });
+
+  /* stop on pointer up / cancel / leaving the button */
+  document.addEventListener('pointerup',     _stopHold);
+  document.addEventListener('pointercancel', _stopHold);
+
+  /* ── click on ▲▼ buttons (fallback for non-pointer events) ── */
   document.getElementById('tvpSegments').addEventListener('click',function(e){
+    /* pointerdown already handled it with repeat; only act if no hold ran */
     var btn=e.target.closest('.tvp-arrow');
-    if(!btn) return;
+    if(!btn || _holdTimer !== null || _holdInterval !== null) return;
     var i=+btn.dataset.seg, dir=btn.dataset.dir;
     _focusIdx=i; _zone='segs';
     changeSeg(i,dir==='up'?1:-1);
   });
 
   /* ── keyboard handler – capture at document level so nothing else gets keys ── */
+  var _kbHoldTimer = null;
+  var _kbHoldInterval = null;
+  var _kbLastKey = null;
+
+  function _startKbHold(key) {
+    if (_kbLastKey === key) return;   /* already holding this key */
+    _stopKbHold();
+    _kbLastKey = key;
+    /* first step fires immediately in _tvKeyHandler; repeat starts after delay */
+    _kbHoldTimer = setTimeout(function() {
+      _kbHoldInterval = setInterval(function() {
+        if (_zone === 'segs') {
+          if (_kbLastKey === 'ArrowUp')   changeSeg(_focusIdx,  1);
+          if (_kbLastKey === 'ArrowDown') changeSeg(_focusIdx, -1);
+        }
+      }, _HOLD_RATE);
+    }, _HOLD_DELAY);
+  }
+
+  function _stopKbHold() {
+    clearTimeout(_kbHoldTimer);  _kbHoldTimer = null;
+    clearInterval(_kbHoldInterval); _kbHoldInterval = null;
+    _kbLastKey = null;
+  }
+
+  document.addEventListener('keyup', function(e) {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') _stopKbHold();
+  }, true);
+
   function _tvKeyHandler(e){
     if(!document.getElementById('tvPickerOverlay').classList.contains('active')) return;
     e.stopPropagation(); /* always block background panel */
@@ -7465,8 +7559,8 @@ button.tv-time-btn:hover, button.tv-date-btn:hover {
     var hasAmPm=document.getElementById('tvpAmPm').style.display!=='none';
 
     if(_zone==='segs'){
-      if(k==='ArrowUp'){        e.preventDefault(); changeSeg(_focusIdx, 1); }
-      else if(k==='ArrowDown'){ e.preventDefault(); changeSeg(_focusIdx,-1); }
+      if(k==='ArrowUp'){        e.preventDefault(); if(!e.repeat){ changeSeg(_focusIdx, 1); _startKbHold('ArrowUp'); } }
+      else if(k==='ArrowDown'){ e.preventDefault(); if(!e.repeat){ changeSeg(_focusIdx,-1); _startKbHold('ArrowDown'); } }
       /* RIGHT = move to next segment (DD→MM→YYYY or H→M) */
       else if(k==='ArrowRight'){ e.preventDefault();
         if(_focusIdx < _segs.length-1) focusSeg(_focusIdx+1);
@@ -7591,6 +7685,8 @@ button.tv-time-btn:hover, button.tv-date-btn:hover {
 
   /* ── close ── */
   window.tvPickerClose=function(){
+    _stopHold();
+    _stopKbHold();
     document.getElementById('tvPickerOverlay').classList.remove('active');
     var bg=document.getElementById('settingsModal');
     if(bg) bg.removeAttribute('inert');
