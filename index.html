@@ -252,14 +252,7 @@
 <head>
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
- <meta name="mobile-web-app-capable" content="yes">
- <meta name="apple-mobile-web-app-capable" content="yes">
- <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
- <meta name="apple-mobile-web-app-title" content="Prayer Time">
- <meta name="theme-color" content="#050a12">
- <link rel="manifest" href="manifest.json">
- <link rel="apple-touch-icon" href="icon-512.png">
- <title>Prayer Time</title>
+ <title>Start - Masjid Board</title>
  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
  <style>
@@ -2343,7 +2336,7 @@
   sessionStorage.setItem('link_tv_pin_verified', 'MSJ-' + m.id);
   localStorage.setItem('temp_force_layout', m.layout || 'auto');
   localStorage.setItem('is_linked_tv', 'true');
-  window.location.href = 'masjidbord.html?mode=link_tv&code=' + m.id;
+  window.location.href = 'masjidboard.html?mode=link_tv&code=' + m.id;
  } catch(e) {}
  }
 
@@ -2434,7 +2427,7 @@
  }
  } catch(e) { console.log("Storage error:", e); }
 
- window.location.href = "masjidbord.html?mode=tv&isMobile=" + isMobileDevice;
+ window.location.href = "masjidboard.html?mode=tv&isMobile=" + isMobileDevice;
  }
 
  function showInput(mode) {
@@ -2785,14 +2778,14 @@
  let list = JSON.parse(localStorage.getItem(_storageKey[mode])) || [];
  let m = list[index];
  if (mode === 'musalli') {
- window.location.href = "masjidbord.html?mode=musalli&code=" + m.id;
+ window.location.href = "masjidboard.html?mode=musalli&code=" + m.id;
  } else if (mode === 'link_tv') {
  // Saved entry — go directly, no PIN needed (already verified when first linked)
  const mosqueID = "MSJ-" + m.id;
  sessionStorage.setItem('link_tv_pin_verified', mosqueID);
  localStorage.setItem('temp_force_layout', m.layout || 'auto');
  localStorage.setItem('is_linked_tv', 'true');
- window.location.href = "masjidbord.html?mode=link_tv&code=" + m.id;
+ window.location.href = "masjidboard.html?mode=link_tv&code=" + m.id;
  } else if (mode === 'admin') {
  const mosqueID = "MSJ-" + m.id;
  if (m.pin) {
@@ -2812,7 +2805,7 @@
        localStorage.setItem('mosque_id', mosqueID);
        localStorage.setItem('is_linked_tv', 'false');
        sessionStorage.setItem('admin_pin_verified', mosqueID);
-       window.location.href = "masjidbord.html?mode=admin&code=" + m.id;
+       window.location.href = "masjidboard.html?mode=admin&code=" + m.id;
      } else {
        // PIN was changed on the board — clear the stale stored PIN, alert
        // the user, then show the PIN entry UI so they can enter the new PIN.
@@ -2973,7 +2966,7 @@
 
  if (selectedMode === 'admin') {
  // Verify mosque exists in Firebase first
- // Keys are stored as "MSJ-XXXXXXXX" (matching masjidbord.html line: mosqueID = "MSJ-" + code)
+ // Keys are stored as "MSJ-XXXXXXXX" (matching masjidboard.html line: mosqueID = "MSJ-" + code)
  const mosqueID = "MSJ-" + code;
  const connectBtn = document.getElementById('connect-btn');
  connectBtn.disabled = true;
@@ -3078,7 +3071,7 @@
  } else {
  await showAlert({ icon: "🕌", en: _t("alreadySavedMusalli"), type: "info" });
  }
- window.location.href = "masjidbord.html?mode=musalli&code=" + code;
+ window.location.href = "masjidboard.html?mode=musalli&code=" + code;
 
  }).catch(() => {
  connectBtn.disabled = false;
@@ -3087,10 +3080,10 @@
  });
  return;
  } else {
- window.location.href = "masjidbord.html?mode=" + selectedMode + "&code=" + code;
+ window.location.href = "masjidboard.html?mode=" + selectedMode + "&code=" + code;
  }
  } catch(e) {
- window.location.href = "masjidbord.html?mode=" + selectedMode + "&code=" + code;
+ window.location.href = "masjidboard.html?mode=" + selectedMode + "&code=" + code;
  }
  }
 
@@ -3146,7 +3139,7 @@
  } else {
  await showAlert({ icon: "📱", en: _t("alreadySavedAdmin"), type: "info" });
  }
- window.location.href = "masjidbord.html?mode=admin&code=" + code;
+ window.location.href = "masjidboard.html?mode=admin&code=" + code;
  } else {
  if (pin === masterCode) {
  await showAlert({ icon:"🔓", en:_t("pinReset"), type:"warning" });
@@ -3195,7 +3188,7 @@
  });
  localStorage.setItem('saved_admins', JSON.stringify(admins2));
  }
- window.location.href = "masjidbord.html?mode=admin&code=" + code;
+ window.location.href = "masjidboard.html?mode=admin&code=" + code;
  }
  }
  } catch(e) {
@@ -3335,11 +3328,11 @@
  // Update existing layout
  links = links.map(m => m.id === code ? { ...m, layout } : m);
  localStorage.setItem('saved_links', JSON.stringify(links));
- // Set the verified flag so masjidbord.html link_tv mode recognises this session
+ // Set the verified flag so masjidboard.html link_tv mode recognises this session
  sessionStorage.setItem('link_tv_pin_verified', mosqueID);
  await showAlert({ icon: "🔗", en: _t("alreadySavedLinkTv"), type: "info" });
  }
- window.location.href = "masjidbord.html?mode=link_tv&code=" + code;
+ window.location.href = "masjidboard.html?mode=link_tv&code=" + code;
  }
 
  function resetCodeInput() {
