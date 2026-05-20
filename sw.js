@@ -1,12 +1,11 @@
-// Prayer Time - Service Worker
 const CACHE_NAME = 'prayer-time-v1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/masjidboard.html',
-  '/icon-512.png',
-  '/icon-192.png',
-  '/manifest.json'
+  '/prayer-time/',
+  '/prayer-time/index.html',
+  '/prayer-time/masjidboard.html',
+  '/prayer-time/icon-512.png',
+  '/prayer-time/icon-192.png',
+  '/prayer-time/manifest.json'
 ];
 
 self.addEventListener('install', function(e) {
