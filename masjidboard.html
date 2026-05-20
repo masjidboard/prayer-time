@@ -307,30 +307,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Prayer Time">
-    <meta name="theme-color" content="#050a12">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-512.png">
-    <script>
-      if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock("landscape").catch(function(){});
-      }
-      function goFullscreen() {
-        var el = document.documentElement;
-        if (el.requestFullscreen) el.requestFullscreen();
-        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-        else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
-      }
-      window.addEventListener('load', function() {
-        setTimeout(goFullscreen, 1000);
-      });
-      document.addEventListener('click', goFullscreen);
-      document.addEventListener('touchstart', goFullscreen);
-    </script>
-    <title>Prayer Time</title>
+    <title>Masjid Board</title>
 
     <!-- ============================================================
          EARLY CORRUPTION GUARD — must run before ANY other script
@@ -3113,7 +3090,7 @@
                             <span style="display:inline-block; width:2px; height:12px; background:#f0c040; border-radius:2px;"></span>
                             <span class="lang-text" data-ur="عید کے اوقات" data-en="EID TIMES">عید کے اوقات</span>
                         </span>
-                        <button type="button" tabindex="0" onclick="addEidRow()" title="Add Eid Time"
+                        <button type="button" tabindex="0" onclick="addEidRow()" title="Add Eid Time" onkeydown="if(event.key==='ArrowDown'||event.key==='Down'){event.preventDefault();event.stopPropagation();var t=document.getElementById('eid1ClearBtn');if(t)t.focus();}"
                             style="background:rgba(75,232,122,0.1); color:#4be87a; border:1px solid rgba(75,232,122,0.3); border-radius:6px; padding:3px 14px; cursor:pointer; font-size:16px; font-weight:700; font-family:monospace; line-height:1.5; transition:all 0.2s;"
                             onmouseover="this.style.background='rgba(75,232,122,0.2)'; this.style.borderColor='rgba(75,232,122,0.5)';"
                             onmouseout="this.style.background='rgba(75,232,122,0.1)'; this.style.borderColor='rgba(75,232,122,0.3)';">＋</button>
@@ -3142,7 +3119,7 @@
                             <span style="display:inline-block; width:2px; height:12px; background:#f0c040; border-radius:2px;"></span>
                             <span class="lang-text" data-ur="اضافی جمعہ" data-en="ADDITIONAL JUMUAH">اضافی جمعہ</span>
                         </span>
-                        <button type="button" tabindex="0" onclick="addJumuahRow()" title="Add Jumuah"
+                        <button type="button" tabindex="0" onclick="addJumuahRow()" title="Add Jumuah" onkeydown="if(event.key==='ArrowUp'||event.key==='Up'){event.preventDefault();event.stopPropagation();var rows=document.querySelectorAll('#extraEidRows .extra-eid-row .tv-time-btn');var t=rows.length?rows[rows.length-1]:document.getElementById('eid1ClearBtn');if(t)t.focus();}"
                             style="background:rgba(75,232,122,0.1); color:#4be87a; border:1px solid rgba(75,232,122,0.3); border-radius:6px; padding:3px 14px; cursor:pointer; font-size:16px; font-weight:700; font-family:monospace; line-height:1.5; transition:all 0.2s;"
                             onmouseover="this.style.background='rgba(75,232,122,0.2)'; this.style.borderColor='rgba(75,232,122,0.5)';"
                             onmouseout="this.style.background='rgba(75,232,122,0.1)'; this.style.borderColor='rgba(75,232,122,0.3)';">＋</button>
@@ -3262,6 +3239,9 @@
 </div>
 
 <script>
+    /* fmt12: convert stored "HH:MM" 24h to "H:MM AM/PM" for display */
+    function fmt12(val){if(!val||val.length<4)return val||'';var p=val.split(':'),h=+p[0],m=+p[1];var ampm=h>=12?'PM':'AM';h=h%12||12;return h+':'+(m<10?'0':'')+m+' '+ampm;}
+
     window.wakeLock = null;
     let audioCtx = null;
     let lastBeepTime = "";
@@ -3552,7 +3532,7 @@
                 let faOpts = [15, 20, 25, 30].map(v => `<option value="${v}" class="lang-text" data-ur="${v} منٹ قبل" data-en="${v} mins before">${v} منٹ قبل</option>`).join("");
                 fixedColHtml = `<td data-label="طلوع سے پہلے"><div style="font-size:11px; margin-bottom:2px; color:#aaa;" class="lang-text" data-ur="جماعت (طلوع سے):" data-en="Jamaat (from Sunrise):">جماعت (طلوع سے):</div><select tabindex="0" id="cfg_fajr_jBefore" class="fixed-input-fajr" style="margin-bottom:5px;">${fjOpts.replace(`value="${conf.fajrJamaatBeforeSunrise || 30}"`, `value="${conf.fajrJamaatBeforeSunrise || 30}" selected`)}</select><div style="font-size:11px; margin-bottom:2px; color:#aaa;" class="lang-text" data-ur="اذان (جماعت سے):" data-en="Azan (from Jamaat):">اذان (جماعت سے):</div><select tabindex="0" id="cfg_fajr_aBefore" class="fixed-input-fajr">${faOpts.replace(`value="${conf.fajrAzanBeforeJamaat || 20}"`, `value="${conf.fajrAzanBeforeJamaat || 20}" selected`)}</select></td>`;
             } else {
-                fixedColHtml = `<td data-label="فکس وقت">` + '<input type="hidden" id="cfg_'+key+'_fixedTime" class="fixed-input-'+key+'" value="'+( conf.fixedTime||'13:30')+'">' + '<button type="button" tabindex="0" class="tv-time-btn" style="margin-bottom:5px;" ' + 'id="cfg_'+key+'_fixedTimeBtn" ' + 'onclick="tvPickerOpen(\'time\', document.getElementById(\'cfg_'+key+'_fixedTime\').value, \'Fixed Time\', ' + 'function(v){var inp=document.getElementById(\'cfg_'+key+'_fixedTime\');inp.value=v;document.getElementById(\'cfg_'+key+'_fixedTimeBtn\').textContent=v;}, null)">' + (conf.fixedTime||'13:30') + '</button>' + `<select tabindex="0" id="cfg_${key}_fixedAzanGap" class="fixed-input-${key}">${gapOpts.replace(`value="${conf.fixedAzanGap || 15}"`, `value="${conf.fixedAzanGap || 15}" selected`)}</select></td>`;
+                fixedColHtml = `<td data-label="فکس وقت">` + '<input type="hidden" id="cfg_'+key+'_fixedTime" class="fixed-input-'+key+'" value="'+( conf.fixedTime||'13:30')+'">' + '<button type="button" tabindex="0" class="tv-time-btn fixed-input-'+key+'" dir="ltr" style="margin-bottom:5px;" ' + 'id="cfg_'+key+'_fixedTimeBtn" ' + 'onclick="if(this.disabled)return; tvPickerOpen(\'time\', document.getElementById(\'cfg_'+key+'_fixedTime\').value, \'Fixed Time\', ' + 'function(v){var inp=document.getElementById(\'cfg_'+key+'_fixedTime\');inp.value=v;document.getElementById(\'cfg_'+key+'_fixedTimeBtn\').textContent=fmt12(v);}, null)">' + fmt12(conf.fixedTime||'13:30') + '</button>' + `<select tabindex="0" id="cfg_${key}_fixedAzanGap" class="fixed-input-${key}">${gapOpts.replace(`value="${conf.fixedAzanGap || 15}"`, `value="${conf.fixedAzanGap || 15}" selected`)}</select></td>`;
             }
 
             let tr = document.createElement("tr");
@@ -3594,7 +3574,7 @@
 
     function toggleMode(key) {
         let mode = document.getElementById(`cfg_${key}_mode`).value; let autoInputs = document.querySelectorAll(`.auto-input-${key}`); let fixedInputs = document.querySelectorAll(`.fixed-input-${key}`);
-        if (mode === 'fixed') { autoInputs.forEach(el => { el.disabled = true; el.style.opacity = '0.3'; }); fixedInputs.forEach(el => { el.disabled = false; el.style.opacity = '1'; }); } else { autoInputs.forEach(el => { el.disabled = false; el.style.opacity = '1'; }); fixedInputs.forEach(el => { el.disabled = true; el.style.opacity = '0.3'; }); }
+        if (mode === 'fixed') { autoInputs.forEach(el => { el.disabled = true; el.style.opacity = '0.3'; }); fixedInputs.forEach(el => { el.disabled = false; el.style.opacity = '1'; if(el.tagName==='BUTTON') el.setAttribute('tabindex','0'); }); } else { autoInputs.forEach(el => { el.disabled = false; el.style.opacity = '1'; }); fixedInputs.forEach(el => { el.disabled = true; el.style.opacity = '0.3'; if(el.tagName==='BUTTON') el.setAttribute('tabindex','-1'); }); }
     }
 
     // Global color picker: sets all element color inputs except c_bg and c_panel
@@ -5939,7 +5919,7 @@ const rangeEnd = document.getElementById('rangeEnd');
         tr.className = "extra-eid-row";
         tr.innerHTML =
             '<td style="width:44px; padding:6px 8px;"><button type="button" tabindex="0" class="clear-btn" style="margin-left:0; width:100%; min-height:32px; padding:0;" onclick="this.closest(\'.extra-eid-row\').remove(); reindexEidRows();" title="Remove">✕</button></td>'
-            + '<td>' + '<input type="hidden" class="extra-eid-input" value="' + (timeVal || '') + '">' + '<button type="button" tabindex="0" class="tv-time-btn" onclick="(function(btn){var inp=btn.previousElementSibling; tvPickerOpen(\'time\', inp.value, \'Eid Time\', function(v){inp.value=v;btn.textContent=v;}, null);})(this)">' + (timeVal || '⏰ Pick') + '</button>' + '</td>'
+            + '<td>' + '<input type="hidden" class="extra-eid-input" value="' + (timeVal || '') + '">' + '<button type="button" tabindex="0" class="tv-time-btn" dir="ltr" onclick="(function(btn){var inp=btn.previousElementSibling; tvPickerOpen(\'time\', inp.value, \'Eid Time\', function(v){inp.value=v;btn.textContent=fmt12(v);}, null);})(this)">' + (timeVal ? fmt12(timeVal) : '⏰ Pick') + '</button>' + '</td>'
             + '<td class="extra-eid-lbl" style="color:rgba(86,208,232,0.7); font-size:11px; letter-spacing:1px; text-transform:uppercase; width:90px; text-align:left;">' + lbl + '</td>';
         container.appendChild(tr);
         var eid1lbl = document.getElementById("eid1Label");
@@ -5967,8 +5947,8 @@ const rangeEnd = document.getElementById('rangeEnd');
         tr.className = "extra-jum-row";
         tr.innerHTML =
             '<td style="width:44px; padding:6px 8px;"><button type="button" tabindex="0" class="clear-btn" style="margin-left:0; width:100%; min-height:32px; padding:0;" onclick="this.closest(\'.extra-jum-row\').remove(); reindexJumuahRows();" title="Remove">✕</button></td>'
-            + '<td>' + '<input type="hidden" class="extra-jum-azan" value="' + (azanVal || '') + '">' + '<button type="button" tabindex="0" class="tv-time-btn" onclick="(function(btn){var inp=btn.previousElementSibling; tvPickerOpen(\'time\', inp.value, \'Jumuah Azan\', function(v){inp.value=v;btn.textContent=v;}, null);})(this)">' + (azanVal || '⏰ Azan') + '</button>' + '</td>'
-            + '<td>' + '<input type="hidden" class="extra-jum-jamaat" value="' + (jamaatVal || '') + '">' + '<button type="button" tabindex="0" class="tv-time-btn" onclick="(function(btn){var inp=btn.previousElementSibling; tvPickerOpen(\'time\', inp.value, \'Jumuah Jamaat\', function(v){inp.value=v;btn.textContent=v;}, null);})(this)">' + (jamaatVal || '⏰ Jamaat') + '</button>' + '</td>'
+            + '<td>' + '<input type="hidden" class="extra-jum-azan" value="' + (azanVal || '') + '">' + '<button type="button" tabindex="0" class="tv-time-btn" dir="ltr" onclick="(function(btn){var inp=btn.previousElementSibling; tvPickerOpen(\'time\', inp.value, \'Jumuah Azan\', function(v){inp.value=v;btn.textContent=fmt12(v);}, null);})(this)">' + (azanVal ? fmt12(azanVal) : '⏰ Azan') + '</button>' + '</td>'
+            + '<td>' + '<input type="hidden" class="extra-jum-jamaat" value="' + (jamaatVal || '') + '">' + '<button type="button" tabindex="0" class="tv-time-btn" dir="ltr" onclick="(function(btn){var inp=btn.previousElementSibling; tvPickerOpen(\'time\', inp.value, \'Jumuah Jamaat\', function(v){inp.value=v;btn.textContent=fmt12(v);}, null);})(this)">' + (jamaatVal ? fmt12(jamaatVal) : '⏰ Jamaat') + '</button>' + '</td>'
             + '<td class="extra-jum-lbl" style="color:rgba(86,208,232,0.7); font-size:11px; letter-spacing:1px; text-transform:uppercase; width:90px; text-align:left;">' + lbl + '</td>';
         container.appendChild(tr);
         var thead = document.getElementById("jumuahTableHead");
@@ -6410,6 +6390,32 @@ const rangeEnd = document.getElementById('rangeEnd');
     })();
 
     window.saveSettings = saveSettings;
+
+    /* ── Guard: stop ArrowDown on last extra Eid row jumping to Jumuah section ── */
+    (function(){
+      var eidBody = document.getElementById('extraEidRows');
+      if(!eidBody) return;
+      eidBody.addEventListener('keydown', function(e){
+        var k = e.key;
+        if(k !== 'ArrowDown' && k !== 'Down' && k !== 'ArrowUp' && k !== 'Up') return;
+        var btn = e.target.closest('.tv-time-btn');
+        if(!btn) return;
+        var rows = eidBody.querySelectorAll('.extra-eid-row');
+        if(!rows.length) return;
+        if((k === 'ArrowDown' || k === 'Down') && btn.closest('.extra-eid-row') === rows[rows.length-1]){
+          e.preventDefault(); e.stopPropagation();
+          /* Go to Jumuah + button's row — skip to extraJumuahRows first item or addJumuahRow btn */
+          var addJumBtn = document.querySelector('[onclick="addJumuahRow()"]');
+          if(addJumBtn) addJumBtn.focus();
+        }
+        if((k === 'ArrowUp' || k === 'Up') && btn.closest('.extra-eid-row') === rows[0]){
+          e.preventDefault(); e.stopPropagation();
+          var t = document.getElementById('eid1ClearBtn');
+          if(t) t.focus();
+        }
+      }, true);
+    })();
+
     window.addEidRow = addEidRow;
     window.addJumuahRow = addJumuahRow;
     window.reindexEidRows = reindexEidRows;
@@ -7332,7 +7338,7 @@ const rangeEnd = document.getElementById('rangeEnd');
 }
 
 /* ── Trigger buttons (inline replacements) ── */
-button.tv-time-btn, button.tv-date-btn {
+button.tv-time-btn, button.tv-date-btn { direction:ltr;
   background:rgba(255,255,255,0.05);
   border:1px solid rgba(86,208,232,0.2);
   border-radius:7px;
@@ -7345,6 +7351,9 @@ button.tv-time-btn, button.tv-date-btn {
   text-align:center; transition:all .15s;
   width:calc(100% - 24px);
   margin-left:12px; margin-right:12px;
+}
+button.tv-time-btn:disabled, button.tv-date-btn:disabled {
+  opacity:0.35; cursor:not-allowed; pointer-events:none;
 }
 button.tv-time-btn:focus, button.tv-date-btn:focus,
 button.tv-time-btn:hover, button.tv-date-btn:hover {
@@ -7498,10 +7507,13 @@ button.tv-time-btn:hover, button.tv-date-btn:hover {
     clearInterval(_holdInterval); _holdInterval = null;
   }
 
+  var _pointerHandled = false;   /* true when pointerdown already fired changeSeg */
+
   document.getElementById('tvpSegments').addEventListener('pointerdown', function(e) {
     var btn = e.target.closest('.tvp-arrow');
     if (!btn) return;
     e.preventDefault();           /* stop touch from also firing click */
+    _pointerHandled = true;       /* mark so click handler skips this tap */
     var i = +btn.dataset.seg, dir = btn.dataset.dir;
     _focusIdx = i; _zone = 'segs';
     _startHold(i, dir === 'up' ? 1 : -1);
@@ -7511,11 +7523,12 @@ button.tv-time-btn:hover, button.tv-date-btn:hover {
   document.addEventListener('pointerup',     _stopHold);
   document.addEventListener('pointercancel', _stopHold);
 
-  /* ── click on ▲▼ buttons (fallback for non-pointer events) ── */
+  /* ── click on ▲▼ buttons (fallback for non-pointer events e.g. keyboard Enter) ── */
   document.getElementById('tvpSegments').addEventListener('click',function(e){
-    /* pointerdown already handled it with repeat; only act if no hold ran */
+    /* skip if pointerdown already handled this interaction */
+    if (_pointerHandled) { _pointerHandled = false; return; }
     var btn=e.target.closest('.tvp-arrow');
-    if(!btn || _holdTimer !== null || _holdInterval !== null) return;
+    if(!btn) return;
     var i=+btn.dataset.seg, dir=btn.dataset.dir;
     _focusIdx=i; _zone='segs';
     changeSeg(i,dir==='up'?1:-1);
