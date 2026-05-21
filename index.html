@@ -1872,7 +1872,7 @@
    <div id="as-popup-bar" style="height:100%; background:linear-gradient(90deg,#56d0e8,#4be87a); border-radius:8px; width:100%; transition:width 1s linear;"></div>
   </div>
   <!-- Cancel button -->
-  <button id="as-popup-cancel" tabindex="0" onclick="cancelAutostart()" class="as-cancel-btn"><span style="font-size:22px; font-weight:700; margin-right:8px; line-height:1;">&#10005;</span><span id="as-popup-cancel-label" style="font-size:22px; font-weight:700; line-height:1;">منسوخ کریں</span></button>
+  <button id="as-popup-cancel" tabindex="0" onclick="cancelAutostart()" class="as-cancel-btn"><span style="font-size:22px; font-weight:700; margin-right:8px; line-height:1;">&#10005;</span><span id="as-popup-cancel-label" style="font-size:22px; font-weight:700; line-height:1;">Cancel</span></button>
  </div>
 </div>
 
@@ -1977,7 +1977,7 @@
  <p id="box-msg" style="font-size: 14px; margin-bottom: 10px;"></p>
  
  <input type="text" inputmode="numeric" maxlength="8" id="masjidCode" placeholder="00000000">
- <div id="digit-counter" style="direction:ltr;">0 / 8 &nbsp; — </div>
+ <div id="digit-counter" style="direction:ltr;">0 / 8 &nbsp; — digits</div>
 
  <button class="btn btn-tv" id="connect-btn" style="width: 100%; margin: 0; direction:ltr;" onclick="submitCode()">Connect</button>
  </div>
@@ -1987,19 +1987,19 @@
  <p id="pin-msg" style="font-size:14px; color:#f0c040; margin-bottom:8px; text-align:center;"></p>
  <input type="password" inputmode="numeric" maxlength="4" id="adminPin" placeholder="• • • •" style="letter-spacing:10px; font-size:26px; text-align:center;">
  <div style="display:flex; align-items:center; justify-content:space-between; margin-top:-10px; margin-bottom:10px;">
-  <div id="pin-counter" style="font-size:12px; color:#667788; font-family:'Orbitron',monospace; direction:ltr;">0 / 4 &nbsp; — </div>
+  <div id="pin-counter" style="font-size:12px; color:#667788; font-family:'Orbitron',monospace; direction:ltr;">0 / 4 &nbsp; — digits</div>
   <!-- Forgot PIN — admin only, shown beside digit counter -->
   <div id="forgot-pin-area" style="display:none;">
    <button id="forgot-pin-btn" tabindex="0" onclick="requestPinReset()" style="background:none; border:none; color:#f0c040; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; cursor:pointer; text-decoration:underline; padding:2px 0; transition:color 0.2s; white-space:nowrap;">🔑 Forgot PIN?</button>
   </div>
  </div>
- <button class="btn btn-tv" style="width:100%; margin:0; background: linear-gradient(135deg, #4be87a 0%, #2ab85a 100%); color:#000; direction:ltr;" onclick="submitPin()" id="confirm-pin-btn">پن تصدیق کریں</button>
+ <button class="btn btn-tv" style="width:100%; margin:0; background: linear-gradient(135deg, #4be87a 0%, #2ab85a 100%); color:#000; direction:ltr;" onclick="submitPin()" id="confirm-pin-btn">Confirm PIN</button>
  </div>
 
  <!-- PIN Reset waiting box — sibling of pin-input-area; replaces it while waiting -->
  <div id="pin-reset-waiting" style="display:none; margin-top:18px; border-top:1px solid rgba(86,208,232,0.2); padding-top:16px; background:linear-gradient(160deg,#0d1e35 0%,#060d1a 100%); border:2px solid #f0c040; border-radius:16px; padding:18px 16px; text-align:center; box-shadow:0 0 24px rgba(240,192,64,0.2);">
  <div style="font-size:32px; margin-bottom:8px;">📡</div>
- <div style="font-family:'Inter',sans-serif; font-size:13px; color:#8899aa; direction:ltr; margin-bottom:14px;" id="wait-approval-text">مسجد بورڈ کی منظوری کا انتظار ہے…</div>
+ <div style="font-family:'Inter',sans-serif; font-size:13px; color:#8899aa; direction:ltr; margin-bottom:14px;" id="wait-approval-text">Waiting for Masjid Board approval…</div>
  <div style="background:#0a1525; border-radius:8px; height:8px; overflow:hidden; margin-bottom:10px;">
  <div id="reset-countdown-bar" style="height:100%; background:linear-gradient(90deg,#f0c040,#56d0e8); border-radius:8px; width:100%; transition:width 1s linear;"></div>
  </div>
@@ -2181,7 +2181,7 @@
 
  // ── Autostart Popup ───────────────────────────────────
  let _asPopupInterval = null;
- let _asPopupSeconds  = 15;
+ let _asPopupSeconds  = 0; // reset to 15 inside _showAutostartPopup on every call
 
  function _showAutostartPopup(mode) {
   // mode: 'main' | 'link'
@@ -2360,6 +2360,29 @@
  window._exitModalPrevFocus = document.activeElement;
  document.getElementById('exitModal').classList.add('show');
  }
+
+ // ── Mobile/remote back button → custom exit modal ──────────────────────────
+ // Push a sentinel state on load so the back button never navigates away;
+ // instead popstate fires and we show the custom exit modal.
+ (function() {
+   history.pushState({ masjidBoard: true }, '');
+
+   window.addEventListener('popstate', function(e) {
+     // Always re-push the sentinel so the back button keeps working
+     history.pushState({ masjidBoard: true }, '');
+
+     // If any modal/panel is already open, let the keydown handler close it
+     // (it also fires Escape which the TV-nav IIFE handles).  We only show
+     // the exit dialog when we're at the "base" layer.
+     var layer = (typeof activeLayer === 'function') ? activeLayer() : 'none';
+     if (layer === 'none') {
+       exitMyApp();
+     } else {
+       // Simulate an Escape key so the TV-nav IIFE closes the open layer
+       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+     }
+   });
+ })();
  function closeExitModal() {
  document.getElementById('exitModal').classList.remove('show');
  var toFocus = window._exitModalPrevFocus;
@@ -2378,36 +2401,25 @@
  });
 
  function goToTV() {
+ // Detect device type — defaults are safe if detection throws
  let isMobileDevice = false;
  let devicePrefix = "MSJ-";
 
  try {
  if (typeof AndroidApp !== 'undefined' && AndroidApp.getDeviceType) {
  let type = AndroidApp.getDeviceType();
- if (type === "MOB") {
- isMobileDevice = true;
- devicePrefix = "MOB-";
+ isMobileDevice = (type === "MOB");
+ devicePrefix = isMobileDevice ? "MOB-" : "MSJ-";
  } else {
- isMobileDevice = false;
- devicePrefix = "MSJ-";
- }
- }
- else {
  let hasTouch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
  let isAndroid = /Android/i.test(navigator.userAgent);
  let isTV = /TV|SMART-TV|Tizen|WebOS|BRAVIA|MiTV/i.test(navigator.userAgent);
-
- if (isTV) {
- isMobileDevice = false;
- } else if (hasTouch && isAndroid) {
- isMobileDevice = true;
- } else {
- isMobileDevice = false;
- }
+ isMobileDevice = !isTV && (hasTouch && isAndroid);
  devicePrefix = isMobileDevice ? "MOB-" : "MSJ-";
  }
  } catch(e) { console.log("Detection error:", e); }
 
+ // Update localStorage ID with correct prefix for this device type
  try {
  if (typeof localStorage !== 'undefined') {
  localStorage.setItem('force_layout', 'auto');
@@ -2456,15 +2468,11 @@
  else if (mode === 'musalli') document.body.classList.add('musalli-mode');
  else if (mode === 'admin') document.body.classList.add('admin-mode');
 
- const modeTitles = {
- 'musalli': { en: 'Musalli (Worshipper) View' },
- 'link_tv': { en: 'Link Secondary TV' },
- 'admin': { en: 'Admin / Imam Remote' }
- };
- const mt = modeTitles[mode] || { en: '' };
  const modeTitle = document.getElementById('mode-title');
  modeTitle.style.display = 'flex';
- modeTitle.innerHTML = `<span class="mode-en">${mt.en}</span>`;
+ // Populate immediately using current lang strings — no separate modeTitles object needed
+ const modeTitleKeyMap = { musalli: 'modeMusalli', link_tv: 'modeLinkTV', admin: 'modeAdmin' };
+ modeTitle.innerHTML = '<span class="mode-en">' + _t(modeTitleKeyMap[mode] || '') + '</span>';
  if (typeof _applyLang === 'function') setTimeout(_applyLang, 0);
 
  if (mode === 'musalli' || mode === 'link_tv' || mode === 'admin') {
@@ -2610,6 +2618,8 @@
 
  function renderSavedEntries(mode) {
  _reorderCurrentMode = mode;
+ // Clear any in-flight drag state — a re-render invalidates all item indices
+ _dragSrcIndex = null;
  const key = _storageKey[mode];
  let container = document.getElementById('mosque-list-container');
  const reorderBtn = document.getElementById('reorder-btn');
@@ -2777,7 +2787,7 @@
  const btn = document.getElementById('reorder-btn');
  btn.style.display = 'none';
  btn.classList.remove('active');
- btn.textContent = _t('reorder'); btn.style.direction = 'ltr';
+ btn.textContent = (typeof _t === 'function') ? _t('reorder') : '⇅ Reorder'; btn.style.direction = 'ltr';
  }
 
  function openSavedEntry(mode, index) {
@@ -2787,12 +2797,56 @@
  if (mode === 'musalli') {
  window.location.href = "masjidboard.html?mode=musalli&code=" + m.id;
  } else if (mode === 'link_tv') {
- // Saved entry — go directly, no PIN needed (already verified when first linked)
  const mosqueID = "MSJ-" + m.id;
- sessionStorage.setItem('link_tv_pin_verified', mosqueID);
- localStorage.setItem('temp_force_layout', m.layout || 'auto');
- localStorage.setItem('is_linked_tv', 'true');
- window.location.href = "masjidboard.html?mode=link_tv&code=" + m.id;
+ // Re-verify PIN against Firebase silently — same pattern as admin mode.
+ // If PIN matches (or no PIN is stored on the board), proceed directly.
+ // If the board's PIN changed since we last linked, prompt for the new PIN.
+ document.querySelectorAll('#mosque-list-container .mosque-tap-row').forEach(function(r) {
+   r.style.pointerEvents = 'none'; r.style.opacity = '0.5';
+ });
+ dbOnce(db.ref('mosques/' + mosqueID + '/settings/adminPassword')).then(function(snap) {
+   document.querySelectorAll('#mosque-list-container .mosque-tap-row').forEach(function(r) {
+     r.style.pointerEvents = ''; r.style.opacity = '';
+   });
+   const firebasePin = snap.val();
+   // No PIN on board, or stored PIN matches — go straight in
+   if (!firebasePin || firebasePin === m.pin) {
+     sessionStorage.setItem('link_tv_pin_verified', mosqueID);
+     localStorage.setItem('temp_force_layout', m.layout || 'auto');
+     localStorage.setItem('is_linked_tv', 'true');
+     window.location.href = "masjidboard.html?mode=link_tv&code=" + m.id;
+   } else {
+     // PIN was changed on the board — clear stale stored PIN and ask user to re-enter
+     try {
+       let links = JSON.parse(localStorage.getItem('saved_links')) || [];
+       links = links.map(function(lk) {
+         if (lk.id === m.id) { var copy = Object.assign({}, lk); delete copy.pin; return copy; }
+         return lk;
+       });
+       localStorage.setItem('saved_links', JSON.stringify(links));
+     } catch(e2) {}
+     showAlert({ icon: '🔐', en: _t('errPinChangedReEnter'), type: 'warning' }).then(function() {
+       verifiedLinkTvCode = m.id;
+       document.getElementById('saved-mosques-area').style.display = 'none';
+       document.getElementById('code-input-area').style.display = 'block';
+       document.getElementById('layout-selection').style.display = 'none';
+       document.getElementById('masjidCode').value = m.id;
+       document.getElementById('masjidCode').readOnly = true;
+       document.getElementById('masjidCode').style.opacity = '0.5';
+       document.getElementById('box-msg').textContent = _t('msgLinkTV');
+       document.getElementById('connect-btn').style.display = 'none';
+       document.getElementById('pin-input-area').style.display = 'block';
+       document.getElementById('pin-msg').textContent = _t('pinLinkTV');
+       document.getElementById('forgot-pin-area').style.display = 'none'; // no forgot-PIN for link_tv
+       document.getElementById('adminPin').focus();
+     });
+   }
+ }).catch(function() {
+   document.querySelectorAll('#mosque-list-container .mosque-tap-row').forEach(function(r) {
+     r.style.pointerEvents = ''; r.style.opacity = '';
+   });
+   showAlert({ icon: '📡', en: _t('errInternet'), type: 'danger' });
+ });
  } else if (mode === 'admin') {
  const mosqueID = "MSJ-" + m.id;
  if (m.pin) {
@@ -2859,9 +2913,6 @@
    document.getElementById('box-msg').textContent = _t('msgAdmin');
    document.getElementById('connect-btn').style.display = 'none';
    document.getElementById('pin-input-area').style.display = 'block';
-   // No stored PIN means first-time setup: Forgot PIN link must be hidden
-   // (Firebase has no password yet so there is nothing to reset)
-   document.getElementById('forgot-pin-area').style.display = 'none';
    document.getElementById('pin-msg').textContent = _t('pinEnter');
    document.getElementById('adminPin').focus();
  }
@@ -3161,7 +3212,15 @@
  return;
  }
  if (selectedMode === 'link_tv') {
- // PIN correct — store verified flag and show layout selection (step 3)
+ // PIN correct — update stored PIN in saved_links (covers re-auth after PIN-changed flow),
+ // store verified flag, then show layout selection (step 3)
+ try {
+   let links = JSON.parse(localStorage.getItem('saved_links')) || [];
+   links = links.map(function(lk) {
+     return lk.id === code ? Object.assign({}, lk, { pin: pin }) : lk;
+   });
+   localStorage.setItem('saved_links', JSON.stringify(links));
+ } catch(e2) {}
  sessionStorage.setItem('link_tv_pin_verified', mosqueID);
  document.getElementById('pin-input-area').style.display = 'none';
  document.getElementById('layout-selection').style.display = 'block';
@@ -3223,9 +3282,6 @@
  document.getElementById('forgot-pin-btn').disabled = true;
  document.getElementById('pin-input-area').style.display = 'none';
  document.getElementById('pin-reset-waiting').style.display = 'block';
- // Prevent the user from submitting the PIN while waiting for approval
- document.getElementById('adminPin').disabled = true;
- document.getElementById('adminPin').style.opacity = '0.5';
 
  let remaining = 15;
  const bar = document.getElementById('reset-countdown-bar');
@@ -3264,13 +3320,11 @@
 
  function cancelPinReset() {
  const code = verifiedAdminCode;
+ if (!code) return; // guard: nothing to cancel if no code was verified
  const mosqueID = "MSJ-" + code;
  const reqRef = db.ref('mosques/' + mosqueID + '/pinResetRequest');
  _cleanupPinReset(reqRef);
- reqRef.set({ status: 'cancelled' }).catch(function() {
-   // Silently ignore — the cleanup already ran locally; the stale Firebase
-   // node will be overwritten next time the user makes a valid request.
- });
+ reqRef.set({ status: 'cancelled' });
  }
 
  function _cleanupPinReset(reqRef) {
@@ -3298,9 +3352,13 @@
 
  function _onPinResetRejected(timedOut) {
  if (timedOut) {
- showAlert({ icon:"⏱️", en:_t("pinResetTimeout"), type:"danger" });
+ showAlert({ icon:"⏱️", en:_t("pinResetTimeout"), type:"danger" }).then(function() {
+   var pin = document.getElementById('adminPin'); if (pin) pin.focus();
+ });
  } else {
- showAlert({ icon:"❌", en:_t("pinResetRejected"), type:"danger" });
+ showAlert({ icon:"❌", en:_t("pinResetRejected"), type:"danger" }).then(function() {
+   var pin = document.getElementById('adminPin'); if (pin) pin.focus();
+ });
  }
  }
 
@@ -3327,13 +3385,16 @@
  resetCodeInput();
  return;
  }
- links.push({ id: code, name: name.trim() || ("Link TV " + code), layout: layout });
+ // Store the PIN so openSavedEntry can verify it silently against Firebase next time
+ const _ltPin = document.getElementById('adminPin').value.trim();
+ links.push({ id: code, name: name.trim() || ("Link TV " + code), layout: layout, pin: _ltPin });
  localStorage.setItem('saved_links', JSON.stringify(links));
  // Set the verified flag (same as the saved-entry path in openSavedEntry)
  sessionStorage.setItem('link_tv_pin_verified', mosqueID);
  } else {
- // Update existing layout
- links = links.map(m => m.id === code ? { ...m, layout } : m);
+ // Update existing layout and refresh stored PIN in case it changed
+ const _ltPin2 = document.getElementById('adminPin').value.trim();
+ links = links.map(m => m.id === code ? { ...m, layout, pin: _ltPin2 } : m);
  localStorage.setItem('saved_links', JSON.stringify(links));
  // Set the verified flag so masjidboard.html link_tv mode recognises this session
  sessionStorage.setItem('link_tv_pin_verified', mosqueID);
@@ -3349,11 +3410,7 @@
  document.getElementById('masjidCode').style.opacity = '1';
  document.getElementById('masjidCode').value = '';
  document.getElementById('adminPin').value = '';
- document.getElementById('adminPin').disabled = false;
- document.getElementById('adminPin').style.opacity = '1';
  document.getElementById('pin-input-area').style.display = 'none';
- document.getElementById('forgot-pin-area').style.display = 'none';
- document.getElementById('pin-reset-waiting').style.display = 'none';
  document.getElementById('layout-selection').style.display = 'none';
  const pinCounter = document.getElementById('pin-counter');
  pinCounter.innerHTML = '0 / 4 &nbsp; — ' + _t('digitsLabel');
@@ -3507,7 +3564,7 @@
          case 'ArrowUp': case 'Up':
          case 'ArrowLeft': case 'Left':
            e.preventDefault(); moveFocusIn(em, -1); break;
-         case 'Enter': case 'Return': case 'OK': case ' ':
+         case 'Enter': case 'Return': case 'OK':
            e.preventDefault(); activateFocused(); break;
          case 'Escape': case 'Back': case 'GoBack': case 'BrowserBack':
            e.preventDefault();
@@ -4079,9 +4136,9 @@
    pinLinkTV:      "Enter the Imam's PIN to link this TV",
    mosqueNamePrompt: 'Give this Mosque a name',
    mosqueSaveBtn:  'Save',
-  alreadySavedMusalli: 'This mosque is already in your saved list.',
-  alreadySavedLinkTv:  'This Link TV is already in your saved list.',
-  alreadySavedAdmin:   'This admin mosque is already in your saved list.',
+   alreadySavedMusalli: 'This mosque is already in your saved list.',
+   alreadySavedLinkTv:  'This Link TV is already in your saved list.',
+   alreadySavedAdmin:   'This admin mosque is already in your saved list.',
    // modal buttons
    btnOK:          'OK',
    btnCancel:      'Cancel',
@@ -4185,9 +4242,9 @@
    pinLinkTV:      'اس ٹی وی کو لنک کرنے کے لیے امام کا پن درج کریں',
    mosqueNamePrompt: 'اس مسجد کو ایک نام دیں',
    mosqueSaveBtn:  'محفوظ کریں',
-  alreadySavedMusalli: 'یہ مسجد پہلے سے آپ کی فہرست میں موجود ہے۔',
-  alreadySavedLinkTv:  'یہ لنک ٹی وی پہلے سے آپ کی فہرست میں موجود ہے۔',
-  alreadySavedAdmin:   'یہ ایڈمن مسجد پہلے سے آپ کی فہرست میں موجود ہے۔',
+   alreadySavedMusalli: 'یہ مسجد پہلے سے آپ کی فہرست میں موجود ہے۔',
+   alreadySavedLinkTv:  'یہ لنک ٹی وی پہلے سے آپ کی فہرست میں موجود ہے۔',
+   alreadySavedAdmin:   'یہ ایڈمن مسجد پہلے سے آپ کی فہرست میں موجود ہے۔',
    // modal buttons
    btnOK:          'ٹھیک ہے',
    btnCancel:      'منسوخ کریں',
@@ -4414,7 +4471,7 @@
   var lbl2 = document.querySelector('#autostart-link-row .lbl-en');
   if (lbl2) lbl2.textContent = L.autoStartLink;
   var warnLbl = document.getElementById('autostart-no-link-warn-text');
-  if (warnLbl) warnLbl.textContent = L.warnNoLinkedTv;
+  if (warnLbl) warnLbl.textContent = L.warnNoLinkedTv || 'No linked TV — add one via Link TV first.';
 
   // Add new button
   var addBtn = document.getElementById('add-new-btn');
@@ -4541,22 +4598,27 @@
   // (connect button is now handled by ID above)
  }
 
- // Patch renderSavedEntries to use current lang strings
- var _orig_renderSavedEntries = renderSavedEntries;
- renderSavedEntries = function(mode) {
-  _orig_renderSavedEntries(mode);
-  // After render, patch translatable text inside the list
-  var L = _LANG[window._indexLang];
-  document.querySelectorAll('.mosque-tap-hint').forEach(function(el) {
-   el.textContent = L.tapToOpen;
-  });
-  document.querySelectorAll('.delete-btn').forEach(function(el) {
-   el.textContent = L.deleteLbl;
-  });
-  document.querySelectorAll('.edit-btn').forEach(function(el) {
-   el.textContent = L.editLbl;
-  });
- };
+ // Patch renderSavedEntries to use current lang strings.
+ // Guard: if the function isn't defined yet (load-order edge case), defer until DOMContentLoaded.
+ function _patchRenderSavedEntries() {
+  if (typeof renderSavedEntries !== 'function') return; // not yet defined — caller will retry
+  var _orig_renderSavedEntries = renderSavedEntries;
+  renderSavedEntries = function(mode) {
+   _orig_renderSavedEntries(mode);
+   // After render, patch translatable text inside the list
+   var L = _LANG[window._indexLang];
+   document.querySelectorAll('.mosque-tap-hint').forEach(function(el) {
+    el.textContent = L.tapToOpen;
+   });
+   document.querySelectorAll('.delete-btn').forEach(function(el) {
+    el.textContent = L.deleteLbl;
+   });
+   document.querySelectorAll('.edit-btn').forEach(function(el) {
+    el.textContent = L.editLbl;
+   });
+  };
+ }
+ _patchRenderSavedEntries();
 
  // Apply on load
  window.addEventListener('DOMContentLoaded', function() {
@@ -4980,7 +5042,9 @@
     this._justSelected = true;
     var self = this;
     setTimeout(function () { self._justSelected = false; }, 0);
-    this.sel.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+    var ev = document.createEvent('Event');
+    ev.initEvent('change', true, true);
+    this.sel.dispatchEvent(ev);
   };
 
   CDD.prototype._bindEvents = function () {
@@ -5119,7 +5183,6 @@
     patchIndexLang();
     // Resync CDD labels after _indexLang is established by _applyLang
     setTimeout(resyncAll, 0);
-    setTimeout(function () { patchIndexLang(); }, 600);
   }
 
   if (document.readyState === 'loading') {

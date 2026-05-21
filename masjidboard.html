@@ -324,9 +324,7 @@
         else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
         else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
       }
-      window.addEventListener('load', function() {
-        setTimeout(goFullscreen, 1000);
-      });
+      window.addEventListener('load', function() { setTimeout(goFullscreen, 1000); });
       document.addEventListener('click', goFullscreen);
       document.addEventListener('touchstart', goFullscreen);
     </script>
@@ -3788,15 +3786,8 @@
             { id: "ISHA", en: "ISHA'", ur: "عشاء", azanMins: iTime.azanMins, jamaatMins: iTime.jamaatMins, azan12: formatMinsTo12(iTime.azanMins), jamaat12: formatMinsTo12(iTime.jamaatMins), expireMins: iTime.jamaatMins + 10, start: t12(times.Isha), end: t12(times.Fajr), startMins: timeToMins(times.Isha), endMins: timeToMins(times.Fajr) }
         ];
         if (isFriday) {
-            if (currentConfig.general.showJumuah !== 'no') {
-                // Normal Friday: replace Dhuhr slot with Jumuah
-                schedule[1] = { id: "JUMUAH", en: "JUMU'AH", ur: "جمعہ", azanMins: jTime.azanMins, jamaatMins: jTime.jamaatMins, azan12: formatMinsTo12(jTime.azanMins), jamaat12: formatMinsTo12(jTime.jamaatMins), expireMins: jTime.jamaatMins + 10, start: t12(times.Dhuhr), end: t12(times.Asr), startMins: timeToMins(times.Dhuhr), endMins: timeToMins(times.Asr) };
-            } else {
-                // Jumuah hidden: keep slot structure (5 slots required by tracker) but
-                // display Asr info during the Dhuhr/Jumuah window so main clock shows ASR
-                let dhuhrSlotExpire = schedule[1].expireMins; // original Dhuhr expiry
-                schedule[1] = { id: "ASR", en: "ASR", ur: "عصر", azanMins: aTime.azanMins, jamaatMins: aTime.jamaatMins, azan12: formatMinsTo12(aTime.azanMins), jamaat12: formatMinsTo12(aTime.jamaatMins), expireMins: dhuhrSlotExpire, start: t12(times.Asr), end: t12(times.Sunset), startMins: timeToMins(times.Asr), endMins: timeToMins(times.Sunset) };
-            }
+            // Always show Jumuah on main clock — showJumuah only controls the prayer-list row.
+            schedule[1] = { id: "JUMUAH", en: "JUMU'AH", ur: "جمعہ", azanMins: jTime.azanMins, jamaatMins: jTime.jamaatMins, azan12: formatMinsTo12(jTime.azanMins), jamaat12: formatMinsTo12(jTime.jamaatMins), expireMins: jTime.jamaatMins + 10, start: t12(times.Dhuhr), end: t12(times.Asr), startMins: timeToMins(times.Dhuhr), endMins: timeToMins(times.Asr) };
         }
         return { s: schedule, f: fTime, z: zTime, a: aTime, m: mTime, i: iTime, j: jTime };
     }
@@ -4154,7 +4145,7 @@
         let state = getCurrentWaqtState(nowTotalMins, p, window.tomorrowData); let currentWaqtPrayer = state.index === -1 ? p[1] : p[state.index]; let displayEndStr = currentWaqtPrayer.end;
 
         let isShowingEidOnMain = false; let eidMinsToTarget = 0;
-        if (window.isEidDay && !isTomorrow) {
+        if (window.isEidDay && !isTomorrow && currentConfig.general.showEid1 !== false) {
             let fajrExpire = p[0].expireMins;
             let hasMultiEid = currentConfig.general.eid2 || currentConfig.general.eid3;
             let targetEid = { en: hasMultiEid ? "EID 1" : "EID", ur: hasMultiEid ? "عید" : "عید", j: currentConfig.general.eidTime, m: timeToMins(currentConfig.general.eidTime) };
@@ -4254,12 +4245,8 @@ const rangeEnd = document.getElementById('rangeEnd');
 
         let leftCBox = document.getElementById('leftCountdownBox');
         if (isShowingEidOnMain) {
-            let diff = eidMinsToTarget - nowTotalMins; if (diff < 0) diff = 0;
-            let h = Math.floor(diff / 60); let m = diff % 60; let timeStr = (h > 0 ? h + "h " : "") + m + "m";
-            document.getElementById('leftCountdownUrduName').innerText = activePrayerCenter.ur + " کا باقی وقت";
-            document.getElementById('leftCountdownEngName').innerText = activePrayerCenter.en + " TIME LEFT";
-            document.getElementById('leftCountdownTime').innerText = timeStr;
-            leftCBox.style.display = "block";
+            // Never show countdown box on Eid — left column stays as 3 boxes like a normal day.
+            leftCBox.style.display = "none";
         } else if (isShowingJumuahOnMain) {
             var _jTargetMins = (activePrayerCenter.en.includes('3')) ? j3Mins : j2Mins;
             var diff = _jTargetMins - nowTotalMins; if (diff < 0) diff = 0;
@@ -5750,9 +5737,10 @@ const rangeEnd = document.getElementById('rangeEnd');
                     if (!snapshot.exists()) {
                         await showAlert({ icon:"⚠️", ur:"یہ مسجد موجود نہیں ہے! آپ نے جو 8 ہندسوں کا کوڈ ڈالا ہے وہ غلط ہے۔", en:"This mosque does not exist! The 8-digit code you entered is incorrect.", type:"danger" });
                         let list = JSON.parse(localStorage.getItem('saved_mosques')) || [];
-                        // BUG FIX: was filtering by `code` (raw URL param) but saved_mosques
-                        // entries use the full mosqueID (e.g. "MSJ-12345678"). Use mosqueID.
-                        list = list.filter(m => m.id !== mosqueID);
+                        // BUG FIX: saved_mosques entries store the raw 8-digit code (no "MSJ-" prefix),
+                        // but mosqueID here is "MSJ-XXXXXXXX". Strip the prefix before comparing.
+                        let pureCode = mosqueID.startsWith('MSJ-') ? mosqueID.slice(4) : mosqueID;
+                        list = list.filter(m => m.id !== pureCode);
                         localStorage.setItem('saved_mosques', JSON.stringify(list));
                         window.location.href = "index.html";
                         return;
@@ -5811,8 +5799,8 @@ const rangeEnd = document.getElementById('rangeEnd');
                         const approvalOverlay = document.getElementById('pin-reset-approval-overlay');
                         if (approvalOverlay && approvalOverlay.style.display === 'flex') {
                             // Clean up timers and hide
-                            if (typeof _pinApprovalTimer !== 'undefined') { clearTimeout(_pinApprovalTimer); }
-                            if (typeof _pinApprovalInterval !== 'undefined') { clearInterval(_pinApprovalInterval); }
+                            clearTimeout(_pinApprovalTimer);   _pinApprovalTimer   = null;
+                            clearInterval(_pinApprovalInterval); _pinApprovalInterval = null;
                             approvalOverlay.style.display = 'none';
                         }
                     }
@@ -7629,8 +7617,8 @@ button.tv-time-btn:hover, button.tv-date-btn:hover {
       }
       /* LEFT moves focus left: SET → CANCEL → CLEAR */
       else if(k==='ArrowLeft'){ e.preventDefault();
-        var ord=['tvpClearBtn','tvpCancelBtn','tvpSetBtn'], ci=ord.indexOf(document.activeElement&&document.activeElement.id);
-        _tvFocus(document.getElementById(ord[Math.max(ci-1, 0)]));
+        var ci=(['tvpClearBtn','tvpCancelBtn','tvpSetBtn']).indexOf(document.activeElement&&document.activeElement.id);
+        _tvFocus(document.getElementById(['tvpClearBtn','tvpCancelBtn','tvpSetBtn'][Math.max(ci-1, 0)]));
       }
       else if(k==='Enter'||k===' '){ e.preventDefault(); var el=document.activeElement; if(el) el.click(); }
       else if(k==='Escape'){ e.preventDefault(); tvPickerClose(); }
