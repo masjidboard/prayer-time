@@ -406,7 +406,6 @@
             --c-range-name: #56d0e8; --c-range-times: #56d0e8;
             --c-sahr-name: #f07070; --c-sahr-time: #f07070;
             --c-iftar-name: #f07070; --c-iftar-time: #f07070;
-            --c-sahr-top: #f07070; --c-iftar-top: #f07070;
             --c-tzg-name: #f0c040; --c-tzg-time: #f0c040;
             --c-ec-name: #56d0e8; --c-ec-time: #56d0e8;
             --c-lbl-azan: #667788; --c-lbl-jamaat: #667788;
@@ -671,7 +670,7 @@
             background: transparent; border: none;
             border-radius: 20px; padding: 0.3vh 1.2vw;
         }
-        .jamaat-icon { font-size: calc(30.2px * var(--fs)); color: var(--c-jamaat-notify-icon, #f0c040); }
+        .jamaat-icon { font-size: calc(30.2px * var(--fs)); color: #f0c040; }
         .jamaat-countdown {
             font-family: 'Orbitron', monospace; font-size: calc(25.9px * var(--fs));
             font-weight: 700; letter-spacing: 1px; color: var(--c-jamaat-notify-text, #f0c040);
@@ -2710,7 +2709,7 @@
             <!-- Group 4: jamaat countdown (hidden when absent) + day — day moves down when countdown shows -->
             <div class="db-day-group">
                 <div id="db-jamaat-countdown" style="display:none; font-family:'Orbitron',monospace; font-weight:700; letter-spacing:1px; color:var(--c-jamaat); align-items:center; gap:6px;">
-                    <span id="db-jamaat-bell" style="font-size:1.1em; color:var(--c-jamaat-notify-icon, #f0c040);">🔔</span>
+                    <span id="db-jamaat-bell" style="font-size:1.1em; color:#f0c040;">🔔</span>
                     <span id="db-jamaat-countdown-text"></span>
                 </div>
                 <div class="db-clock-day col-azan" id="db-dayName">---</div>
@@ -2931,7 +2930,7 @@
                         <td>
                             <span class="lang-text" data-ur="دستی تاریخ" data-en="Manual Date">دستی تاریخ (Manual Date)</span><br>
                             <div style="display: flex; gap: 5px;">
-                                <input type="hidden" id="configManualDate"><button type="button" tabindex="0" class="tv-date-btn lang-text" id="configManualDateBtn" onclick="tvPickerOpen('date', document.getElementById('configManualDate').value, 'Manual Date', function(v){document.getElementById('configManualDate').value=v;document.getElementById('configManualDateBtn').textContent=v;fetchDailyTimes();}, function(){document.getElementById('configManualDate').value='';var _btn=document.getElementById('configManualDateBtn');_btn.textContent=window.currentSettingsLang==='ur'?'📅 تاریخ چنیں':'📅 Pick Date';fetchDailyTimes();})" data-en="📅 Pick Date" data-ur="📅 تاریخ چنیں">📅 Pick Date</button>
+                                <input type="hidden" id="configManualDate"><button type="button" tabindex="0" class="tv-date-btn lang-text" id="configManualDateBtn" onclick="tvPickerOpen('date', document.getElementById('configManualDate').value, 'Manual Date', function(v){document.getElementById('configManualDate').value=v;var _p=v.split('-');document.getElementById('configManualDateBtn').textContent=_p[2]+'-'+_p[1]+'-'+_p[0];fetchDailyTimes();}, function(){document.getElementById('configManualDate').value='';var _btn=document.getElementById('configManualDateBtn');_btn.textContent=window.currentSettingsLang==='ur'?'📅 تاریخ چنیں':'📅 Pick Date';fetchDailyTimes();})" data-en="📅 Pick Date" data-ur="📅 تاریخ چنیں">📅 Pick Date</button>
                                 <button type="button" tabindex="0" class="clear-btn" onclick="document.getElementById('configManualDate').value=''; var _btn=document.getElementById('configManualDateBtn'); _btn.textContent=window.currentSettingsLang==='ur'?'📅 تاریخ چنیں':'📅 Pick Date'; fetchDailyTimes();" title="آج کی لائیو تاریخ پر واپس لائیں">❌</button>
                             </div>
                             <div style="font-size: 11px; color: #aaa; margin-top: 4px;" class="lang-text" data-ur="لائیو ٹائم دیکھنے کے لیے اسے خالی (Clear) رکھیں" data-en="Leave empty to show live today's time">لائیو ٹائم دیکھنے کے لیے اسے خالی (Clear) رکھیں</div>
@@ -3232,8 +3231,6 @@
                     <div class="color-item"><span class="lang-text" data-ur="لفظِ محمد" data-en="Muhammad">لفظِ محمد</span><input tabindex="-1" type="color" id="c_cal_muhammad"></div>
                     <div class="color-item"><span class="lang-text" data-ur="بسم اللہ" data-en="Bismillah">بسم اللہ</span><input tabindex="-1" type="color" id="c_cal_bismillah"></div>
 
-                    <div class="color-item"><span class="lang-text" data-ur="سحر (اوپر والا)" data-en="Sahr (Top)">سحر (اوپر والا)</span><input tabindex="-1" type="color" id="c_sahr_top"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="افطار (اوپر والا)" data-en="Iftar (Top)">افطار (اوپر والا)</span><input tabindex="-1" type="color" id="c_iftar_top"></div>
                     <div class="color-item"><span class="lang-text" data-ur="سحر کا نام (لسٹ)" data-en="Sahr Name (List)">سحر کا نام (لسٹ)</span><input tabindex="-1" type="color" id="c_sahr_name"></div>
                     <div class="color-item"><span class="lang-text" data-ur="سحر کا وقت (لسٹ)" data-en="Sahr Time (List)">سحر کا وقت (لسٹ)</span><input tabindex="-1" type="color" id="c_sahr_time"></div>
                     <div class="color-item"><span class="lang-text" data-ur="افطار کا نام (لسٹ)" data-en="Iftar Name (List)">افطار کا نام (لسٹ)</span><input tabindex="-1" type="color" id="c_iftar_name"></div>
@@ -3250,7 +3247,6 @@
                     <div class="color-item"><span class="lang-text" data-ur="موجودہ نماز کا نام" data-en="Current Prayer Name">موجودہ نماز کا نام</span><input tabindex="-1" type="color" id="c_curr_pr"></div>
 
                     <div class="color-item"><span class="lang-text" data-ur="پینل کی لکیریں" data-en="Panel Lines">پینل کی لکیریں</span><input tabindex="-1" type="color" id="c_panel_line"></div>
-                    <div class="color-item"><span class="lang-text" data-ur="جماعت بیل آئیکن رنگ" data-en="Jamaat Bell Icon Color">جماعت بیل آئیکن رنگ</span><input tabindex="-1" type="color" id="c_jamaat_notify_icon"></div>
                     <div class="color-item"><span class="lang-text" data-ur="جماعت کاؤنٹ ڈاؤن رنگ" data-en="Jamaat Countdown Text Color">جماعت کاؤنٹ ڈاؤن رنگ</span><input tabindex="-1" type="color" id="c_jamaat_notify_text"></div>
                 </div>
             </div>
@@ -3432,7 +3428,7 @@
             calAllah: "#ffdd00", calMuhammad: "#ffdd00", calBismillah: "#22ff44", sahrName: "#ff5555", sahrTime: "#ff5555", iftarName: "#ff5555", iftarTime: "#ff5555",
             tzgName: "#ffdd00", tzgTime: "#ffdd00", ecName: "#00ddff", ecTime: "#00ddff", tomorrow: "#ffdd00",
             board: "#040810",
-            sahrTop: "#ff5555", iftarTop: "#ff5555", rangeName: "#00ddff", rangeTimes: "#00ddff", lblAzan: "#aaaaaa", lblJamaat: "#aaaaaa", panelLine: "rgba(86,208,232,0.4)", jamaatNotifyIcon: "#f0c040", jamaatNotifyText: "#f0c040",
+            rangeName: "#00ddff", rangeTimes: "#00ddff", lblAzan: "#aaaaaa", lblJamaat: "#aaaaaa", panelLine: "rgba(86,208,232,0.4)", jamaatNotifyText: "#f0c040",
             globalColor: "#f0c040"
         }
     };
@@ -3487,6 +3483,7 @@
         for(let h=6; h<=8; h++){ for(let m=0; m<60; m+=5){ if(h===6 && m<30) continue; if(h===8 && m>30) break; let t = (h<10?'0'+h:h) + ':' + (m<10?'0'+m:m); eidSelect.innerHTML += `<option value="${t}">${t}</option>`; } }
 
         document.getElementById("configManualDate").value = currentConfig.general.manualDate || "";
+        (function(){ var _md=currentConfig.general.manualDate; var _btn=document.getElementById("configManualDateBtn"); if(_md&&_md.length===10){ var _p=_md.split('-'); _btn.textContent='📅 '+_p[2]+'-'+_p[1]+'-'+_p[0]; } else { _btn.textContent=window.currentSettingsLang==='ur'?'📅 تاریخ چنیں':'📅 Pick Date'; } })();
         document.getElementById("configDisplayMode").value = currentConfig.general.displayMode || "all"; document.body.setAttribute('data-mode', currentConfig.general.displayMode || "all");
         if (typeof window.hsSyncModeFromDisplay === 'function') window.hsSyncModeFromDisplay();
         if (typeof window.updateModeConditionalRows === 'function') window.updateModeConditionalRows();
@@ -3579,11 +3576,10 @@
         document.getElementById("c_sahr_name").value = ac.sahrName || "#ff5555"; document.getElementById("c_sahr_time").value = ac.sahrTime || ac.sahrName || "#ff5555"; document.getElementById("c_iftar_name").value = ac.iftarName || "#ff5555"; document.getElementById("c_iftar_time").value = ac.iftarTime || ac.iftarName || "#ff5555";
         document.getElementById("c_tzg_name").value = ac.tzgName || "#ffdd00"; document.getElementById("c_tzg_time").value = ac.tzgTime || ac.tzgName || "#ffdd00"; document.getElementById("c_ec_name").value = ac.ecName || "#00ddff"; document.getElementById("c_ec_time").value = ac.ecTime || ac.ecName || "#00ddff"; document.getElementById("c_tomorrow").value = (ac.tomorrow && ac.tomorrow !== '#000000' && ac.tomorrow !== '#000') ? ac.tomorrow : "#ffdd00";
 
-        document.getElementById("c_sahr_top").value = ac.sahrTop || ac.sahrName || "#ff5555"; document.getElementById("c_iftar_top").value = ac.iftarTop || ac.iftarName || "#ff5555";
+       
         document.getElementById("c_range_name").value = ac.rangeName || ac.headers || "#00ddff"; document.getElementById("c_range_times").value = ac.rangeTimes || ac.headers || "#00ddff";
         document.getElementById("c_lbl_azan").value = ac.lblAzan || "#aaaaaa"; document.getElementById("c_lbl_jamaat").value = ac.lblJamaat || "#aaaaaa";
         document.getElementById("c_panel_line").value = ac.panelLine || "#56d0e8";
-        document.getElementById("c_jamaat_notify_icon").value = ac.jamaatNotifyIcon || "#f0c040";
         document.getElementById("c_jamaat_notify_text").value = ac.jamaatNotifyText || "#f0c040";
 
         // Restore global color picker (fall back to default if not previously saved)
@@ -3606,11 +3602,11 @@
         'c_azan_asr','c_jamaat_asr','c_azan_maghrib','c_jamaat_maghrib',
         'c_azan_isha','c_jamaat_isha','c_azan_jumuah','c_jamaat_jumuah',
         'c_cal_allah','c_cal_muhammad','c_cal_bismillah',
-        'c_sahr_top','c_iftar_top','c_sahr_name','c_sahr_time',
+        'c_sahr_name','c_sahr_time',
         'c_iftar_name','c_iftar_time','c_range_name','c_range_times',
         'c_tzg_name','c_tzg_time','c_ec_name','c_ec_time',
         'c_tomorrow','c_date_h','c_date_g','c_curr_pr',
-        'c_panel_line','c_jamaat_notify_icon','c_jamaat_notify_text'
+        'c_panel_line','c_jamaat_notify_text'
     ];
 
     function applyGlobalColor(color) {
@@ -3634,11 +3630,11 @@
         document.getElementById("c_date_g").value = ac.dateG; document.getElementById("c_date_h").value = ac.dateH; document.getElementById("c_curr_pr").value = ac.currPr;
         document.getElementById("c_sahr_name").value = ac.sahrName; document.getElementById("c_sahr_time").value = ac.sahrTime; document.getElementById("c_iftar_name").value = ac.iftarName; document.getElementById("c_iftar_time").value = ac.iftarTime;
         document.getElementById("c_tzg_name").value = ac.tzgName; document.getElementById("c_tzg_time").value = ac.tzgTime; document.getElementById("c_ec_name").value = ac.ecName; document.getElementById("c_ec_time").value = ac.ecTime; document.getElementById("c_tomorrow").value = ac.tomorrow;
-        document.getElementById("c_sahr_top").value = ac.sahrTop; document.getElementById("c_iftar_top").value = ac.iftarTop;
+       
         document.getElementById("c_range_name").value = ac.rangeName; document.getElementById("c_range_times").value = ac.rangeTimes;
         document.getElementById("c_lbl_azan").value = ac.lblAzan; document.getElementById("c_lbl_jamaat").value = ac.lblJamaat;
         document.getElementById("c_panel_line").value = ac.panelLine || "#56d0e8";
-        document.getElementById("c_jamaat_notify_icon").value = ac.jamaatNotifyIcon; document.getElementById("c_jamaat_notify_text").value = ac.jamaatNotifyText;
+        document.getElementById("c_jamaat_notify_text").value = ac.jamaatNotifyText;
         document.getElementById("c_global").value = dc.globalColor || "#f0c040";
         applyColorsToBoard();
     }
@@ -3672,14 +3668,11 @@
         root.setProperty('--c-tzg-name', ac.tzgName || "#ffdd00"); root.setProperty('--c-tzg-time', ac.tzgTime || ac.tzgName || "#ffdd00");
         root.setProperty('--c-ec-name', ac.ecName || "#00ddff"); root.setProperty('--c-ec-time', ac.ecTime || ac.ecName || "#00ddff");
 
-        root.setProperty('--c-sahr-top', ac.sahrTop || ac.sahrName || "#ff5555");
-        root.setProperty('--c-iftar-top', ac.iftarTop || ac.iftarName || "#ff5555");
         root.setProperty('--c-range-name', ac.rangeName || ac.headers || "#00ddff");
         root.setProperty('--c-range-times', ac.rangeTimes || ac.headers || "#00ddff");
         root.setProperty('--c-lbl-azan', ac.lblAzan || "#aaaaaa");
         root.setProperty('--c-lbl-jamaat', ac.lblJamaat || "#aaaaaa");
         root.setProperty('--c-panel-line', ac.panelLine || "rgba(86,208,232,0.4)");
-        root.setProperty('--c-jamaat-notify-icon', ac.jamaatNotifyIcon || "#f0c040");
         root.setProperty('--c-jamaat-notify-text', ac.jamaatNotifyText || "#f0c040");
     }
 
@@ -5697,6 +5690,12 @@ const rangeEnd = document.getElementById('rangeEnd');
                                 db.ref('mosques/' + mosqueID + '/settings/adminPassword').remove();
                                 window.location.href = "index.html"; return;
                             }
+                            // Bug 4 fix: showPrompt returns null when the user presses Cancel.
+                            // Guard against null before the PIN comparison — null !== savedPin is
+                            // always true, which caused a false "Incorrect PIN!" error on Cancel.
+                            if (enteredPin === null) {
+                                window.location.href = "index.html"; return;
+                            }
                             if (enteredPin !== savedPin) {
                                 await showAlert({ icon:"❌", ur:"غلط پن!", en:"Incorrect PIN!", type:"danger" });
                                 window.location.href = "index.html"; return;
@@ -5803,6 +5802,12 @@ const rangeEnd = document.getElementById('rangeEnd');
                             clearInterval(_pinApprovalInterval); _pinApprovalInterval = null;
                             approvalOverlay.style.display = 'none';
                         }
+                        // Bug 6 fix: the cancelled handler previously only hid the overlay but
+                        // never re-enabled the adminPin input or restored the forgot-pin button.
+                        // Call showPinResetApproval's own cleanup path isn't available here, so
+                        // mirror what _cleanupPinReset does on the admin remote side.
+                        const pinInput = document.getElementById('adminPin');
+                        if (pinInput) { pinInput.disabled = false; pinInput.style.opacity = '1'; }
                     }
                 });
 
@@ -6097,8 +6102,8 @@ const rangeEnd = document.getElementById('rangeEnd');
             calAllah: document.getElementById("c_cal_allah").value, calMuhammad: document.getElementById("c_cal_muhammad").value, calBismillah: document.getElementById("c_cal_bismillah").value,
             tomorrow: document.getElementById("c_tomorrow").value, dateG: document.getElementById("c_date_g").value, dateH: document.getElementById("c_date_h").value, currPr: document.getElementById("c_curr_pr").value,
             sahrName: document.getElementById("c_sahr_name").value, sahrTime: document.getElementById("c_sahr_time").value, iftarName: document.getElementById("c_iftar_name").value, iftarTime: document.getElementById("c_iftar_time").value, tzgName: document.getElementById("c_tzg_name").value, tzgTime: document.getElementById("c_tzg_time").value, ecName: document.getElementById("c_ec_name").value, ecTime: document.getElementById("c_ec_time").value,
-            sahrTop: document.getElementById("c_sahr_top").value, iftarTop: document.getElementById("c_iftar_top").value, rangeName: document.getElementById("c_range_name").value, rangeTimes: document.getElementById("c_range_times").value, lblAzan: document.getElementById("c_lbl_azan").value, lblJamaat: document.getElementById("c_lbl_jamaat").value,
-            panelLine: document.getElementById("c_panel_line").value, jamaatNotifyIcon: document.getElementById("c_jamaat_notify_icon").value, jamaatNotifyText: document.getElementById("c_jamaat_notify_text").value,
+            rangeName: document.getElementById("c_range_name").value, rangeTimes: document.getElementById("c_range_times").value, lblAzan: document.getElementById("c_lbl_azan").value, lblJamaat: document.getElementById("c_lbl_jamaat").value,
+            panelLine: document.getElementById("c_panel_line").value, jamaatNotifyText: document.getElementById("c_jamaat_notify_text").value,
             globalColor: document.getElementById("c_global").value
         };
 
@@ -6356,12 +6361,22 @@ const rangeEnd = document.getElementById('rangeEnd');
             if (document.documentElement.hasAttribute('data-no-hs') || document.body.hasAttribute('data-no-hs')) return;
             // Re-read sizes from localStorage in case they were updated remotely
             try { _sizes = JSON.parse(localStorage.getItem('hs_sizes_v1') || '{}'); } catch(e){}
-            // Clear all inline sizes first, then apply only the current mode's saved sizes
-            hsClearAllInlineSizes();
             var currentMode = document.body.getAttribute('data-mode') || 'all';
             // Dashboard 2 reuses the same elements and saved sizes as Dashboard
             var sizeMode = (currentMode === 'dashboard2') ? 'dashboard' : currentMode;
-            var modeElems = HS_ELEMENTS[currentMode] || [];
+            var modeElems = HS_ELEMENTS[sizeMode] || HS_ELEMENTS[currentMode] || [];
+            // Only clear inline sizes for selectors belonging to THIS mode, then re-apply.
+            // Clearing all modes at once was wiping sizes that belonged to other mode entries
+            // sharing the same DOM nodes, making unrelated elements appear to shrink.
+            var seenClear = {};
+            modeElems.forEach(function(entry) {
+                entry.css.split(',').forEach(function(selector) {
+                    selector = selector.trim();
+                    if (seenClear[selector]) return;
+                    seenClear[selector] = true;
+                    try { document.querySelectorAll(selector).forEach(function(el) { el.style.fontSize = ''; }); } catch(e) {}
+                });
+            });
             modeElems.forEach(function(entry) {
                 var px = _sizes[sizeMode + '|' + entry.key];
                 if (!px) return;

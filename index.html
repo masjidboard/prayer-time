@@ -1768,7 +1768,7 @@
  <!-- ── Auto Start subsection header ── -->
  <div class="settings-subsection">
  <div class="settings-subsection-line"></div>
- <span class="settings-subsection-label">⏱ AUTO START</span>
+ <span class="settings-subsection-label" id="autostart-section-label">⏱ AUTO START</span>
  <div class="settings-subsection-line"></div>
  </div>
 
@@ -1997,7 +1997,7 @@
  </div>
 
  <!-- PIN Reset waiting box — sibling of pin-input-area; replaces it while waiting -->
- <div id="pin-reset-waiting" style="display:none; margin-top:18px; border-top:1px solid rgba(86,208,232,0.2); padding-top:16px; background:linear-gradient(160deg,#0d1e35 0%,#060d1a 100%); border:2px solid #f0c040; border-radius:16px; padding:18px 16px; text-align:center; box-shadow:0 0 24px rgba(240,192,64,0.2);">
+ <div id="pin-reset-waiting" style="display:none; margin-top:18px; background:linear-gradient(160deg,#0d1e35 0%,#060d1a 100%); border:2px solid #f0c040; border-radius:16px; padding:18px 16px; text-align:center; box-shadow:0 0 24px rgba(240,192,64,0.2);">
  <div style="font-size:32px; margin-bottom:8px;">📡</div>
  <div style="font-family:'Inter',sans-serif; font-size:13px; color:#8899aa; direction:ltr; margin-bottom:14px;" id="wait-approval-text">Waiting for Masjid Board approval…</div>
  <div style="background:#0a1525; border-radius:8px; height:8px; overflow:hidden; margin-bottom:10px;">
@@ -2914,6 +2914,10 @@
    document.getElementById('connect-btn').style.display = 'none';
    document.getElementById('pin-input-area').style.display = 'block';
    document.getElementById('pin-msg').textContent = _t('pinEnter');
+   // Bug 3 fix: there is no PIN to reset yet (first-time or post-mismatch clear),
+   // so the Forgot PIN button must be hidden. Without this, a forgot-pin-area that
+   // was left visible in a previous session bleeds through onto the setup screen.
+   document.getElementById('forgot-pin-area').style.display = 'none';
    document.getElementById('adminPin').focus();
  }
  }
@@ -3411,6 +3415,10 @@
  document.getElementById('masjidCode').value = '';
  document.getElementById('adminPin').value = '';
  document.getElementById('pin-input-area').style.display = 'none';
+ // Bug 2 fix: always hide the PIN-reset waiting box when resetting, regardless of
+ // how the user got here (Back button, cancel, etc.). Without this, the yellow
+ // waiting box stays on screen if the user pressed Back during a Forgot PIN flow.
+ document.getElementById('pin-reset-waiting').style.display = 'none';
  document.getElementById('layout-selection').style.display = 'none';
  const pinCounter = document.getElementById('pin-counter');
  pinCounter.innerHTML = '0 / 4 &nbsp; — ' + _t('digitsLabel');
@@ -3737,7 +3745,7 @@
        function _goNextEntryOrAddNew(fromItem) {
          var fromIdx = _items.indexOf(fromItem);
          var nextItem = _items[fromIdx + 1];
-         if (nextItem) { var tr = nextItem.querySelector('.mosque-tap-row'); if (tr) tr.focus(); }
+         if (nextItem) { let tr = nextItem.querySelector('.mosque-tap-row'); if (tr) tr.focus(); }
          else { var ab = document.getElementById('add-new-btn'); if (ab) ab.focus(); }
        }
 
@@ -3770,7 +3778,7 @@
              var bbr = document.getElementById('back-arrow-btn'); if (bbr) bbr.focus();
            } else if ((_isDelete || _isEdit) && _parentItem) {
              // Up from Delete or Edit → back to this entry's tap-row
-             var tr = _parentItem.querySelector('.mosque-tap-row');
+             let tr = _parentItem.querySelector('.mosque-tap-row');
              if (tr) tr.focus();
            } else if (_tapIdx !== -1) {
              // Up from tap-row → reorder btn (if visible), else back button
@@ -4172,6 +4180,8 @@
    secRemainingLabel: 'seconds remaining',
    // layout link tv button
    linkTvBtn2:     'Link TV',
+   // settings section headers
+   autostartSection: '⏱ AUTO START',
   },
   ur: {
    // Main page
@@ -4278,6 +4288,8 @@
    secRemainingLabel: 'سیکنڈ باقی',
    // layout link tv button
    linkTvBtn2:     'ٹی وی لنک کریں',
+   // settings section headers
+   autostartSection: '⏱ خودکار آغاز',
   }
  };
 
@@ -4472,6 +4484,8 @@
   if (lbl2) lbl2.textContent = L.autoStartLink;
   var warnLbl = document.getElementById('autostart-no-link-warn-text');
   if (warnLbl) warnLbl.textContent = L.warnNoLinkedTv || 'No linked TV — add one via Link TV first.';
+  var sectionLbl = document.getElementById('autostart-section-label');
+  if (sectionLbl) sectionLbl.textContent = L.autostartSection;
 
   // Add new button
   var addBtn = document.getElementById('add-new-btn');
@@ -4598,27 +4612,10 @@
   // (connect button is now handled by ID above)
  }
 
- // Patch renderSavedEntries to use current lang strings.
- // Guard: if the function isn't defined yet (load-order edge case), defer until DOMContentLoaded.
- function _patchRenderSavedEntries() {
-  if (typeof renderSavedEntries !== 'function') return; // not yet defined — caller will retry
-  var _orig_renderSavedEntries = renderSavedEntries;
-  renderSavedEntries = function(mode) {
-   _orig_renderSavedEntries(mode);
-   // After render, patch translatable text inside the list
-   var L = _LANG[window._indexLang];
-   document.querySelectorAll('.mosque-tap-hint').forEach(function(el) {
-    el.textContent = L.tapToOpen;
-   });
-   document.querySelectorAll('.delete-btn').forEach(function(el) {
-    el.textContent = L.deleteLbl;
-   });
-   document.querySelectorAll('.edit-btn').forEach(function(el) {
-    el.textContent = L.editLbl;
-   });
-  };
- }
- _patchRenderSavedEntries();
+ // Issue 7 removed: _patchRenderSavedEntries() was a dead wrapper that re-applied
+ // tapToOpen / deleteLbl / editLbl after every renderSavedEntries() call. Those
+ // strings are already rendered via _t() directly in the template literal, so the
+ // second DOM walk was a no-op. Removed to avoid confusion.
 
  // Apply on load
  window.addEventListener('DOMContentLoaded', function() {
