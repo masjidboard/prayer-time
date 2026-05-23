@@ -3124,7 +3124,7 @@
                                 <button type="button" tabindex="0" id="eid1RestoreBtn" class="clear-btn" style="margin-left:0; width:100%; min-height:32px; padding:0; display:none; background:rgba(75,232,122,0.1); color:#4be87a; border-color:rgba(75,232,122,0.3);"
                                     onclick="toggleEid1(true)" title="Re-enable Eid 1">↩</button>
                             </td>
-                            <td><select tabindex="0" id="configEid"></select></td>
+                            <td><input type="hidden" id="configEid" value="07:00"><button type="button" tabindex="0" class="tv-time-btn" id="configEidBtn" dir="ltr" onclick="if(this.disabled)return; tvPickerOpen('time', document.getElementById('configEid').value, 'Eid Time', function(v){document.getElementById('configEid').value=v; document.getElementById('configEidBtn').textContent=fmt12(v);}, null)">07:00 AM</button></td>
                             <td id="eid1Label" class="lang-text" data-ur="عید" data-en="Eid" style="color:rgba(86,208,232,0.7); font-size:11px; letter-spacing:1px; text-transform:uppercase; width:90px; text-align:left;">عید</td>
                         </tr>
                         <!-- Dynamic extra Eid rows injected here -->
@@ -3479,8 +3479,6 @@
     }
 
     function initSettingsForm() {
-        let eidSelect = document.getElementById("configEid"); eidSelect.innerHTML = "";
-        for(let h=6; h<=8; h++){ for(let m=0; m<60; m+=5){ if(h===6 && m<30) continue; if(h===8 && m>30) break; let t = (h<10?'0'+h:h) + ':' + (m<10?'0'+m:m); eidSelect.innerHTML += `<option value="${t}">${t}</option>`; } }
 
         document.getElementById("configManualDate").value = currentConfig.general.manualDate || "";
         (function(){ var _md=currentConfig.general.manualDate; var _btn=document.getElementById("configManualDateBtn"); if(_md&&_md.length===10){ var _p=_md.split('-'); _btn.textContent='📅 '+_p[2]+'-'+_p[1]+'-'+_p[0]; } else { _btn.textContent=window.currentSettingsLang==='ur'?'📅 تاریخ چنیں':'📅 Pick Date'; } })();
@@ -3489,9 +3487,11 @@
         if (typeof window.updateModeConditionalRows === 'function') window.updateModeConditionalRows();
         document.getElementById("configRotation").value = currentConfig.general.rotation || "90deg"; document.documentElement.style.setProperty('--rot', currentConfig.general.rotation || "90deg");
         document.getElementById("configLocMode").value = currentConfig.location.mode || "auto"; document.getElementById("configLat").value = currentConfig.location.lat || ""; document.getElementById("configLon").value = currentConfig.location.lon || ""; toggleLocationMode();
-        document.getElementById("configFiqh").value = currentConfig.general.fiqh; document.getElementById("configEid").value = currentConfig.general.eidTime;
-        // Sync CDD label now that the correct eidTime value is set
-        if (eidSelect._cdd) eidSelect._cdd._sync();
+        document.getElementById("configFiqh").value = currentConfig.general.fiqh;
+        // Set Eid 1 time picker (tv-time-btn style)
+        var _eidTime = currentConfig.general.eidTime || "07:00";
+        document.getElementById("configEid").value = _eidTime;
+        document.getElementById("configEidBtn").textContent = (typeof fmt12 === 'function') ? fmt12(_eidTime) : _eidTime;
         // Restore Eid 1 show/hide state
         toggleEid1(currentConfig.general.showEid1 !== false);
         document.getElementById("configIshraq").value = currentConfig.general.ishraqOffset || "15";
@@ -4752,7 +4752,12 @@ const rangeEnd = document.getElementById('rangeEnd');
         // Admin: defer initSettingsForm until Firebase has loaded the mosque's real config.
         // Calling it here would populate the panel with defaultConfig/localStorage values.
         if (_onloadMode !== 'admin') initSettingsForm();
-        fetchDailyTimes(); setInterval(updateLiveClock, 1000); requestWakeLock();
+        fetchDailyTimes(); requestWakeLock();
+        (function scheduleClock() {
+            updateLiveClock();
+            var now = Date.now();
+            setTimeout(scheduleClock, 1000 - (now % 1000));
+        })();
     };
 </script>
 
@@ -5902,21 +5907,21 @@ const rangeEnd = document.getElementById('rangeEnd');
     });
 
     function toggleEid1(show) {
-        var sel   = document.getElementById('configEid');
+        var btn   = document.getElementById('configEidBtn');
         var row   = document.getElementById('eid1Row');
         var clearBtn   = document.getElementById('eid1ClearBtn');
         var restoreBtn = document.getElementById('eid1RestoreBtn');
-        if (!sel || !row) return;
+        if (!btn || !row) return;
         if (show) {
-            sel.disabled = false;
-            sel.style.opacity = '1';
+            btn.disabled = false;
+            btn.style.opacity = '1';
             row.style.opacity = '1';
             if (clearBtn)   { clearBtn.style.display = ''; }
             if (restoreBtn) { restoreBtn.style.display = 'none'; }
             if (currentConfig) currentConfig.general.showEid1 = true;
         } else {
-            sel.disabled = true;
-            sel.style.opacity = '0.3';
+            btn.disabled = true;
+            btn.style.opacity = '0.3';
             row.style.opacity = '0.45';
             if (clearBtn)   { clearBtn.style.display = 'none'; }
             if (restoreBtn) { restoreBtn.style.display = ''; }
