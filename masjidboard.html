@@ -307,28 +307,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
+    <title>Masjid Board</title>
+
+    <!-- ═══════════════ PWA META TAGS ═══════════════ -->
+    <!-- iOS / Safari PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Masjid Board">
+    <!-- Android / Chrome PWA -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Masjid Board">
+    <!-- Theme -->
     <meta name="theme-color" content="#050a12">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-512.png">
-    <script>
-      if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock("landscape").catch(function(){});
-      }
-      function goFullscreen() {
-        var el = document.documentElement;
-        if (el.requestFullscreen) el.requestFullscreen();
-        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-        else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
-      }
-      window.addEventListener('load', function() { setTimeout(goFullscreen, 1000); });
-      document.addEventListener('click', goFullscreen);
-      document.addEventListener('touchstart', goFullscreen);
-    </script>
-    <title>Masjid Board</title>
+    <meta name="msapplication-TileColor" content="#050a12">
+    <!-- Orientation lock hint (actual lock done in JS via Screen Orientation API) -->
+    <meta name="screen-orientation" content="landscape">
+    <!-- PWA Manifest (inline via data URI to keep single-file) -->
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Masjid%20Board%22%2C%22short_name%22%3A%22Masjid%22%2C%22display%22%3A%22fullscreen%22%2C%22orientation%22%3A%22landscape%22%2C%22background_color%22%3A%22%23050a12%22%2C%22theme_color%22%3A%22%23050a12%22%2C%22start_url%22%3A%22.%2F%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk%2BBjyHwAHggJ%2FPchI6QAAAABJRU5ErkJggg%3D%3D%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+    <!-- ════════════════════════════════════════════ -->
 
     <!-- ============================================================
          EARLY CORRUPTION GUARD — must run before ANY other script
@@ -833,10 +829,12 @@
             pointer-events: none !important;
         }
 
+        /* Pairing overlay — permanently hidden on all devices/modes */
         #pairing-overlay {
-            background: rgba(4,8,16,0.95) !important;
-            border: 1px solid var(--border-accent) !important;
-            border-radius: 10px !important;
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
         }
 
         .modal {
@@ -2431,7 +2429,9 @@
 
 })();
 </script>
-<div id="pairing-overlay" style="display:none; position:fixed; bottom:20px; left:20px; background:rgba(0,0,0,0.9); border:2px solid #00ddff; padding:15px; border-radius:10px; z-index:9999; color:#fff; font-family:sans-serif;">
+<!-- PAIRING OVERLAY — hidden on ALL devices (TV, mobile, browser).
+     The 8-digit code is kept in the DOM for JS logic but never shown visually. -->
+<div id="pairing-overlay" style="display:none !important; visibility:hidden !important; opacity:0 !important; pointer-events:none !important; position:fixed; bottom:20px; left:20px; background:rgba(0,0,0,0.9); border:2px solid #00ddff; padding:15px; border-radius:10px; z-index:9999; color:#fff; font-family:sans-serif;" aria-hidden="true">
     <div style="color:#00ddff; font-size:12px;">Remote Control Code:</div>
     <div id="displayPairingCode" style="font-size:28px; font-weight:bold; letter-spacing:5px;">------</div>
 </div>
@@ -5542,19 +5542,8 @@ const rangeEnd = document.getElementById('rangeEnd');
         }
         else if (mode === 'tv') {
             localStorage.setItem('is_linked_tv', 'false');
-            if (pairingBox) {
-                if (!navigator.onLine) {
-                    // Offline: hide pairing box immediately — the fb-offline-banner handles user messaging
-                    pairingBox.style.display = 'none';
-                } else {
-                    pairingBox.style.display = 'block';
-                    if (codeDisplay) {
-                        codeDisplay.innerText = "Connecting...";
-                        codeDisplay.style.fontSize = "18px";
-                        codeDisplay.style.color = "#00ddff";
-                    }
-                }
-            }
+            // Pairing overlay is always hidden — code stored in DOM only, never displayed
+            if (pairingBox) pairingBox.style.display = 'none';
         }
 
         let savedData = localStorage.getItem("masjidConfig_tv40");
@@ -7847,6 +7836,52 @@ button.tv-time-btn:hover, button.tv-date-btn:hover {
 })();
 </script>
 <!-- ══════════  END TV PICKER  ══════════ -->
+
+<!-- ══════════  PWA FULLSCREEN + LANDSCAPE LOCK  ══════════ -->
+<script>
+(function(){
+  /* ── Landscape lock via Screen Orientation API ── */
+  function lockLandscape(){
+    try {
+      var so = screen.orientation || screen.mozOrientation || screen.msOrientation;
+      if(so && typeof so.lock === 'function'){
+        so.lock('landscape').catch(function(){});
+      }
+    } catch(e){}
+  }
+
+  /* ── Fullscreen helper ── */
+  function requestFullscreen(el){
+    el = el || document.documentElement;
+    var fn = el.requestFullscreen || el.webkitRequestFullscreen ||
+             el.mozRequestFullScreen || el.msRequestFullscreen;
+    if(fn){ fn.call(el).catch(function(){}); }
+  }
+
+  /* ── Auto-fullscreen 1 second after load ── */
+  window.addEventListener('load', function(){
+    setTimeout(function(){
+      requestFullscreen();
+      lockLandscape();
+    }, 1000);
+  });
+
+  /* ── Touch-triggered fullscreen (required on mobile after user gesture) ── */
+  var _fsTouch = false;
+  document.addEventListener('touchstart', function(){
+    if(_fsTouch) return;
+    _fsTouch = true;
+    requestFullscreen();
+    lockLandscape();
+  }, { passive: true, once: true });
+
+  /* ── Re-lock on orientation change ── */
+  window.addEventListener('orientationchange', function(){
+    setTimeout(lockLandscape, 200);
+  });
+})();
+</script>
+<!-- ══════════  END PWA FULLSCREEN  ══════════ -->
 
 </body>
 </html>
