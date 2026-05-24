@@ -2404,7 +2404,32 @@
  }
  function confirmExit() {
  closeExitModal();
- try { AndroidApp.closeApp(); } catch(e) { /* Only works inside Android APK */ }
+ // Android APK
+ try { AndroidApp.closeApp(); return; } catch(e) { /* Not in APK */ }
+ // PWA / Browser exit — try multiple methods in sequence
+ try {
+   // Method 1: window.close() — works if opened by script or PWA
+   var closed = false;
+   window.close();
+   // Give window.close() a moment; if still open, try history trick
+   setTimeout(function() {
+     try {
+       // Method 2: Navigate back past history start → browser closes tab/PWA
+       if (window.history.length > 1) {
+         window.history.go(-(window.history.length));
+       }
+     } catch(e2) {}
+     setTimeout(function() {
+       try {
+         // Method 3: Replace location with blank then close
+         window.location.replace('about:blank');
+       } catch(e3) {}
+       setTimeout(function() {
+         try { window.close(); } catch(e4) {}
+       }, 100);
+     }, 200);
+   }, 150);
+ } catch(e) {}
  }
  // Close modal on backdrop tap
  document.getElementById('exitModal').addEventListener('click', function(e) {
