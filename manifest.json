@@ -1,6 +1,6 @@
 {
-  "name": "Prayer Time",
-  "short_name": "Prayer Time",
+  "name": "Masjid Board",
+  "short_name": "Masjid Board",
   "description": "Masjid Prayer Time Board - نماز کے اوقات",
   "start_url": "/prayer-time/index.html",
   "display": "standalone",
